@@ -69,9 +69,11 @@ Run the following on a physical iPhone 16 (or later) with the debug overlay open
    threshold, FPS stable); gate to at most 5 fps regardless of frame rate.
 3. **Drop face mesh**: Body + hand only. `VNDetectFaceRectanglesRequest` is
    an order of magnitude cheaper if rough face bbox is all that's needed.
-4. **Pipeline requests through a single handler**: Pass all requests to one
-   `VNImageRequestHandler.perform([body, hand, face])` call — Vision can share
-   preprocessing overhead. The combined benchmark already uses this pattern.
+4. **Pipeline requests through a single handler**: Switch to a single
+   `VNImageRequestHandler.perform([body, hand, face])` call so Vision can share
+   preprocessing overhead across all three requests (current implementation uses
+   separate handlers for isolated per-model timing; a unified handler is a future
+   optimization).
 5. **Async offload**: Move Vision off the main pipeline entirely; accept up to one
    analysis result per second and overlay it onto subsequent frames.
 

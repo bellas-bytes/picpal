@@ -37,7 +37,6 @@ public final class VisionLandmarkProbe: @unchecked Sendable, CameraFrameDelegate
 
     private enum ProbeConstants {
         static let queueLabel = "com.picpal.landmarks.probe"
-        static let budgetMs: Double = 150.0
         static let orientation: CGImagePropertyOrientation = .up
     }
 

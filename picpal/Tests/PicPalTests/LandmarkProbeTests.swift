@@ -1,4 +1,6 @@
 import Testing
+import CoreMedia
+import CoreVideo
 import os
 @testable import PicPal
 
@@ -135,5 +137,26 @@ struct VisionLandmarkProbeTests {
             bodyPoseMs: 0, handPoseMs: 0, faceMeshMs: 0, combinedMs: 0, frameCount: 0
         )
         #expect(count.value == 1)
+    }
+
+    @Test("Disabled probe does not invoke onProbeStats when a frame arrives via the camera delegate")
+    func disabledProbeGatesFrameDelivery() async throws {
+        let callCount = Locked<Int>(0)
+        let probe = VisionLandmarkProbe(isEnabled: false) { _ in
+            callCount.set(callCount.value + 1)
+        }
+
+        // Synthetic 4×4 BGRA pixel buffer — CoreVideo only, no AVFoundation required.
+        var pixelBuffer: CVPixelBuffer?
+        CVPixelBufferCreate(kCFAllocatorDefault, 4, 4, kCVPixelFormatType_32BGRA, nil, &pixelBuffer)
+        guard let buffer = pixelBuffer else { return }
+
+        let camera = CameraCapture()
+        probe.cameraCapture(camera, didOutputPixelBuffer: buffer, timestamp: .zero)
+
+        // Allow more than enough time for any background Vision dispatch to fire.
+        try await Task.sleep(for: .milliseconds(200))
+
+        #expect(callCount.value == 0, "disabled probe must not fire onProbeStats")
     }
 }
