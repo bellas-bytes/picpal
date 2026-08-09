@@ -23,4 +23,40 @@ final class DebugOverlayViewModel: ObservableObject {
 
     /// Thermal state description (placeholder: "nominal").
     @Published var thermalState: String = "nominal"
+
+    // MARK: - Telemetry wiring
+
+    /// Creates a `TelemetryFeed` wired to update `framesPerSecond` and `thermalState`.
+    ///
+    /// Retain the returned feed for the lifetime of the session and wire its bridge into
+    /// the camera pipeline:
+    /// ```swift
+    /// let feed = viewModel.makeTelemetryFeed()
+    /// camera.delegate = feed.bridge
+    /// feed.start()
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - frameTimer: Override for testing.
+    ///   - notificationCenter: Override for testing.
+    func makeTelemetryFeed(
+        frameTimer: FrameTimer = FrameTimer(),
+        notificationCenter: NotificationCenter = .default
+    ) -> TelemetryFeed {
+        TelemetryFeed(
+            onFPS: { [weak self] fps in
+                Task { @MainActor [weak self] in
+                    self?.framesPerSecond = fps
+                }
+            },
+            onThermal: { [weak self] event in
+                let label = ThermalMonitor.stateName(for: event.state)
+                Task { @MainActor [weak self] in
+                    self?.thermalState = label
+                }
+            },
+            frameTimer: frameTimer,
+            notificationCenter: notificationCenter
+        )
+    }
 }
