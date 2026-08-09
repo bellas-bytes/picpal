@@ -36,24 +36,21 @@ struct CameraCaptureTests {
 
     // MARK: - configure(preset:fps:)
 
-    @Test func configureUpdatesPreset() async throws {
+    @Test func configureUpdatesPreset() {
         let capture = CameraCapture()
         capture.configure(preset: .hd1920x1080, fps: 30)
-        try await Task.sleep(for: .milliseconds(150))
         #expect(capture.currentConfiguration.preset == .hd1920x1080)
     }
 
-    @Test func configureClampsLowFPS() async throws {
+    @Test func configureClampsLowFPS() {
         let capture = CameraCapture()
         capture.configure(preset: .hd1280x720, fps: -5)
-        try await Task.sleep(for: .milliseconds(150))
         #expect(capture.currentConfiguration.targetFPS == CameraConfiguration.minimumFPS)
     }
 
-    @Test func configureClampsHighFPS() async throws {
+    @Test func configureClampsHighFPS() {
         let capture = CameraCapture()
         capture.configure(preset: .hd1280x720, fps: 500)
-        try await Task.sleep(for: .milliseconds(150))
         #expect(capture.currentConfiguration.targetFPS == CameraConfiguration.maximumFPS)
     }
 

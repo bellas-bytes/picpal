@@ -52,6 +52,8 @@ public final class CameraCapture: @unchecked Sendable {
     // Delegate is a weak reference inside a class wrapper so the lock can store it.
     private let delegateBox = DelegateBox()
 
+    private let logger = Logger(subsystem: "com.picpal", category: "CameraCapture")
+
     // MARK: - AVFoundation objects  (mutated only on sessionQueue)
 
     nonisolated(unsafe) private var captureSession = AVCaptureSession()
@@ -96,7 +98,8 @@ public final class CameraCapture: @unchecked Sendable {
         sessionQueue.async { [weak self] in
             guard let self else { return }
             if stateLock.withLock({ $0 }) == .running {
-                applyConfigurationLocked(newConfig)
+                let latestConfig = configLock.withLock { $0 }
+                applyConfigurationLocked(latestConfig)
             }
         }
     }
@@ -213,7 +216,11 @@ public final class CameraCapture: @unchecked Sendable {
         guard let device = (captureSession.inputs.first as? AVCaptureDeviceInput)?.device else {
             return
         }
-        try? applyFrameRate(configuration.targetFPS, to: device)
+        do {
+            try applyFrameRate(configuration.targetFPS, to: device)
+        } catch {
+            logger.error("applyFrameRate failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     /// Set `activeVideoMinFrameDuration` / `Max` on `device` for the requested FPS.

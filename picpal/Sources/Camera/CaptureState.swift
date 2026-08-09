@@ -22,21 +22,6 @@ extension CameraCapture {
         /// A non-recoverable error occurred; the associated string contains a human-readable description.
         case error(String)
 
-        public static func == (lhs: CaptureState, rhs: CaptureState) -> Bool {
-            switch (lhs, rhs) {
-            case (.idle, .idle),
-                 (.starting, .starting),
-                 (.running, .running),
-                 (.stopping, .stopping),
-                 (.permissionDenied, .permissionDenied),
-                 (.permissionRestricted, .permissionRestricted):
-                return true
-            case (.error(let l), .error(let r)):
-                return l == r
-            default:
-                return false
-            }
-        }
     }
 }
 
