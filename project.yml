@@ -27,6 +27,8 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+    dependencies:
+      - sdk: Vision.framework
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.picpal.app

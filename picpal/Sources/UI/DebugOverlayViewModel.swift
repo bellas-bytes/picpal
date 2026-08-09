@@ -30,6 +30,20 @@ final class DebugOverlayViewModel: ObservableObject {
     /// Rolling mean frame-processing time in milliseconds (placeholder: 0.0).
     @Published var meanFrameMs: Double = 0.0
 
+    // MARK: - Landmark probe fields
+
+    /// Rolling mean body-pose inference time in milliseconds (placeholder: 0.0).
+    @Published var bodyPoseMs: Double = 0.0
+
+    /// Rolling mean hand-pose inference time in milliseconds (placeholder: 0.0).
+    @Published var handPoseMs: Double = 0.0
+
+    /// Rolling mean face-mesh inference time in milliseconds (placeholder: 0.0).
+    @Published var faceMeshMs: Double = 0.0
+
+    /// Rolling mean combined Vision total in milliseconds (placeholder: 0.0).
+    @Published var landmarkCombinedMs: Double = 0.0
+
     // MARK: - Telemetry wiring
 
     /// Creates a `TelemetryFeed` wired to update `framesPerSecond` and `thermalState`.
@@ -47,7 +61,8 @@ final class DebugOverlayViewModel: ObservableObject {
     ///   - notificationCenter: Override for testing.
     func makeTelemetryFeed(
         frameTimer: FrameTimer = FrameTimer(),
-        notificationCenter: NotificationCenter = .default
+        notificationCenter: NotificationCenter = .default,
+        downstream: (any CameraFrameDelegate)? = nil
     ) -> TelemetryFeed {
         TelemetryFeed(
             onFPS: { [weak self] fps in
@@ -68,6 +83,7 @@ final class DebugOverlayViewModel: ObservableObject {
                 }
             },
             frameTimer: frameTimer,
+            downstream: downstream,
             notificationCenter: notificationCenter
         )
     }
