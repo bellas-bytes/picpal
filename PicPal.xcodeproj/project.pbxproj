@@ -7,16 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E2808E915A30DC6D8736FCD /* MotionDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */; };
+		29ED535768FA95BC8D0D998C /* MotionManager+Internal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95EE88A21316305B4A989D9 /* MotionManager+Internal.swift */; };
 		59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */; };
 		5C5BD9F90A9E0DBDA68BADDC /* CaptureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3352C7D6EC951111FEECA967 /* CaptureState.swift */; };
+		698AEC170D45EB4CB0D1419E /* MotionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5B3440F257F5258241DA3C /* MotionDelegate.swift */; };
+		6EBD433279CF46F3ED807464 /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C989CACDEA5CD57E0938515C /* MotionManager.swift */; };
 		87601917C713AEDAD040F2CB /* CaptureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */; };
 		8978D97B80D4BA041A05E124 /* CameraCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63650A5474A82D6183BBD5E /* CameraCapture.swift */; };
 		94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0486A7342920630558BDFB /* CameraCaptureTests.swift */; };
 		B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */; };
 		BF659892E4EA6C97DE6A0553 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */; };
 		CBF5F0FC6D1686ABAAFC64EF /* CameraFrameDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7C9EDA01B1B08F63888B51 /* CameraFrameDelegate.swift */; };
+		D122B0CD22B836D2137B8A41 /* MotionManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505300E876373EAE8F30B10B /* MotionManagerTests.swift */; };
 		D44779D742AEA80E7D6C732C /* CameraCapture+Internal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408C43CD74866EC40E4371C /* CameraCapture+Internal.swift */; };
+		EB2D66A11102A151445E3BF9 /* MotionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA507E9D656071A43579101 /* MotionProcessor.swift */; };
 		F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 576EAE74AC58442D1D45B548 /* ContentView.swift */; };
+		F1074965CD86018D140DE864 /* MotionReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,15 +40,22 @@
 		1408C43CD74866EC40E4371C /* CameraCapture+Internal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CameraCapture+Internal.swift"; sourceTree = "<group>"; };
 		3352C7D6EC951111FEECA967 /* CaptureState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureState.swift; sourceTree = "<group>"; };
 		3D7C9EDA01B1B08F63888B51 /* CameraFrameDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraFrameDelegate.swift; sourceTree = "<group>"; };
+		505300E876373EAE8F30B10B /* MotionManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManagerTests.swift; sourceTree = "<group>"; };
 		576EAE74AC58442D1D45B548 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		616A81624DE18536D412700A /* PicPalTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PicPalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FAAF108C70285DB6D41DDD4 /* PicPal.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PicPal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureStateTests.swift; sourceTree = "<group>"; };
 		8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfigurationTests.swift; sourceTree = "<group>"; };
+		8C5B3440F257F5258241DA3C /* MotionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDelegate.swift; sourceTree = "<group>"; };
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
+		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
 		C63650A5474A82D6183BBD5E /* CameraCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCapture.swift; sourceTree = "<group>"; };
+		C989CACDEA5CD57E0938515C /* MotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManager.swift; sourceTree = "<group>"; };
 		D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfiguration.swift; sourceTree = "<group>"; };
+		D95EE88A21316305B4A989D9 /* MotionManager+Internal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MotionManager+Internal.swift"; sourceTree = "<group>"; };
+		F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionReading.swift; sourceTree = "<group>"; };
+		FBA507E9D656071A43579101 /* MotionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionProcessor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -89,6 +103,7 @@
 				AF0486A7342920630558BDFB /* CameraCaptureTests.swift */,
 				8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */,
 				79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */,
+				505300E876373EAE8F30B10B /* MotionManagerTests.swift */,
 			);
 			path = PicPalTests;
 			sourceTree = "<group>";
@@ -98,8 +113,22 @@
 			children = (
 				31899D2E4139D10F0E248E5E /* App */,
 				21E2EC8127C049B75E381984 /* Camera */,
+				95F3665B7603A4993CF2B526 /* Motion */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		95F3665B7603A4993CF2B526 /* Motion */ = {
+			isa = PBXGroup;
+			children = (
+				B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */,
+				8C5B3440F257F5258241DA3C /* MotionDelegate.swift */,
+				C989CACDEA5CD57E0938515C /* MotionManager.swift */,
+				D95EE88A21316305B4A989D9 /* MotionManager+Internal.swift */,
+				FBA507E9D656071A43579101 /* MotionProcessor.swift */,
+				F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */,
+			);
+			path = Motion;
 			sourceTree = "<group>";
 		};
 		CEE8245EC2A4B661CC35AB21 = {
@@ -199,6 +228,12 @@
 				CBF5F0FC6D1686ABAAFC64EF /* CameraFrameDelegate.swift in Sources */,
 				5C5BD9F90A9E0DBDA68BADDC /* CaptureState.swift in Sources */,
 				F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */,
+				0E2808E915A30DC6D8736FCD /* MotionDataSource.swift in Sources */,
+				698AEC170D45EB4CB0D1419E /* MotionDelegate.swift in Sources */,
+				29ED535768FA95BC8D0D998C /* MotionManager+Internal.swift in Sources */,
+				6EBD433279CF46F3ED807464 /* MotionManager.swift in Sources */,
+				EB2D66A11102A151445E3BF9 /* MotionProcessor.swift in Sources */,
+				F1074965CD86018D140DE864 /* MotionReading.swift in Sources */,
 				B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -210,6 +245,7 @@
 				94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */,
 				59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */,
 				87601917C713AEDAD040F2CB /* CaptureStateTests.swift in Sources */,
+				D122B0CD22B836D2137B8A41 /* MotionManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
