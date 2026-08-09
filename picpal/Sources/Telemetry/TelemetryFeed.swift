@@ -46,12 +46,16 @@ public final class TelemetryFeed: @unchecked Sendable {
     ///            Dispatch to `@MainActor` inside this closure to update UI.
     ///   - onThermal: Called (on an unspecified thread) on every thermal state change.
     ///                Dispatch to `@MainActor` inside this closure to update UI.
+    ///   - onFrameStats: Called (on an unspecified thread) after each frame with a snapshot
+    ///                   of accumulated timing statistics (drop count, mean ms, p95, max).
+    ///                   Dispatch to `@MainActor` inside this closure to update UI.
     ///   - frameTimer: Frame timer override for testing.
     ///   - downstream: Next pipeline delegate (nil until the analysis stage is added).
     ///   - notificationCenter: Notification center override for testing.
     public init(
         onFPS: @escaping @Sendable (Double) -> Void,
         onThermal: @escaping @Sendable (ThermalEvent) -> Void,
+        onFrameStats: @escaping @Sendable (FrameTimerStatistics) -> Void = { _ in },
         frameTimer: FrameTimer = FrameTimer(),
         downstream: (any CameraFrameDelegate)? = nil,
         notificationCenter: NotificationCenter = .default
@@ -59,7 +63,8 @@ public final class TelemetryFeed: @unchecked Sendable {
         let bridge = PipelineTelemetryBridge(
             frameTimer: frameTimer,
             downstream: downstream,
-            onFPSUpdate: onFPS
+            onFPSUpdate: onFPS,
+            onFrameStats: onFrameStats
         )
         let handler = ThermalEventHandler(callback: onThermal)
         let monitor = ThermalMonitor(delegate: handler, notificationCenter: notificationCenter)

@@ -24,6 +24,12 @@ final class DebugOverlayViewModel: ObservableObject {
     /// Thermal state description (placeholder: "nominal").
     @Published var thermalState: String = "nominal"
 
+    /// Cumulative count of frames that exceeded the 16.67 ms budget (placeholder: 0).
+    @Published var dropCount: Int = 0
+
+    /// Rolling mean frame-processing time in milliseconds (placeholder: 0.0).
+    @Published var meanFrameMs: Double = 0.0
+
     // MARK: - Telemetry wiring
 
     /// Creates a `TelemetryFeed` wired to update `framesPerSecond` and `thermalState`.
@@ -53,6 +59,12 @@ final class DebugOverlayViewModel: ObservableObject {
                 let label = ThermalMonitor.stateName(for: event.state)
                 Task { @MainActor [weak self] in
                     self?.thermalState = label
+                }
+            },
+            onFrameStats: { [weak self] stats in
+                Task { @MainActor [weak self] in
+                    self?.dropCount = stats.dropCount
+                    self?.meanFrameMs = stats.meanMs
                 }
             },
             frameTimer: frameTimer,

@@ -14,9 +14,10 @@ import os
 ///
 /// ## Threading model
 /// Frame callbacks arrive on the camera's dedicated `frameQueue`. All shared state is
-/// protected by `OSAllocatedUnfairLock`. `FrameTimer.stop(token:)` is dispatched via
-/// `Task` — elapsed time is computed from the token's captured start instant, so
-/// scheduling delay does not inflate the measurement.
+/// protected by `OSAllocatedUnfairLock`. The end instant is captured synchronously in
+/// the frame callback, then passed to `FrameTimer.stop(token:endInstant:)` inside a
+/// `Task` — elapsed time is computed from captured instants, so scheduling delay does
+/// not inflate the measurement.
 ///
 /// `PipelineTelemetryBridge` is `@unchecked Sendable`: all mutable state is synchronised
 /// via `OSAllocatedUnfairLock`.
@@ -35,6 +36,7 @@ public final class PipelineTelemetryBridge: @unchecked Sendable, CameraFrameDele
     public let frameTimer: FrameTimer
 
     private let onFPSUpdate: @Sendable (Double) -> Void
+    private let onFrameStats: @Sendable (FrameTimerStatistics) -> Void
     private weak var downstream: (any CameraFrameDelegate)?
     private let logger = Logger(subsystem: "com.picpal", category: "PipelineTelemetryBridge")
 
@@ -52,11 +54,13 @@ public final class PipelineTelemetryBridge: @unchecked Sendable, CameraFrameDele
     public init(
         frameTimer: FrameTimer = FrameTimer(),
         downstream: (any CameraFrameDelegate)? = nil,
-        onFPSUpdate: @escaping @Sendable (Double) -> Void = { _ in }
+        onFPSUpdate: @escaping @Sendable (Double) -> Void = { _ in },
+        onFrameStats: @escaping @Sendable (FrameTimerStatistics) -> Void = { _ in }
     ) {
         self.frameTimer = frameTimer
         self.downstream = downstream
         self.onFPSUpdate = onFPSUpdate
+        self.onFrameStats = onFrameStats
     }
 
     // MARK: - CameraFrameDelegate
@@ -68,7 +72,12 @@ public final class PipelineTelemetryBridge: @unchecked Sendable, CameraFrameDele
     ) {
         let token = frameTimer.start()
         downstream?.cameraCapture(capture, didOutputPixelBuffer: pixelBuffer, timestamp: timestamp)
-        Task { await frameTimer.stop(token: token) }
+        let endInstant = ContinuousClock.now                    // capture synchronously — correct end time
+        Task { [onFrameStats] in
+            await frameTimer.stop(token: token, endInstant: endInstant)
+            let stats = await frameTimer.statistics
+            onFrameStats(stats)
+        }
         tickFPSWindow()
     }
 

@@ -36,6 +36,18 @@ struct DebugOverlayViewModelTests {
         #expect(viewModel.thermalState == "nominal")
     }
 
+    @Test("ViewModel initialises dropCount to 0")
+    func initialDropCount() {
+        let viewModel = DebugOverlayViewModel()
+        #expect(viewModel.dropCount == 0)
+    }
+
+    @Test("ViewModel initialises meanFrameMs to 0.0")
+    func initialMeanFrameMs() {
+        let viewModel = DebugOverlayViewModel()
+        #expect(viewModel.meanFrameMs == 0.0)
+    }
+
     // MARK: - Published property mutation
 
     @Test("Assigning tiltDegrees reflects the new value")
@@ -71,5 +83,19 @@ struct DebugOverlayViewModelTests {
         let viewModel = DebugOverlayViewModel()
         viewModel.thermalState = "serious"
         #expect(viewModel.thermalState == "serious")
+    }
+
+    @Test("Assigning dropCount reflects the new value")
+    func updateDropCount() {
+        let viewModel = DebugOverlayViewModel()
+        viewModel.dropCount = 7
+        #expect(viewModel.dropCount == 7)
+    }
+
+    @Test("Assigning meanFrameMs reflects the new value")
+    func updateMeanFrameMs() {
+        let viewModel = DebugOverlayViewModel()
+        viewModel.meanFrameMs = 12.5
+        #expect(viewModel.meanFrameMs == 12.5)
     }
 }

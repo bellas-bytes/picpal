@@ -39,13 +39,15 @@ public struct FrameTimerStatistics: Sendable, Equatable, Encodable {
 /// be dispatched asynchronously from a synchronous frame callback:
 ///
 /// ```swift
-/// let token = frameTimer.start()                  // synchronous — captures time now
+/// let token = frameTimer.start()                          // synchronous — captures time now
 /// processFrame()
-/// Task { await frameTimer.stop(token: token) }    // async — elapsed computed from token
+/// let endInstant = ContinuousClock.now                    // synchronous — captures end time
+/// Task { await frameTimer.stop(token: token,              // async — elapsed computed from
+///                              endInstant: endInstant) }  //   captured instants, not Task run time
 /// ```
 ///
-/// The elapsed time is computed from the token's captured `startTime`, not from when the
-/// Task executes, so scheduling latency does not inflate the measurement.
+/// The elapsed time is computed from the token's captured `startTime` and the explicitly
+/// supplied `endInstant`, so scheduling latency never inflates the measurement.
 public actor FrameTimer {
 
     // MARK: - Constants
@@ -77,8 +79,14 @@ public actor FrameTimer {
 
     /// Record elapsed time for the given token. Increments the drop counter if the elapsed
     /// time exceeded `frameTimeBudgetMs`.
-    public func stop(token: FrameTimerToken) {
-        let elapsed = ContinuousClock.now - token.startTime
+    ///
+    /// - Parameters:
+    ///   - token: The token returned by `start()`.
+    ///   - endInstant: The instant at which processing finished. Defaults to `.now`, but
+    ///     callers that cannot afford the actor-hop latency should capture this synchronously
+    ///     on the calling thread *before* creating a `Task` and pass it in explicitly.
+    public func stop(token: FrameTimerToken, endInstant: ContinuousClock.Instant = .now) {
+        let elapsed = endInstant - token.startTime
         let ms = milliseconds(from: elapsed)
         appendSample(ms)
     }

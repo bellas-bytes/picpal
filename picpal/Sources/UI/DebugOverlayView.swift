@@ -46,6 +46,8 @@ struct DebugOverlayView: View {
             debugRow(label: "Exposure", value: viewModel.exposureLevel)
             debugRow(label: "FPS",      value: String(format: "%.1f",   viewModel.framesPerSecond))
             debugRow(label: "Thermal",  value: viewModel.thermalState)
+            debugRow(label: "Drops",    value: "\(viewModel.dropCount)")
+            debugRow(label: "Frame ms", value: String(format: "%.2f",   viewModel.meanFrameMs))
         }
         .padding(DebugOverlayLayout.panelInnerPadding)
         .background(
