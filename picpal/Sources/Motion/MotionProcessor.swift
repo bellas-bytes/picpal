@@ -77,7 +77,7 @@ struct MotionProcessor {
             lastSpikeTime = sample.timestamp
         }
 
-        let elapsed = sample.timestamp - lastSpikeTime!
+        let elapsed = sample.timestamp - (lastSpikeTime ?? sample.timestamp)
         let newIsSettled = elapsed >= settleWindow
 
         var settleChanged: Bool? = nil
