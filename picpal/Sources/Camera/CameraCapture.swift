@@ -56,7 +56,7 @@ public final class CameraCapture: @unchecked Sendable {
 
     // MARK: - AVFoundation objects  (mutated only on sessionQueue)
 
-    nonisolated(unsafe) private var captureSession = AVCaptureSession()
+    nonisolated(unsafe) public private(set) var captureSession = AVCaptureSession()
     nonisolated(unsafe) private var videoOutput    = AVCaptureVideoDataOutput()
     /// Retained to keep the delegate alive for the lifetime of the output.
     nonisolated(unsafe) private var sampleReceiver: SampleBufferReceiver?
