@@ -22,43 +22,10 @@ import os
 ///
 /// `CameraCapture` is `@unchecked Sendable`: the class crosses isolation contexts safely
 /// because all mutable state is synchronised via `OSAllocatedUnfairLock` or serial queues.
+///
+/// `CaptureState` is defined in `CaptureState.swift`; `DelegateBox` and `SampleBufferReceiver`
+/// are defined in `CameraCapture+Internal.swift`.
 public final class CameraCapture: @unchecked Sendable {
-
-    // MARK: - CaptureState
-
-    /// Lifecycle states of the capture session.
-    public enum CaptureState: Sendable, Equatable {
-        /// Session has not been started.
-        case idle
-        /// Permission granted; session is being built.
-        case starting
-        /// Session is actively delivering frames.
-        case running
-        /// `stop()` has been called; session is winding down.
-        case stopping
-        /// The user denied camera access.
-        case permissionDenied
-        /// Camera access is restricted by a policy (parental controls, MDM, etc.).
-        case permissionRestricted
-        /// A non-recoverable error occurred; the associated string contains a human-readable description.
-        case error(String)
-
-        public static func == (lhs: CaptureState, rhs: CaptureState) -> Bool {
-            switch (lhs, rhs) {
-            case (.idle, .idle),
-                 (.starting, .starting),
-                 (.running, .running),
-                 (.stopping, .stopping),
-                 (.permissionDenied, .permissionDenied),
-                 (.permissionRestricted, .permissionRestricted):
-                return true
-            case (.error(let l), .error(let r)):
-                return l == r
-            default:
-                return false
-            }
-        }
-    }
 
     // MARK: - Internal constants
 
@@ -278,63 +245,6 @@ public final class CameraCapture: @unchecked Sendable {
             DispatchQueue.main.async {
                 del.cameraCapture(captureRef, didChangeState: state)
             }
-        }
-    }
-}
-
-// MARK: - Supporting types (file-private)
-
-/// Thread-safe wrapper for the weak delegate reference.
-///
-/// `OSAllocatedUnfairLock` stores value types; a class wrapper lets us hold a weak ref inside it.
-private final class DelegateBox: @unchecked Sendable {
-    private let lock = NSLock()
-    private weak var value: (any CameraFrameDelegate)?
-
-    func get() -> (any CameraFrameDelegate)? {
-        lock.withLock { value }
-    }
-
-    func set(_ delegate: (any CameraFrameDelegate)?) {
-        lock.withLock { value = delegate }
-    }
-}
-
-/// Bridges `AVCaptureVideoDataOutputSampleBufferDelegate` to a Swift closure.
-///
-/// Using a separate object avoids burdening `CameraCapture` with Obj-C protocol conformance
-/// and keeps the closure capture chain explicit and `@Sendable`.
-private final class SampleBufferReceiver: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
-    private let onFrame: @Sendable (CVPixelBuffer, CMTime) -> Void
-
-    init(onFrame: @escaping @Sendable (CVPixelBuffer, CMTime) -> Void) {
-        self.onFrame = onFrame
-        super.init()
-    }
-
-    nonisolated func captureOutput(
-        _ output: AVCaptureOutput,
-        didOutput sampleBuffer: CMSampleBuffer,
-        from connection: AVCaptureConnection
-    ) {
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-        onFrame(pixelBuffer, timestamp)
-    }
-}
-
-// MARK: - Error definitions
-
-private enum CameraError: LocalizedError {
-    case deviceUnavailable
-    case cannotAddInput
-    case cannotAddOutput
-
-    var errorDescription: String? {
-        switch self {
-        case .deviceUnavailable: return "No camera device is available on this hardware."
-        case .cannotAddInput:    return "Cannot add camera input to the capture session."
-        case .cannotAddOutput:   return "Cannot add video data output to the capture session."
         }
     }
 }

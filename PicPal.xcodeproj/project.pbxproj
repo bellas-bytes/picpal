@@ -8,12 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */; };
+		5C5BD9F90A9E0DBDA68BADDC /* CaptureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3352C7D6EC951111FEECA967 /* CaptureState.swift */; };
 		87601917C713AEDAD040F2CB /* CaptureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */; };
 		8978D97B80D4BA041A05E124 /* CameraCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63650A5474A82D6183BBD5E /* CameraCapture.swift */; };
 		94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0486A7342920630558BDFB /* CameraCaptureTests.swift */; };
 		B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */; };
 		BF659892E4EA6C97DE6A0553 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */; };
 		CBF5F0FC6D1686ABAAFC64EF /* CameraFrameDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7C9EDA01B1B08F63888B51 /* CameraFrameDelegate.swift */; };
+		D44779D742AEA80E7D6C732C /* CameraCapture+Internal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408C43CD74866EC40E4371C /* CameraCapture+Internal.swift */; };
 		F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 576EAE74AC58442D1D45B548 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +30,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1408C43CD74866EC40E4371C /* CameraCapture+Internal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CameraCapture+Internal.swift"; sourceTree = "<group>"; };
+		3352C7D6EC951111FEECA967 /* CaptureState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureState.swift; sourceTree = "<group>"; };
 		3D7C9EDA01B1B08F63888B51 /* CameraFrameDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraFrameDelegate.swift; sourceTree = "<group>"; };
 		576EAE74AC58442D1D45B548 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		616A81624DE18536D412700A /* PicPalTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PicPalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -54,8 +58,10 @@
 			isa = PBXGroup;
 			children = (
 				C63650A5474A82D6183BBD5E /* CameraCapture.swift */,
+				1408C43CD74866EC40E4371C /* CameraCapture+Internal.swift */,
 				D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */,
 				3D7C9EDA01B1B08F63888B51 /* CameraFrameDelegate.swift */,
+				3352C7D6EC951111FEECA967 /* CaptureState.swift */,
 			);
 			path = Camera;
 			sourceTree = "<group>";
@@ -187,9 +193,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D44779D742AEA80E7D6C732C /* CameraCapture+Internal.swift in Sources */,
 				8978D97B80D4BA041A05E124 /* CameraCapture.swift in Sources */,
 				BF659892E4EA6C97DE6A0553 /* CameraConfiguration.swift in Sources */,
 				CBF5F0FC6D1686ABAAFC64EF /* CameraFrameDelegate.swift in Sources */,
+				5C5BD9F90A9E0DBDA68BADDC /* CaptureState.swift in Sources */,
 				F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */,
 				B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */,
 			);

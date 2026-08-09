@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 import AVFoundation
 @testable import PicPal
 
@@ -8,89 +8,70 @@ import AVFoundation
 /// These tests validate what is observable without a physical camera device:
 /// - Initial state and configuration values.
 /// - `configure(preset:fps:)` effect on `currentConfiguration`.
-/// - State-change notifications via the delegate protocol.
+/// - Delegate weak-reference semantics.
 ///
 /// ## Device-only validation
 /// The following require a real device and are documented but not implemented here:
 /// - Live frame delivery (`didOutputPixelBuffer`).
 /// - `requestPermissionAndStart()` end-to-end (requires `AVCaptureSession` to run).
 /// - FPS enforcement accuracy under load.
-final class CameraCaptureTests: XCTestCase {
+struct CameraCaptureTests {
 
     // MARK: - Initialisation
 
-    func testInitialStateIsIdle() {
+    @Test func initialStateIsIdle() {
         let capture = CameraCapture()
-        XCTAssertEqual(capture.captureState, .idle)
+        #expect(capture.captureState == .idle)
     }
 
-    func testInitialConfigurationMatchesDefault() {
+    @Test func initialConfigurationMatchesDefault() {
         let capture = CameraCapture()
-        XCTAssertEqual(capture.currentConfiguration, .defaultConfiguration)
+        #expect(capture.currentConfiguration == .defaultConfiguration)
     }
 
-    func testInitialDelegateIsNil() {
+    @Test func initialDelegateIsNil() {
         let capture = CameraCapture()
-        XCTAssertNil(capture.delegate)
+        #expect(capture.delegate == nil)
     }
 
     // MARK: - configure(preset:fps:)
 
-    func testConfigureUpdatesPreset() {
+    @Test func configureUpdatesPreset() async throws {
         let capture = CameraCapture()
-        let expectation = expectation(description: "sessionQueue drains")
         capture.configure(preset: .hd1920x1080, fps: 30)
-
-        // configure() dispatches internally; wait one run-loop cycle then drain via a second async.
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        wait(for: [expectation], timeout: 1)
-
-        XCTAssertEqual(capture.currentConfiguration.preset, .hd1920x1080)
+        try await Task.sleep(for: .milliseconds(150))
+        #expect(capture.currentConfiguration.preset == .hd1920x1080)
     }
 
-    func testConfigureClampsLowFPS() {
+    @Test func configureClampsLowFPS() async throws {
         let capture = CameraCapture()
-        let expectation = expectation(description: "sessionQueue drains")
         capture.configure(preset: .hd1280x720, fps: -5)
-
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        wait(for: [expectation], timeout: 1)
-
-        XCTAssertEqual(capture.currentConfiguration.targetFPS, CameraConfiguration.minimumFPS)
+        try await Task.sleep(for: .milliseconds(150))
+        #expect(capture.currentConfiguration.targetFPS == CameraConfiguration.minimumFPS)
     }
 
-    func testConfigureClampsHighFPS() {
+    @Test func configureClampsHighFPS() async throws {
         let capture = CameraCapture()
-        let expectation = expectation(description: "sessionQueue drains")
         capture.configure(preset: .hd1280x720, fps: 500)
-
-        DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        wait(for: [expectation], timeout: 1)
-
-        XCTAssertEqual(capture.currentConfiguration.targetFPS, CameraConfiguration.maximumFPS)
+        try await Task.sleep(for: .milliseconds(150))
+        #expect(capture.currentConfiguration.targetFPS == CameraConfiguration.maximumFPS)
     }
 
     // MARK: - Delegate assignment
 
-    func testDelegateCanBeAssignedAndRead() {
+    @Test func delegateCanBeAssignedAndRead() {
         let capture = CameraCapture()
         let spy = DelegateSpy()
         capture.delegate = spy
-        XCTAssertNotNil(capture.delegate)
+        #expect(capture.delegate != nil)
     }
 
-    func testDelegateIsHeldWeakly() {
+    @Test func delegateIsHeldWeakly() {
         let capture = CameraCapture()
         var spy: DelegateSpy? = DelegateSpy()
         capture.delegate = spy
         spy = nil
-        XCTAssertNil(capture.delegate)
+        #expect(capture.delegate == nil)
     }
 }
 

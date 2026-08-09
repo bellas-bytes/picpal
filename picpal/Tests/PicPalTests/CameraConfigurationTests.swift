@@ -1,78 +1,78 @@
-import XCTest
+import Testing
 import AVFoundation
 @testable import PicPal
 
-final class CameraConfigurationTests: XCTestCase {
+struct CameraConfigurationTests {
 
     // MARK: - Default configuration
 
-    func testDefaultPresetIs720p() {
-        XCTAssertEqual(CameraConfiguration.defaultConfiguration.preset, .hd1280x720)
+    @Test func defaultPresetIs720p() {
+        #expect(CameraConfiguration.defaultConfiguration.preset == .hd1280x720)
     }
 
-    func testDefaultFPSIs30() {
-        XCTAssertEqual(CameraConfiguration.defaultConfiguration.targetFPS, 30)
+    @Test func defaultFPSIs30() {
+        #expect(CameraConfiguration.defaultConfiguration.targetFPS == 30)
     }
 
     // MARK: - FPS clamping
 
-    func testFPSBelowMinimumClampsToMinimum() {
+    @Test func fpsBelowMinimumClampsToMinimum() {
         let config = CameraConfiguration(preset: .hd1280x720, targetFPS: -10)
-        XCTAssertEqual(config.targetFPS, CameraConfiguration.minimumFPS)
+        #expect(config.targetFPS == CameraConfiguration.minimumFPS)
     }
 
-    func testFPSOfZeroClampsToMinimum() {
+    @Test func fpsOfZeroClampsToMinimum() {
         let config = CameraConfiguration(preset: .hd1280x720, targetFPS: 0)
-        XCTAssertEqual(config.targetFPS, CameraConfiguration.minimumFPS)
+        #expect(config.targetFPS == CameraConfiguration.minimumFPS)
     }
 
-    func testFPSAboveMaximumClampsToMaximum() {
+    @Test func fpsAboveMaximumClampsToMaximum() {
         let config = CameraConfiguration(preset: .hd1280x720, targetFPS: 999)
-        XCTAssertEqual(config.targetFPS, CameraConfiguration.maximumFPS)
+        #expect(config.targetFPS == CameraConfiguration.maximumFPS)
     }
 
-    func testFPSAtMinimumBoundaryIsAccepted() {
+    @Test func fpsAtMinimumBoundaryIsAccepted() {
         let config = CameraConfiguration(preset: .hd1280x720, targetFPS: CameraConfiguration.minimumFPS)
-        XCTAssertEqual(config.targetFPS, CameraConfiguration.minimumFPS)
+        #expect(config.targetFPS == CameraConfiguration.minimumFPS)
     }
 
-    func testFPSAtMaximumBoundaryIsAccepted() {
+    @Test func fpsAtMaximumBoundaryIsAccepted() {
         let config = CameraConfiguration(preset: .hd1280x720, targetFPS: CameraConfiguration.maximumFPS)
-        XCTAssertEqual(config.targetFPS, CameraConfiguration.maximumFPS)
+        #expect(config.targetFPS == CameraConfiguration.maximumFPS)
     }
 
-    func testFPSWithinRangeIsStoredUnchanged() {
+    @Test func fpsWithinRangeIsStoredUnchanged() {
         let config = CameraConfiguration(preset: .hd1280x720, targetFPS: 24)
-        XCTAssertEqual(config.targetFPS, 24)
+        #expect(config.targetFPS == 24)
     }
 
     // MARK: - Constant sanity
 
-    func testMinimumFPSIsPositive() {
-        XCTAssertGreaterThan(CameraConfiguration.minimumFPS, 0)
+    @Test func minimumFPSIsPositive() {
+        #expect(CameraConfiguration.minimumFPS > 0)
     }
 
-    func testMaximumFPSExceedsMinimum() {
-        XCTAssertGreaterThan(CameraConfiguration.maximumFPS, CameraConfiguration.minimumFPS)
+    @Test func maximumFPSExceedsMinimum() {
+        #expect(CameraConfiguration.maximumFPS > CameraConfiguration.minimumFPS)
     }
 
     // MARK: - Equatable
 
-    func testConfigurationsWithSameValuesAreEqual() {
+    @Test func configurationsWithSameValuesAreEqual() {
         let a = CameraConfiguration(preset: .hd1280x720, targetFPS: 30)
         let b = CameraConfiguration(preset: .hd1280x720, targetFPS: 30)
-        XCTAssertEqual(a, b)
+        #expect(a == b)
     }
 
-    func testConfigurationsWithDifferentPresetsAreNotEqual() {
+    @Test func configurationsWithDifferentPresetsAreNotEqual() {
         let a = CameraConfiguration(preset: .hd1280x720, targetFPS: 30)
         let b = CameraConfiguration(preset: .hd1920x1080, targetFPS: 30)
-        XCTAssertNotEqual(a, b)
+        #expect(a != b)
     }
 
-    func testConfigurationsWithDifferentFPSAreNotEqual() {
+    @Test func configurationsWithDifferentFPSAreNotEqual() {
         let a = CameraConfiguration(preset: .hd1280x720, targetFPS: 24)
         let b = CameraConfiguration(preset: .hd1280x720, targetFPS: 30)
-        XCTAssertNotEqual(a, b)
+        #expect(a != b)
     }
 }

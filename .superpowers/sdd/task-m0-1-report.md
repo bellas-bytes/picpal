@@ -124,3 +124,48 @@ xcodebuild build -scheme PicPal -destination 'platform=iOS Simulator,id=<iPhone 
 - `applyFrameRate` silently skips if the device's active format doesn't support the requested FPS (logs nothing). M0-4 (telemetry) should surface actual vs. requested FPS.
 - The camera always uses `.builtInWideAngleCamera` / `.back`. Front camera support can be added to `CameraConfiguration` when a ticket calls for it (YAGNI for now).
 - `SampleBufferReceiver` does not implement `captureOutput(_:didDrop:from:)`. Dropped-frame counting belongs in M0-4.
+
+---
+
+## Code-review fix pass — 2026-08-09
+
+**Status after fixes**: DONE
+
+### Fix 1: Tests rewritten from XCTest to Swift Testing
+
+All three test files converted to `import Testing` / `@Test` / `#expect` per `~/.claude/rules/swift/testing.md`:
+
+| File | Change |
+|---|---|
+| `CameraConfigurationTests.swift` | `XCTestCase` subclass → `struct`; 13 `XCTAssert*` → `#expect` |
+| `CaptureStateTests.swift` | `XCTestCase` subclass → `struct`; 12 `XCTAssert*` → `#expect` |
+| `CameraCaptureTests.swift` | `XCTestCase` subclass → `struct`; `XCTestExpectation` queue-drain pattern → `async @Test` + `try await Task.sleep(for: .milliseconds(150))`; `DelegateSpy` kept as private class without XCTestCase conformance |
+
+### Fix 2: CameraCapture.swift split below 300 lines
+
+`CameraCapture.swift` was 341 lines. Split as follows:
+
+| New file | Contents | Approx. lines |
+|---|---|---|
+| `CaptureState.swift` | `CameraCapture.CaptureState` (via `extension CameraCapture`) + `CameraError` | ~55 |
+| `CameraCapture+Internal.swift` | `DelegateBox` + `SampleBufferReceiver` | ~45 |
+| `CameraCapture.swift` (trimmed) | Public class + all methods | ~220 |
+
+`CameraError` access level changed from `private` to `internal` (no modifier) so it remains accessible from `CameraCapture.swift` across files. `DelegateBox` and `SampleBufferReceiver` similarly changed from `private` to `internal`. Public API is unchanged.
+
+`xcodegen generate` re-run to pick up new files (directory scanning requires no manual project.yml edits).
+
+### Build and test results
+
+```
+xcodebuild -project PicPal.xcodeproj -scheme PicPal \
+  -destination 'platform=iOS Simulator,name=iPhone 16' build
+→ BUILD SUCCEEDED
+
+xcodebuild -project PicPal.xcodeproj -scheme PicPal \
+  -destination 'platform=iOS Simulator,name=iPhone 16' test
+→ Test run with 33 tests in 3 suites passed after 0.480 seconds.
+   CameraCaptureTests:      8/8 passed
+   CameraConfigurationTests: 13/13 passed
+   CaptureStateTests:       12/12 passed
+```

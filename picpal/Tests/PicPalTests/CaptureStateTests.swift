@@ -1,68 +1,59 @@
-import XCTest
+import Testing
 @testable import PicPal
 
-final class CaptureStateTests: XCTestCase {
+struct CaptureStateTests {
 
     // MARK: - Identity equality
 
-    func testIdleEqualsIdle() {
-        XCTAssertEqual(CameraCapture.CaptureState.idle, .idle)
+    @Test func idleEqualsIdle() {
+        #expect(CameraCapture.CaptureState.idle == .idle)
     }
 
-    func testStartingEqualsStarting() {
-        XCTAssertEqual(CameraCapture.CaptureState.starting, .starting)
+    @Test func startingEqualsStarting() {
+        #expect(CameraCapture.CaptureState.starting == .starting)
     }
 
-    func testRunningEqualsRunning() {
-        XCTAssertEqual(CameraCapture.CaptureState.running, .running)
+    @Test func runningEqualsRunning() {
+        #expect(CameraCapture.CaptureState.running == .running)
     }
 
-    func testStoppingEqualsStopping() {
-        XCTAssertEqual(CameraCapture.CaptureState.stopping, .stopping)
+    @Test func stoppingEqualsStopping() {
+        #expect(CameraCapture.CaptureState.stopping == .stopping)
     }
 
-    func testPermissionDeniedEqualsPermissionDenied() {
-        XCTAssertEqual(CameraCapture.CaptureState.permissionDenied, .permissionDenied)
+    @Test func permissionDeniedEqualsPermissionDenied() {
+        #expect(CameraCapture.CaptureState.permissionDenied == .permissionDenied)
     }
 
-    func testPermissionRestrictedEqualsPermissionRestricted() {
-        XCTAssertEqual(CameraCapture.CaptureState.permissionRestricted, .permissionRestricted)
+    @Test func permissionRestrictedEqualsPermissionRestricted() {
+        #expect(CameraCapture.CaptureState.permissionRestricted == .permissionRestricted)
     }
 
     // MARK: - Error state equality
 
-    func testErrorWithSameMessageIsEqual() {
-        XCTAssertEqual(
-            CameraCapture.CaptureState.error("camera unavailable"),
-            CameraCapture.CaptureState.error("camera unavailable")
-        )
+    @Test func errorWithSameMessageIsEqual() {
+        #expect(CameraCapture.CaptureState.error("camera unavailable") == .error("camera unavailable"))
     }
 
-    func testErrorWithDifferentMessagesIsNotEqual() {
-        XCTAssertNotEqual(
-            CameraCapture.CaptureState.error("foo"),
-            CameraCapture.CaptureState.error("bar")
-        )
+    @Test func errorWithDifferentMessagesIsNotEqual() {
+        #expect(CameraCapture.CaptureState.error("foo") != .error("bar"))
     }
 
     // MARK: - Cross-case inequality
 
-    func testIdleIsNotRunning() {
-        XCTAssertNotEqual(CameraCapture.CaptureState.idle, .running)
+    @Test func idleIsNotRunning() {
+        #expect(CameraCapture.CaptureState.idle != .running)
     }
 
-    func testRunningIsNotPermissionDenied() {
-        XCTAssertNotEqual(CameraCapture.CaptureState.running, .permissionDenied)
+    @Test func runningIsNotPermissionDenied() {
+        #expect(CameraCapture.CaptureState.running != .permissionDenied)
     }
 
-    func testErrorIsNotIdle() {
-        XCTAssertNotEqual(CameraCapture.CaptureState.error("x"), .idle)
+    @Test func errorIsNotIdle() {
+        #expect(CameraCapture.CaptureState.error("x") != .idle)
     }
 
-    func testPermissionDeniedIsNotPermissionRestricted() {
-        XCTAssertNotEqual(
-            CameraCapture.CaptureState.permissionDenied,
-            .permissionRestricted
-        )
+    @Test func permissionDeniedIsNotPermissionRestricted() {
+        #expect(CameraCapture.CaptureState.permissionDenied != .permissionRestricted)
     }
 }
