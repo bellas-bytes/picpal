@@ -1,0 +1,340 @@
+import AVFoundation
+import CoreMedia
+import CoreVideo
+import os
+
+/// Manages an `AVCaptureSession` that streams `CVPixelBuffer` frames via `CameraFrameDelegate`.
+///
+/// ## Usage
+/// ```swift
+/// let camera = CameraCapture()
+/// camera.delegate = self
+/// camera.configure(preset: .hd1280x720, fps: 30)
+/// camera.requestPermissionAndStart()
+/// ```
+///
+/// ## Thread-safety model
+/// - All AVFoundation session operations are serialised on the internal `sessionQueue`.
+/// - `captureState` reads are lock-protected and safe from any thread.
+/// - `delegate` is lock-protected; safe to assign from any thread before or after start.
+/// - Frame callbacks arrive on the dedicated `frameQueue` (never the main or session queue).
+/// - State-change callbacks are dispatched to the **main queue**.
+///
+/// `CameraCapture` is `@unchecked Sendable`: the class crosses isolation contexts safely
+/// because all mutable state is synchronised via `OSAllocatedUnfairLock` or serial queues.
+public final class CameraCapture: @unchecked Sendable {
+
+    // MARK: - CaptureState
+
+    /// Lifecycle states of the capture session.
+    public enum CaptureState: Sendable, Equatable {
+        /// Session has not been started.
+        case idle
+        /// Permission granted; session is being built.
+        case starting
+        /// Session is actively delivering frames.
+        case running
+        /// `stop()` has been called; session is winding down.
+        case stopping
+        /// The user denied camera access.
+        case permissionDenied
+        /// Camera access is restricted by a policy (parental controls, MDM, etc.).
+        case permissionRestricted
+        /// A non-recoverable error occurred; the associated string contains a human-readable description.
+        case error(String)
+
+        public static func == (lhs: CaptureState, rhs: CaptureState) -> Bool {
+            switch (lhs, rhs) {
+            case (.idle, .idle),
+                 (.starting, .starting),
+                 (.running, .running),
+                 (.stopping, .stopping),
+                 (.permissionDenied, .permissionDenied),
+                 (.permissionRestricted, .permissionRestricted):
+                return true
+            case (.error(let l), .error(let r)):
+                return l == r
+            default:
+                return false
+            }
+        }
+    }
+
+    // MARK: - Internal constants
+
+    private enum QueueLabels {
+        static let session = "com.picpal.camera.session"
+        static let frames  = "com.picpal.camera.frames"
+    }
+
+    // MARK: - Queues (immutable — safe to access across isolation contexts)
+
+    /// All AVFoundation session mutations are serialised here.
+    private let sessionQueue = DispatchQueue(label: QueueLabels.session, qos: .userInitiated)
+    /// Frame sample-buffer delivery queue, separate from the session queue.
+    private let frameQueue   = DispatchQueue(label: QueueLabels.frames,  qos: .userInitiated)
+
+    // MARK: - Lock-protected state
+
+    // OSAllocatedUnfairLock stores value types; one lock per guarded value keeps
+    // lock granularity fine-grained and avoids priority-inversion risks.
+
+    private let stateLock = OSAllocatedUnfairLock<CaptureState>(initialState: .idle)
+    private let configLock: OSAllocatedUnfairLock<CameraConfiguration>
+
+    // Delegate is a weak reference inside a class wrapper so the lock can store it.
+    private let delegateBox = DelegateBox()
+
+    // MARK: - AVFoundation objects  (mutated only on sessionQueue)
+
+    nonisolated(unsafe) private var captureSession = AVCaptureSession()
+    nonisolated(unsafe) private var videoOutput    = AVCaptureVideoDataOutput()
+    /// Retained to keep the delegate alive for the lifetime of the output.
+    nonisolated(unsafe) private var sampleReceiver: SampleBufferReceiver?
+
+    // MARK: - Public interface
+
+    /// Current capture lifecycle state. Thread-safe; observable from any context.
+    public var captureState: CaptureState {
+        stateLock.withLock { $0 }
+    }
+
+    /// The configuration in effect (or queued for next session start).
+    public var currentConfiguration: CameraConfiguration {
+        configLock.withLock { $0 }
+    }
+
+    /// Receiver of frame and state events. Safe to assign from any thread.
+    public weak var delegate: (any CameraFrameDelegate)? {
+        get { delegateBox.get() }
+        set { delegateBox.set(newValue) }
+    }
+
+    // MARK: - Init
+
+    public init() {
+        configLock = OSAllocatedUnfairLock(initialState: .defaultConfiguration)
+    }
+
+    // MARK: - Configuration
+
+    /// Update the capture resolution and frame rate.
+    ///
+    /// Safe to call at any time. If the session is already running, the change takes effect
+    /// immediately (via `beginConfiguration` / `commitConfiguration`).
+    /// `fps` is clamped to `[CameraConfiguration.minimumFPS, CameraConfiguration.maximumFPS]`.
+    public func configure(preset: AVCaptureSession.Preset, fps: Int) {
+        let newConfig = CameraConfiguration(preset: preset, targetFPS: fps)
+        configLock.withLock { $0 = newConfig }
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            if stateLock.withLock({ $0 }) == .running {
+                applyConfigurationLocked(newConfig)
+            }
+        }
+    }
+
+    // MARK: - Lifecycle
+
+    /// Check and, if needed, request camera permission, then start the capture session.
+    ///
+    /// If permission is already granted the session starts immediately (on the session queue).
+    /// If permission has been denied or restricted, the delegate receives the appropriate state.
+    public func requestPermissionAndStart() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            startSession()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                guard let self else { return }
+                if granted {
+                    self.startSession()
+                } else {
+                    self.setStateAndNotify(.permissionDenied)
+                }
+            }
+        case .denied:
+            setStateAndNotify(.permissionDenied)
+        case .restricted:
+            setStateAndNotify(.permissionRestricted)
+        @unknown default:
+            setStateAndNotify(.error("Unknown camera authorization status"))
+        }
+    }
+
+    /// Stop the active capture session and return to `.idle`.
+    ///
+    /// A no-op if the session is not in `.running` state.
+    public func stop() {
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            guard stateLock.withLock({ $0 }) == .running else { return }
+            setStateAndNotify(.stopping)
+            captureSession.stopRunning()
+            setStateAndNotify(.idle)
+        }
+    }
+
+    // MARK: - Private: session setup
+
+    private func startSession() {
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            guard stateLock.withLock({ $0 }) == .idle else { return }
+            setStateAndNotify(.starting)
+
+            let config = configLock.withLock { $0 }
+            do {
+                try buildSession(configuration: config)
+            } catch {
+                setStateAndNotify(.error(error.localizedDescription))
+                return
+            }
+
+            captureSession.startRunning()
+            setStateAndNotify(.running)
+        }
+    }
+
+    /// Build a fresh `AVCaptureSession` with the given configuration. Must be called on `sessionQueue`.
+    private func buildSession(configuration: CameraConfiguration) throws {
+        captureSession = AVCaptureSession()
+        captureSession.beginConfiguration()
+        defer { captureSession.commitConfiguration() }
+
+        captureSession.sessionPreset = configuration.preset
+
+        guard let device = AVCaptureDevice.default(
+            .builtInWideAngleCamera, for: .video, position: .back
+        ) else {
+            throw CameraError.deviceUnavailable
+        }
+
+        let input = try AVCaptureDeviceInput(device: device)
+        guard captureSession.canAddInput(input) else {
+            throw CameraError.cannotAddInput
+        }
+        captureSession.addInput(input)
+
+        try applyFrameRate(configuration.targetFPS, to: device)
+
+        videoOutput = AVCaptureVideoDataOutput()
+        videoOutput.videoSettings = [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+        ]
+        videoOutput.alwaysDiscardsLateVideoFrames = true
+
+        let receiver = SampleBufferReceiver { [weak self] pixelBuffer, timestamp in
+            self?.deliverFrame(pixelBuffer: pixelBuffer, timestamp: timestamp)
+        }
+        sampleReceiver = receiver
+        videoOutput.setSampleBufferDelegate(receiver, queue: frameQueue)
+
+        guard captureSession.canAddOutput(videoOutput) else {
+            throw CameraError.cannotAddOutput
+        }
+        captureSession.addOutput(videoOutput)
+    }
+
+    /// Reconfigure a running session without rebuilding it. Must be called on `sessionQueue`.
+    private func applyConfigurationLocked(_ configuration: CameraConfiguration) {
+        captureSession.beginConfiguration()
+        defer { captureSession.commitConfiguration() }
+
+        captureSession.sessionPreset = configuration.preset
+
+        guard let device = (captureSession.inputs.first as? AVCaptureDeviceInput)?.device else {
+            return
+        }
+        try? applyFrameRate(configuration.targetFPS, to: device)
+    }
+
+    /// Set `activeVideoMinFrameDuration` / `Max` on `device` for the requested FPS.
+    /// Silently skips if the device's active format doesn't support the rate.
+    private func applyFrameRate(_ fps: Int, to device: AVCaptureDevice) throws {
+        let targetDuration = CMTime(value: 1, timescale: CMTimeScale(fps))
+        let supported = device.activeFormat.videoSupportedFrameRateRanges
+        guard supported.contains(where: { $0.minFrameRate <= Double(fps) && Double(fps) <= $0.maxFrameRate }) else {
+            return  // Requested FPS outside the format's supported range — skip silently.
+        }
+        try device.lockForConfiguration()
+        device.activeVideoMinFrameDuration = targetDuration
+        device.activeVideoMaxFrameDuration = targetDuration
+        device.unlockForConfiguration()
+    }
+
+    // MARK: - Private: delivery helpers
+
+    /// Called from `frameQueue` by the `SampleBufferReceiver`.
+    private func deliverFrame(pixelBuffer: CVPixelBuffer, timestamp: CMTime) {
+        delegateBox.get()?.cameraCapture(self, didOutputPixelBuffer: pixelBuffer, timestamp: timestamp)
+    }
+
+    /// Update state lock and dispatch a state-change notification to the delegate on the main queue.
+    private func setStateAndNotify(_ state: CaptureState) {
+        stateLock.withLock { $0 = state }
+        let captureRef = self
+        if let del = delegateBox.get() {
+            DispatchQueue.main.async {
+                del.cameraCapture(captureRef, didChangeState: state)
+            }
+        }
+    }
+}
+
+// MARK: - Supporting types (file-private)
+
+/// Thread-safe wrapper for the weak delegate reference.
+///
+/// `OSAllocatedUnfairLock` stores value types; a class wrapper lets us hold a weak ref inside it.
+private final class DelegateBox: @unchecked Sendable {
+    private let lock = NSLock()
+    private weak var value: (any CameraFrameDelegate)?
+
+    func get() -> (any CameraFrameDelegate)? {
+        lock.withLock { value }
+    }
+
+    func set(_ delegate: (any CameraFrameDelegate)?) {
+        lock.withLock { value = delegate }
+    }
+}
+
+/// Bridges `AVCaptureVideoDataOutputSampleBufferDelegate` to a Swift closure.
+///
+/// Using a separate object avoids burdening `CameraCapture` with Obj-C protocol conformance
+/// and keeps the closure capture chain explicit and `@Sendable`.
+private final class SampleBufferReceiver: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
+    private let onFrame: @Sendable (CVPixelBuffer, CMTime) -> Void
+
+    init(onFrame: @escaping @Sendable (CVPixelBuffer, CMTime) -> Void) {
+        self.onFrame = onFrame
+        super.init()
+    }
+
+    nonisolated func captureOutput(
+        _ output: AVCaptureOutput,
+        didOutput sampleBuffer: CMSampleBuffer,
+        from connection: AVCaptureConnection
+    ) {
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+        onFrame(pixelBuffer, timestamp)
+    }
+}
+
+// MARK: - Error definitions
+
+private enum CameraError: LocalizedError {
+    case deviceUnavailable
+    case cannotAddInput
+    case cannotAddOutput
+
+    var errorDescription: String? {
+        switch self {
+        case .deviceUnavailable: return "No camera device is available on this hardware."
+        case .cannotAddInput:    return "Cannot add camera input to the capture session."
+        case .cannotAddOutput:   return "Cannot add video data output to the capture session."
+        }
+    }
+}
