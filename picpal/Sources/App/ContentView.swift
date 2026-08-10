@@ -51,7 +51,7 @@ struct ContentView: View {
         let coach = voiceCoach  // capture strong local reference (no retain cycle)
         let accum = SignalFrameAccumulator { [weak debugViewModel] frame in
             let cue = engine.process(frame: frame)
-            if let cue, !coach.isMuted {
+            if let cue {
                 coach.speak(cue)
             }
             let cueText = cue?.text ?? "—"

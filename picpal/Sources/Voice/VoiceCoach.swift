@@ -56,21 +56,25 @@ public final class VoiceCoach: NSObject, @unchecked Sendable {
             if let current = state.currentPriority {
                 // Only interrupt if the new cue has strictly higher priority (lower rawValue).
                 guard cue.priority < current else { return false }
-                // Will interrupt — priority and count are updated after stopping.
+                // Will interrupt — currentPriority is updated after speak() returns (see below).
             }
 
-            state.currentPriority = cue.priority
             state.speakCount += 1
             return true
         }
 
         guard shouldSpeak else { return }
 
+        let utterance = makeUtterance(for: cue.text)
+
         // Stop any in-progress utterance (safe to call even if nothing is playing).
         synthesizer.stopSpeaking(at: .immediate)
-
-        let utterance = makeUtterance(for: cue.text)
         synthesizer.speak(utterance)
+
+        // Set currentPriority AFTER speak() returns so that any didFinish/didCancel
+        // fired by the previous utterance (during stopSpeaking or speak) cannot
+        // overwrite the new priority.
+        lock.withLock { $0.currentPriority = cue.priority }
     }
 
     /// Immediately stop any in-progress utterance.
@@ -119,8 +123,13 @@ extension VoiceCoach: AVSpeechSynthesizerDelegate {
         _ synthesizer: AVSpeechSynthesizer,
         didFinish utterance: AVSpeechUtterance
     ) {
-        lock.withLock { state in
-            state.currentPriority = nil
-        }
+        lock.withLock { $0.currentPriority = nil }
+    }
+
+    public nonisolated func speechSynthesizer(
+        _ synthesizer: AVSpeechSynthesizer,
+        didCancel utterance: AVSpeechUtterance
+    ) {
+        lock.withLock { $0.currentPriority = nil }
     }
 }
