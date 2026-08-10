@@ -44,6 +44,7 @@ struct DebugOverlayView: View {
             debugRow(label: "Tilt",     value: String(format: "%.1f°",  viewModel.tiltDegrees))
             debugRow(label: "Blur",     value: String(format: "%.2f",   viewModel.blurScore))
             debugRow(label: "Exposure", value: viewModel.exposureLevel)
+            debugRow(label: "Frame",    value: viewModel.framingHint)
             debugRow(label: "FPS",      value: String(format: "%.1f",   viewModel.framesPerSecond))
             debugRow(label: "Thermal",  value: viewModel.thermalState)
             debugRow(label: "Drops",    value: "\(viewModel.dropCount)")

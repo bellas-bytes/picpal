@@ -18,6 +18,9 @@ final class DebugOverlayViewModel: ObservableObject {
     /// Human-readable exposure level (placeholder: "—").
     @Published var exposureLevel: String = "—"
 
+    /// Framing hint label (placeholder: "—").
+    @Published var framingHint: String = "—"
+
     /// Measured frames per second (placeholder: 0).
     @Published var framesPerSecond: Double = 0
 

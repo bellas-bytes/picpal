@@ -1,6 +1,23 @@
-/// Placeholder type for the framing signal — replaced in M1-4.
-///
-/// M1-4 will provide a full implementation with subject-position data
-/// and a compositional framing assessment. This stub exists so `SignalFrame`
-/// compiles in M1-1.
-public struct FramingSignal: Sendable, Equatable {}
+import CoreGraphics
+
+/// Compositional framing assessment for a single camera frame.
+public struct FramingSignal: Sendable, Equatable {
+
+    /// Normalized bounding box of the primary subject (Vision coords: origin bottom-left, 0–1).
+    /// `nil` when saliency found no clear subject.
+    public let subjectBox: CGRect?
+
+    /// The suggested framing adjustment.
+    public let hint: FramingHint
+}
+
+/// Directional framing hint emitted by the cue engine.
+public enum FramingHint: String, Sendable, Equatable, CaseIterable {
+    case nudgeLeft
+    case nudgeRight
+    case nudgeUp
+    case nudgeDown
+    case tooCentered
+    case goodFrame    // subject is well-composed — no adjustment needed
+    case noSubject    // saliency found no object — suppress compositional hints
+}

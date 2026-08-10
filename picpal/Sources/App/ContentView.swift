@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var landmarkProbe: VisionLandmarkProbe?
     @State private var blurMonitor: BlurMonitor?
     @State private var exposureMonitor: ExposureMonitor?
+    @State private var framingMonitor: FramingMonitor?
     @State private var motionManager = MotionManager()
     @State private var tiltMonitor: TiltMonitor?
 
@@ -34,7 +35,14 @@ struct ContentView: View {
     private func wireUp() {
         guard telemetryFeed == nil else { return }  // idempotent
 
-        let exposureMon = ExposureMonitor { [weak debugViewModel] signal in
+        let framingMon = FramingMonitor { [weak debugViewModel] signal in
+            let label = signal.hint.rawValue
+            Task { @MainActor [weak debugViewModel] in
+                debugViewModel?.framingHint = label
+            }
+        }
+
+        let exposureMon = ExposureMonitor(downstream: framingMon) { [weak debugViewModel] signal in
             let label: String
             switch signal.level {
             case .ok:           label = "ok"
@@ -68,6 +76,7 @@ struct ContentView: View {
 
         blurMonitor = blurMon
         exposureMonitor = exposureMon
+        framingMonitor = framingMon
         landmarkProbe = probe
         telemetryFeed = feed
 
