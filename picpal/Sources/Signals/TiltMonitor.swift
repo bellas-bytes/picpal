@@ -23,6 +23,7 @@ public final class TiltMonitor: @unchecked Sendable, MotionDelegate {
     // MARK: - Private state
 
     private let processor: TiltProcessor
+    private let onSettleChange: (@Sendable (Bool) -> Void)?
     private let onSignal: @Sendable (TiltSignal) -> Void
 
     /// Guards the mutable hysteresis state. Starts level (`true`).
@@ -34,12 +35,16 @@ public final class TiltMonitor: @unchecked Sendable, MotionDelegate {
     ///
     /// - Parameters:
     ///   - processor: The `TiltProcessor` to use for each update. Defaults to `TiltProcessor()`.
+    ///   - onSettleChange: Optional closure called whenever the settled state changes.
+    ///     Always called on the main queue. Defaults to `nil`.
     ///   - onSignal: Closure called with each computed `TiltSignal`. Always called on the main queue.
     public init(
         processor: TiltProcessor = TiltProcessor(),
+        onSettleChange: (@Sendable (Bool) -> Void)? = nil,
         onSignal: @escaping @Sendable (TiltSignal) -> Void
     ) {
         self.processor = processor
+        self.onSettleChange = onSettleChange
         self.onSignal = onSignal
         self.levelLock = OSAllocatedUnfairLock(initialState: true)
     }
@@ -56,6 +61,6 @@ public final class TiltMonitor: @unchecked Sendable, MotionDelegate {
     }
 
     public nonisolated func motionManager(_ manager: MotionManager, didChangeSettled isSettled: Bool) {
-        // Tilt monitoring does not need settle state — no-op.
+        onSettleChange?(isSettled)
     }
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		053364749FA04D2802935346 /* SceneSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F817A8E225C5B2DE0557CB1C /* SceneSignature.swift */; };
 		0E2808E915A30DC6D8736FCD /* MotionDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */; };
 		122410582BA831E16D9384CD /* BatteryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82254738EA55D7785F0C0DD1 /* BatteryTests.swift */; };
 		18D1408B13222EABEC51CAF1 /* LandmarkProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C58CC4E053C73E35829D55C /* LandmarkProbeTests.swift */; };
@@ -14,6 +15,7 @@
 		1CDEEA8EBE25B9B0E43C2B58 /* SignalFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B840731120BD2389BAB6940 /* SignalFrame.swift */; };
 		1D4FED6ED507315E9B8C929B /* FrameTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F403C544AFB8CFB048AEC2 /* FrameTimer.swift */; };
 		210AD17F07FD2400314677BA /* BlurProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810DF6F7D37580667E224CC1 /* BlurProcessorTests.swift */; };
+		23137DA7AD71ED09E7E7FBB5 /* SceneGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAAA820EDBB51ED8951678C8 /* SceneGate.swift */; };
 		277DFB380A7B72895217D3B4 /* TelemetryFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574D8F8FF911716A77E1A02 /* TelemetryFeed.swift */; };
 		29175BC4389E7DE5C711DEF8 /* VoiceCoachTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680BF112ACB21BC3D65C1732 /* VoiceCoachTests.swift */; };
 		29ED535768FA95BC8D0D998C /* MotionManager+Internal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95EE88A21316305B4A989D9 /* MotionManager+Internal.swift */; };
@@ -48,8 +50,10 @@
 		A07CDCA843E145B949E0010F /* ThermalMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17352296C3AF1FCB09C1B90 /* ThermalMonitor.swift */; };
 		A38CDDB52597EB4F93E7CBE1 /* FrameTimerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B9FADA996D75EC6DADF79A /* FrameTimerTests.swift */; };
 		A3E530D825160B67C6EE26FB /* TiltMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA6168FE7D6DC8079864214 /* TiltMonitor.swift */; };
+		A4E2AF8E6211A90E18CAA33F /* SceneGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 254932E426C2845F9B9F05EA /* SceneGateTests.swift */; };
 		AB354C403CE12A9E9C550114 /* ExposureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5112611E348867EF918B46 /* ExposureProcessor.swift */; };
 		B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */; };
+		B9C5FA3B65D5FB6022FB2471 /* SceneGateAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEEA89DA97F543B13A634549 /* SceneGateAdapter.swift */; };
 		BAD8540EDF6688B97240395A /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D03BC28784FF4637455CA42 /* BatteryMonitor.swift */; };
 		BF659892E4EA6C97DE6A0553 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */; };
 		C231236CBCFF65EF441E79E9 /* VoiceCoach.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80503720A6F016047BFFFB2C /* VoiceCoach.swift */; };
@@ -92,6 +96,7 @@
 		1408C43CD74866EC40E4371C /* CameraCapture+Internal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CameraCapture+Internal.swift"; sourceTree = "<group>"; };
 		191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryExporterTests.swift; sourceTree = "<group>"; };
 		1E735B37FE10B0FB91995EF7 /* BlurSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurSignal.swift; sourceTree = "<group>"; };
+		254932E426C2845F9B9F05EA /* SceneGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGateTests.swift; sourceTree = "<group>"; };
 		27DFBBA6291517BEA6072640 /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
 		27F091BFAC557A758EE5BC92 /* PipelineTelemetryBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineTelemetryBridge.swift; sourceTree = "<group>"; };
 		2B30150F337B9E19B5F720F0 /* GuidesOverlayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidesOverlayTests.swift; sourceTree = "<group>"; };
@@ -139,6 +144,7 @@
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
 		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
+		BAAA820EDBB51ED8951678C8 /* SceneGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGate.swift; sourceTree = "<group>"; };
 		C63650A5474A82D6183BBD5E /* CameraCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCapture.swift; sourceTree = "<group>"; };
 		C989CACDEA5CD57E0938515C /* MotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManager.swift; sourceTree = "<group>"; };
 		C9BCA7A88868D2B3B568534F /* TiltProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltProcessor.swift; sourceTree = "<group>"; };
@@ -149,10 +155,12 @@
 		D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfiguration.swift; sourceTree = "<group>"; };
 		D6F403C544AFB8CFB048AEC2 /* FrameTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameTimer.swift; sourceTree = "<group>"; };
 		D95EE88A21316305B4A989D9 /* MotionManager+Internal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MotionManager+Internal.swift"; sourceTree = "<group>"; };
+		DEEA89DA97F543B13A634549 /* SceneGateAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGateAdapter.swift; sourceTree = "<group>"; };
 		E17352296C3AF1FCB09C1B90 /* ThermalMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalMonitor.swift; sourceTree = "<group>"; };
 		E17C340393E02E2CD88E0C8C /* FramingProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingProcessor.swift; sourceTree = "<group>"; };
 		F38C1C2627D45B67BE8EBB4A /* FramingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingMonitor.swift; sourceTree = "<group>"; };
 		F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionReading.swift; sourceTree = "<group>"; };
+		F817A8E225C5B2DE0557CB1C /* SceneSignature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneSignature.swift; sourceTree = "<group>"; };
 		FBA507E9D656071A43579101 /* MotionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionProcessor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -272,6 +280,7 @@
 				505300E876373EAE8F30B10B /* MotionManagerTests.swift */,
 				555FAB8C66A68F763C5EC202 /* MotionProcessorTests.swift */,
 				6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */,
+				254932E426C2845F9B9F05EA /* SceneGateTests.swift */,
 				9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */,
 				191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */,
 				1243DDAF4DADFD1572EC329D /* ThermalMonitorTests.swift */,
@@ -289,6 +298,7 @@
 				B75374E99F28FA746696FC49 /* CueEngine */,
 				57D8081C6B522B3F20F9B767 /* Landmarks */,
 				95F3665B7603A4993CF2B526 /* Motion */,
+				FF060AE63DEC0ECBC7E5BF9C /* SceneAnalysis */,
 				2D105048843250F00B1B7552 /* Signals */,
 				DB021A4B049B9D18C6CAC5A7 /* Telemetry */,
 				EC5A252457254CF453584AF6 /* UI */,
@@ -361,6 +371,16 @@
 				3C2D3687B141011C3E81A1F9 /* GuidesOverlayView.swift */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		FF060AE63DEC0ECBC7E5BF9C /* SceneAnalysis */ = {
+			isa = PBXGroup;
+			children = (
+				BAAA820EDBB51ED8951678C8 /* SceneGate.swift */,
+				DEEA89DA97F543B13A634549 /* SceneGateAdapter.swift */,
+				F817A8E225C5B2DE0557CB1C /* SceneSignature.swift */,
+			);
+			path = SceneAnalysis;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -471,6 +491,9 @@
 				F1074965CD86018D140DE864 /* MotionReading.swift in Sources */,
 				B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */,
 				DC49FACCBC72BD4177477871 /* PipelineTelemetryBridge.swift in Sources */,
+				23137DA7AD71ED09E7E7FBB5 /* SceneGate.swift in Sources */,
+				B9C5FA3B65D5FB6022FB2471 /* SceneGateAdapter.swift in Sources */,
+				053364749FA04D2802935346 /* SceneSignature.swift in Sources */,
 				1CDEEA8EBE25B9B0E43C2B58 /* SignalFrame.swift in Sources */,
 				85592F0D667CFE9386259F20 /* SignalFrameAccumulator.swift in Sources */,
 				8F1BA24A05B1E07FDD8CDDBC /* TelemetryExporter.swift in Sources */,
@@ -504,6 +527,7 @@
 				D122B0CD22B836D2137B8A41 /* MotionManagerTests.swift in Sources */,
 				520F8AA439C4593A02B46EA8 /* MotionProcessorTests.swift in Sources */,
 				DF8F8FC2081231F7C9BEEEC1 /* PipelineTelemetryBridgeTests.swift in Sources */,
+				A4E2AF8E6211A90E18CAA33F /* SceneGateTests.swift in Sources */,
 				E0AEF43926A6E7452D36E8FD /* SignalFrameTests.swift in Sources */,
 				D692DF6D48EECAC60F37D2E1 /* TelemetryExporterTests.swift in Sources */,
 				D689CCE4E40040BC94376D92 /* ThermalMonitorTests.swift in Sources */,

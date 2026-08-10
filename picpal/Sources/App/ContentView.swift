@@ -18,6 +18,8 @@ struct ContentView: View {
     @State private var framingMonitor: FramingMonitor?
     @State private var motionManager = MotionManager()
     @State private var tiltMonitor: TiltMonitor?
+    @State private var sceneGate = SceneGate()
+    @State private var sceneGateAdapter: SceneGateAdapter?
     @State private var cueEngine: CueEngine?
     @State private var accumulator: SignalFrameAccumulator?
     @State private var voiceCoach = VoiceCoach()
@@ -100,7 +102,8 @@ struct ContentView: View {
         }
 
         let feed = debugViewModel.makeTelemetryFeed(downstream: probe)
-        camera.delegate = feed.bridge
+        let adapter = SceneGateAdapter(gate: sceneGate, downstream: feed.bridge)
+        camera.delegate = adapter
         feed.start()
         camera.requestPermissionAndStart()
 
@@ -109,10 +112,13 @@ struct ContentView: View {
         framingMonitor = framingMon
         landmarkProbe = probe
         telemetryFeed = feed
+        sceneGateAdapter = adapter
         cueEngine = engine
         accumulator = accum
 
-        let monitor = TiltMonitor { [weak debugViewModel, accum] signal in
+        let monitor = TiltMonitor(onSettleChange: { [sceneGate] settled in
+            sceneGate.update(isSettled: settled)
+        }) { [weak debugViewModel, accum] signal in
             accum.update(tilt: signal)
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.tiltDegrees = signal.angleDegrees
