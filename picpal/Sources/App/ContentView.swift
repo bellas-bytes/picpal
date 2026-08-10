@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var tiltMonitor: TiltMonitor?
     @State private var cueEngine: CueEngine?
     @State private var accumulator: SignalFrameAccumulator?
+    @State private var voiceCoach = VoiceCoach()
 
     var body: some View {
         ZStack {
@@ -32,6 +33,9 @@ struct ContentView: View {
             DebugOverlayView(viewModel: debugViewModel)
         }
         .onAppear(perform: wireUp)
+        .onChange(of: debugViewModel.isMuted) { _, muted in
+            voiceCoach.isMuted = muted
+        }
     }
 
     // MARK: - Composition root
@@ -44,8 +48,12 @@ struct ContentView: View {
         // The accumulator merges individual signals into a complete SignalFrame and
         // passes it to the engine on every update. Results are dispatched to @MainActor.
         let engine = CueEngine()
+        let coach = voiceCoach  // capture strong local reference (no retain cycle)
         let accum = SignalFrameAccumulator { [weak debugViewModel] frame in
             let cue = engine.process(frame: frame)
+            if let cue, !coach.isMuted {
+                coach.speak(cue)
+            }
             let cueText = cue?.text ?? "—"
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.activeCue = cueText

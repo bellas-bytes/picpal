@@ -53,6 +53,12 @@ final class DebugOverlayViewModel: ObservableObject {
     /// Updated after every signal tick. "—" means silence (no active cue).
     @Published var activeCue: String = "—"
 
+    /// Whether voice output is muted (placeholder: false).
+    ///
+    /// Toggled by the mute button in `DebugOverlayView`. Changes propagate to
+    /// `VoiceCoach.isMuted` via `ContentView`'s `onChange` observer.
+    @Published var isMuted: Bool = false
+
     // MARK: - Guides overlay fields
 
     /// Whether the device is currently within the level dead-zone (placeholder: false).

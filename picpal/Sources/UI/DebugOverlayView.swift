@@ -54,6 +54,9 @@ struct DebugOverlayView: View {
             debugRow(label: "Face",     value: String(format: "%.1f ms", viewModel.faceMeshMs))
             debugRow(label: "VisionTotal", value: String(format: "%.1f ms", viewModel.landmarkCombinedMs))
             debugRow(label: "Cue",         value: viewModel.activeCue)
+            Toggle("Mute voice", isOn: $viewModel.isMuted)
+                .font(.caption)
+                .tint(.green)
         }
         .padding(DebugOverlayLayout.panelInnerPadding)
         .background(
