@@ -50,7 +50,8 @@
 		BAD8540EDF6688B97240395A /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D03BC28784FF4637455CA42 /* BatteryMonitor.swift */; };
 		BF659892E4EA6C97DE6A0553 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */; };
 		C3E35148E42771AFA728FD26 /* TiltSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7789276B1ABFC03AA51DB676 /* TiltSignal.swift */; };
-		C4B3B082698263CC8E1018D9 /* CueEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B44DB738F5E35BB17FB8259B /* CueEngineTests.swift */; };
+		8F64D4E7FD6D4581A817667C /* CueEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAE44D780B54340BA828A80 /* CueEvaluatorTests.swift */; };
+		F3E52B0813774B1DBBA75442 /* CueEngineDebounceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525BD69277AF4BC0ADD300D5 /* CueEngineDebounceTests.swift */; };
 		C769A9B463F7F39C86C29B2A /* VisionLandmarkProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA73CAB72B6E7B9900695EF9 /* VisionLandmarkProbe.swift */; };
 		CBF5F0FC6D1686ABAAFC64EF /* CameraFrameDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7C9EDA01B1B08F63888B51 /* CameraFrameDelegate.swift */; };
 		D122B0CD22B836D2137B8A41 /* MotionManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505300E876373EAE8F30B10B /* MotionManagerTests.swift */; };
@@ -127,7 +128,8 @@
 		AA73CAB72B6E7B9900695EF9 /* VisionLandmarkProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionLandmarkProbe.swift; sourceTree = "<group>"; };
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
 		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
-		B44DB738F5E35BB17FB8259B /* CueEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEngineTests.swift; sourceTree = "<group>"; };
+		EFAE44D780B54340BA828A80 /* CueEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorTests.swift; sourceTree = "<group>"; };
+		525BD69277AF4BC0ADD300D5 /* CueEngineDebounceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEngineDebounceTests.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
 		C63650A5474A82D6183BBD5E /* CameraCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCapture.swift; sourceTree = "<group>"; };
 		C989CACDEA5CD57E0938515C /* MotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManager.swift; sourceTree = "<group>"; };
@@ -243,7 +245,8 @@
 				AF0486A7342920630558BDFB /* CameraCaptureTests.swift */,
 				8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */,
 				79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */,
-				B44DB738F5E35BB17FB8259B /* CueEngineTests.swift */,
+				EFAE44D780B54340BA828A80 /* CueEvaluatorTests.swift */,
+				525BD69277AF4BC0ADD300D5 /* CueEngineDebounceTests.swift */,
 				7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */,
 				6E4E630941D5EEA5BF4A4CB7 /* ExposureProcessorTests.swift */,
 				A5B9FADA996D75EC6DADF79A /* FrameTimerTests.swift */,
@@ -468,7 +471,8 @@
 				94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */,
 				59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */,
 				87601917C713AEDAD040F2CB /* CaptureStateTests.swift in Sources */,
-				C4B3B082698263CC8E1018D9 /* CueEngineTests.swift in Sources */,
+				8F64D4E7FD6D4581A817667C /* CueEvaluatorTests.swift in Sources */,
+				F3E52B0813774B1DBBA75442 /* CueEngineDebounceTests.swift in Sources */,
 				2A5689188E70379D01FD9E28 /* DebugOverlayViewModelTests.swift in Sources */,
 				E8565AAD8B01523B96D39510 /* ExposureProcessorTests.swift in Sources */,
 				A38CDDB52597EB4F93E7CBE1 /* FrameTimerTests.swift in Sources */,
