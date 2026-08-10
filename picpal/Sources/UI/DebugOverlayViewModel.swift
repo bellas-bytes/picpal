@@ -47,6 +47,11 @@ final class DebugOverlayViewModel: ObservableObject {
     /// Rolling mean combined Vision total in milliseconds (placeholder: 0.0).
     @Published var landmarkCombinedMs: Double = 0.0
 
+    /// The active coaching cue selected by the cue engine (placeholder: "—").
+    ///
+    /// Updated after every signal tick. "—" means silence (no active cue).
+    @Published var activeCue: String = "—"
+
     // MARK: - Telemetry wiring
 
     /// Creates a `TelemetryFeed` wired to update `framesPerSecond` and `thermalState`.

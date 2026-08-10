@@ -18,6 +18,8 @@ struct ContentView: View {
     @State private var framingMonitor: FramingMonitor?
     @State private var motionManager = MotionManager()
     @State private var tiltMonitor: TiltMonitor?
+    @State private var cueEngine: CueEngine?
+    @State private var accumulator: SignalFrameAccumulator?
 
     var body: some View {
         ZStack {
@@ -35,14 +37,28 @@ struct ContentView: View {
     private func wireUp() {
         guard telemetryFeed == nil else { return }  // idempotent
 
-        let framingMon = FramingMonitor { [weak debugViewModel] signal in
+        // Create the cue engine and signal accumulator.
+        // The accumulator merges individual signals into a complete SignalFrame and
+        // passes it to the engine on every update. Results are dispatched to @MainActor.
+        let engine = CueEngine()
+        let accum = SignalFrameAccumulator { [weak debugViewModel] frame in
+            let cue = engine.process(frame: frame)
+            let cueText = cue?.text ?? "—"
+            Task { @MainActor [weak debugViewModel] in
+                debugViewModel?.activeCue = cueText
+            }
+        }
+
+        let framingMon = FramingMonitor { [weak debugViewModel, accum] signal in
+            accum.update(framing: signal)
             let label = signal.hint.rawValue
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.framingHint = label
             }
         }
 
-        let exposureMon = ExposureMonitor(downstream: framingMon) { [weak debugViewModel] signal in
+        let exposureMon = ExposureMonitor(downstream: framingMon) { [weak debugViewModel, accum] signal in
+            accum.update(exposure: signal)
             let label: String
             switch signal.level {
             case .ok:           label = "ok"
@@ -54,7 +70,8 @@ struct ContentView: View {
             }
         }
 
-        let blurMon = BlurMonitor(downstream: exposureMon) { [weak debugViewModel] signal in
+        let blurMon = BlurMonitor(downstream: exposureMon) { [weak debugViewModel, accum] signal in
+            accum.update(blur: signal)
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.blurScore = signal.sharpnessScore
             }
@@ -79,8 +96,11 @@ struct ContentView: View {
         framingMonitor = framingMon
         landmarkProbe = probe
         telemetryFeed = feed
+        cueEngine = engine
+        accumulator = accum
 
-        let monitor = TiltMonitor { [weak debugViewModel] signal in
+        let monitor = TiltMonitor { [weak debugViewModel, accum] signal in
+            accum.update(tilt: signal)
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.tiltDegrees = signal.angleDegrees
             }
