@@ -13,6 +13,8 @@ struct ContentView: View {
     // Retained for the lifetime of the view.
     @State private var telemetryFeed: TelemetryFeed?
     @State private var landmarkProbe: VisionLandmarkProbe?
+    @State private var motionManager = MotionManager()
+    @State private var tiltMonitor: TiltMonitor?
 
     var body: some View {
         ZStack {
@@ -46,5 +48,14 @@ struct ContentView: View {
 
         landmarkProbe = probe
         telemetryFeed = feed
+
+        let monitor = TiltMonitor { [weak debugViewModel] signal in
+            Task { @MainActor [weak debugViewModel] in
+                debugViewModel?.tiltDegrees = signal.angleDegrees
+            }
+        }
+        motionManager.delegate = monitor
+        motionManager.start()
+        tiltMonitor = monitor
     }
 }

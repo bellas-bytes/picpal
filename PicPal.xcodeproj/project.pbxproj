@@ -10,12 +10,17 @@
 		0E2808E915A30DC6D8736FCD /* MotionDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */; };
 		122410582BA831E16D9384CD /* BatteryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82254738EA55D7785F0C0DD1 /* BatteryTests.swift */; };
 		18D1408B13222EABEC51CAF1 /* LandmarkProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C58CC4E053C73E35829D55C /* LandmarkProbeTests.swift */; };
+		1A0BC04BEC8F942BA1DE86A8 /* TiltProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C905A78CCC06CD386CEFD97 /* TiltProcessorTests.swift */; };
+		1CDEEA8EBE25B9B0E43C2B58 /* SignalFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B840731120BD2389BAB6940 /* SignalFrame.swift */; };
 		1D4FED6ED507315E9B8C929B /* FrameTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F403C544AFB8CFB048AEC2 /* FrameTimer.swift */; };
 		277DFB380A7B72895217D3B4 /* TelemetryFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574D8F8FF911716A77E1A02 /* TelemetryFeed.swift */; };
 		29ED535768FA95BC8D0D998C /* MotionManager+Internal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95EE88A21316305B4A989D9 /* MotionManager+Internal.swift */; };
 		2A5689188E70379D01FD9E28 /* DebugOverlayViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */; };
+		2E70361870749E68E8C1D350 /* FramingSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8043A0736551BD4DBA3F3C /* FramingSignal.swift */; };
+		40737DFC7B3A0AC9A8CD0C62 /* TiltProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BCA7A88868D2B3B568534F /* TiltProcessor.swift */; };
 		44193E4453E6F0C442CE6C9E /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD84759A4FAEFB9FB9BCA704 /* Vision.framework */; };
 		520F8AA439C4593A02B46EA8 /* MotionProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555FAB8C66A68F763C5EC202 /* MotionProcessorTests.swift */; };
+		5972CA0B783B1E7E763FB2AB /* BlurSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E735B37FE10B0FB91995EF7 /* BlurSignal.swift */; };
 		59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */; };
 		5C5BD9F90A9E0DBDA68BADDC /* CaptureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3352C7D6EC951111FEECA967 /* CaptureState.swift */; };
 		6602A80CCA4BED724176E82B /* DebugOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6FBDC73456CC10ED0DD44B /* DebugOverlayView.swift */; };
@@ -23,6 +28,7 @@
 		6EBD433279CF46F3ED807464 /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C989CACDEA5CD57E0938515C /* MotionManager.swift */; };
 		737C08439DDECE4B8B368A0B /* DebugOverlayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392889F7712A93E12BF45BC0 /* DebugOverlayViewModel.swift */; };
 		80B18AC11425ABBBCCC805D1 /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DFBBA6291517BEA6072640 /* CameraPreviewView.swift */; };
+		850777A429DBA928DC057263 /* ExposureSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADFEDF55650357403AF8A8E /* ExposureSignal.swift */; };
 		87601917C713AEDAD040F2CB /* CaptureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */; };
 		8978D97B80D4BA041A05E124 /* CameraCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63650A5474A82D6183BBD5E /* CameraCapture.swift */; };
 		8F1BA24A05B1E07FDD8CDDBC /* TelemetryExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60F121BAC17B1B44B1952C87 /* TelemetryExporter.swift */; };
@@ -30,9 +36,11 @@
 		94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0486A7342920630558BDFB /* CameraCaptureTests.swift */; };
 		A07CDCA843E145B949E0010F /* ThermalMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17352296C3AF1FCB09C1B90 /* ThermalMonitor.swift */; };
 		A38CDDB52597EB4F93E7CBE1 /* FrameTimerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B9FADA996D75EC6DADF79A /* FrameTimerTests.swift */; };
+		A3E530D825160B67C6EE26FB /* TiltMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA6168FE7D6DC8079864214 /* TiltMonitor.swift */; };
 		B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */; };
 		BAD8540EDF6688B97240395A /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D03BC28784FF4637455CA42 /* BatteryMonitor.swift */; };
 		BF659892E4EA6C97DE6A0553 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */; };
+		C3E35148E42771AFA728FD26 /* TiltSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7789276B1ABFC03AA51DB676 /* TiltSignal.swift */; };
 		C769A9B463F7F39C86C29B2A /* VisionLandmarkProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA73CAB72B6E7B9900695EF9 /* VisionLandmarkProbe.swift */; };
 		CBF5F0FC6D1686ABAAFC64EF /* CameraFrameDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D7C9EDA01B1B08F63888B51 /* CameraFrameDelegate.swift */; };
 		D122B0CD22B836D2137B8A41 /* MotionManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505300E876373EAE8F30B10B /* MotionManagerTests.swift */; };
@@ -41,6 +49,7 @@
 		D692DF6D48EECAC60F37D2E1 /* TelemetryExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */; };
 		DC49FACCBC72BD4177477871 /* PipelineTelemetryBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F091BFAC557A758EE5BC92 /* PipelineTelemetryBridge.swift */; };
 		DF8F8FC2081231F7C9BEEEC1 /* PipelineTelemetryBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */; };
+		E0AEF43926A6E7452D36E8FD /* SignalFrameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */; };
 		EB2D66A11102A151445E3BF9 /* MotionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA507E9D656071A43579101 /* MotionProcessor.swift */; };
 		F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 576EAE74AC58442D1D45B548 /* ContentView.swift */; };
 		F1074965CD86018D140DE864 /* MotionReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */; };
@@ -61,11 +70,14 @@
 		1243DDAF4DADFD1572EC329D /* ThermalMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalMonitorTests.swift; sourceTree = "<group>"; };
 		1408C43CD74866EC40E4371C /* CameraCapture+Internal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CameraCapture+Internal.swift"; sourceTree = "<group>"; };
 		191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryExporterTests.swift; sourceTree = "<group>"; };
+		1E735B37FE10B0FB91995EF7 /* BlurSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurSignal.swift; sourceTree = "<group>"; };
 		27DFBBA6291517BEA6072640 /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
 		27F091BFAC557A758EE5BC92 /* PipelineTelemetryBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineTelemetryBridge.swift; sourceTree = "<group>"; };
+		2C8043A0736551BD4DBA3F3C /* FramingSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingSignal.swift; sourceTree = "<group>"; };
 		3352C7D6EC951111FEECA967 /* CaptureState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureState.swift; sourceTree = "<group>"; };
 		392889F7712A93E12BF45BC0 /* DebugOverlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlayViewModel.swift; sourceTree = "<group>"; };
 		3D7C9EDA01B1B08F63888B51 /* CameraFrameDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraFrameDelegate.swift; sourceTree = "<group>"; };
+		4ADFEDF55650357403AF8A8E /* ExposureSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureSignal.swift; sourceTree = "<group>"; };
 		4D03BC28784FF4637455CA42 /* BatteryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryMonitor.swift; sourceTree = "<group>"; };
 		505300E876373EAE8F30B10B /* MotionManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManagerTests.swift; sourceTree = "<group>"; };
 		555FAB8C66A68F763C5EC202 /* MotionProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionProcessorTests.swift; sourceTree = "<group>"; };
@@ -73,14 +85,19 @@
 		5F6FBDC73456CC10ED0DD44B /* DebugOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlayView.swift; sourceTree = "<group>"; };
 		60F121BAC17B1B44B1952C87 /* TelemetryExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryExporter.swift; sourceTree = "<group>"; };
 		616A81624DE18536D412700A /* PicPalTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PicPalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6AA6168FE7D6DC8079864214 /* TiltMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltMonitor.swift; sourceTree = "<group>"; };
 		6FAAF108C70285DB6D41DDD4 /* PicPal.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PicPal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineTelemetryBridgeTests.swift; sourceTree = "<group>"; };
 		7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlayViewModelTests.swift; sourceTree = "<group>"; };
+		7789276B1ABFC03AA51DB676 /* TiltSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltSignal.swift; sourceTree = "<group>"; };
 		79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureStateTests.swift; sourceTree = "<group>"; };
 		82254738EA55D7785F0C0DD1 /* BatteryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryTests.swift; sourceTree = "<group>"; };
 		8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfigurationTests.swift; sourceTree = "<group>"; };
 		8C5B3440F257F5258241DA3C /* MotionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDelegate.swift; sourceTree = "<group>"; };
+		8C905A78CCC06CD386CEFD97 /* TiltProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltProcessorTests.swift; sourceTree = "<group>"; };
+		9B840731120BD2389BAB6940 /* SignalFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalFrame.swift; sourceTree = "<group>"; };
 		9C58CC4E053C73E35829D55C /* LandmarkProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkProbeTests.swift; sourceTree = "<group>"; };
+		9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalFrameTests.swift; sourceTree = "<group>"; };
 		A5B9FADA996D75EC6DADF79A /* FrameTimerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameTimerTests.swift; sourceTree = "<group>"; };
 		AA73CAB72B6E7B9900695EF9 /* VisionLandmarkProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionLandmarkProbe.swift; sourceTree = "<group>"; };
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
@@ -88,6 +105,7 @@
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
 		C63650A5474A82D6183BBD5E /* CameraCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCapture.swift; sourceTree = "<group>"; };
 		C989CACDEA5CD57E0938515C /* MotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManager.swift; sourceTree = "<group>"; };
+		C9BCA7A88868D2B3B568534F /* TiltProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltProcessor.swift; sourceTree = "<group>"; };
 		CD84759A4FAEFB9FB9BCA704 /* Vision.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vision.framework; path = System/Library/Frameworks/Vision.framework; sourceTree = SDKROOT; };
 		CF4D58B615E212399068FE51 /* LandmarkProbeStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkProbeStats.swift; sourceTree = "<group>"; };
 		D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfiguration.swift; sourceTree = "<group>"; };
@@ -139,6 +157,20 @@
 			path = Camera;
 			sourceTree = "<group>";
 		};
+		2D105048843250F00B1B7552 /* Signals */ = {
+			isa = PBXGroup;
+			children = (
+				1E735B37FE10B0FB91995EF7 /* BlurSignal.swift */,
+				4ADFEDF55650357403AF8A8E /* ExposureSignal.swift */,
+				2C8043A0736551BD4DBA3F3C /* FramingSignal.swift */,
+				9B840731120BD2389BAB6940 /* SignalFrame.swift */,
+				6AA6168FE7D6DC8079864214 /* TiltMonitor.swift */,
+				C9BCA7A88868D2B3B568534F /* TiltProcessor.swift */,
+				7789276B1ABFC03AA51DB676 /* TiltSignal.swift */,
+			);
+			path = Signals;
+			sourceTree = "<group>";
+		};
 		31899D2E4139D10F0E248E5E /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -178,8 +210,10 @@
 				505300E876373EAE8F30B10B /* MotionManagerTests.swift */,
 				555FAB8C66A68F763C5EC202 /* MotionProcessorTests.swift */,
 				6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */,
+				9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */,
 				191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */,
 				1243DDAF4DADFD1572EC329D /* ThermalMonitorTests.swift */,
+				8C905A78CCC06CD386CEFD97 /* TiltProcessorTests.swift */,
 			);
 			path = PicPalTests;
 			sourceTree = "<group>";
@@ -191,6 +225,7 @@
 				21E2EC8127C049B75E381984 /* Camera */,
 				57D8081C6B522B3F20F9B767 /* Landmarks */,
 				95F3665B7603A4993CF2B526 /* Motion */,
+				2D105048843250F00B1B7552 /* Signals */,
 				DB021A4B049B9D18C6CAC5A7 /* Telemetry */,
 				EC5A252457254CF453584AF6 /* UI */,
 			);
@@ -327,6 +362,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BAD8540EDF6688B97240395A /* BatteryMonitor.swift in Sources */,
+				5972CA0B783B1E7E763FB2AB /* BlurSignal.swift in Sources */,
 				D44779D742AEA80E7D6C732C /* CameraCapture+Internal.swift in Sources */,
 				8978D97B80D4BA041A05E124 /* CameraCapture.swift in Sources */,
 				BF659892E4EA6C97DE6A0553 /* CameraConfiguration.swift in Sources */,
@@ -336,7 +372,9 @@
 				F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */,
 				6602A80CCA4BED724176E82B /* DebugOverlayView.swift in Sources */,
 				737C08439DDECE4B8B368A0B /* DebugOverlayViewModel.swift in Sources */,
+				850777A429DBA928DC057263 /* ExposureSignal.swift in Sources */,
 				1D4FED6ED507315E9B8C929B /* FrameTimer.swift in Sources */,
+				2E70361870749E68E8C1D350 /* FramingSignal.swift in Sources */,
 				94ACC9045C767F036E8C7849 /* LandmarkProbeStats.swift in Sources */,
 				0E2808E915A30DC6D8736FCD /* MotionDataSource.swift in Sources */,
 				698AEC170D45EB4CB0D1419E /* MotionDelegate.swift in Sources */,
@@ -346,9 +384,13 @@
 				F1074965CD86018D140DE864 /* MotionReading.swift in Sources */,
 				B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */,
 				DC49FACCBC72BD4177477871 /* PipelineTelemetryBridge.swift in Sources */,
+				1CDEEA8EBE25B9B0E43C2B58 /* SignalFrame.swift in Sources */,
 				8F1BA24A05B1E07FDD8CDDBC /* TelemetryExporter.swift in Sources */,
 				277DFB380A7B72895217D3B4 /* TelemetryFeed.swift in Sources */,
 				A07CDCA843E145B949E0010F /* ThermalMonitor.swift in Sources */,
+				A3E530D825160B67C6EE26FB /* TiltMonitor.swift in Sources */,
+				40737DFC7B3A0AC9A8CD0C62 /* TiltProcessor.swift in Sources */,
+				C3E35148E42771AFA728FD26 /* TiltSignal.swift in Sources */,
 				C769A9B463F7F39C86C29B2A /* VisionLandmarkProbe.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -367,8 +409,10 @@
 				D122B0CD22B836D2137B8A41 /* MotionManagerTests.swift in Sources */,
 				520F8AA439C4593A02B46EA8 /* MotionProcessorTests.swift in Sources */,
 				DF8F8FC2081231F7C9BEEEC1 /* PipelineTelemetryBridgeTests.swift in Sources */,
+				E0AEF43926A6E7452D36E8FD /* SignalFrameTests.swift in Sources */,
 				D692DF6D48EECAC60F37D2E1 /* TelemetryExporterTests.swift in Sources */,
 				D689CCE4E40040BC94376D92 /* ThermalMonitorTests.swift in Sources */,
+				1A0BC04BEC8F942BA1DE86A8 /* TiltProcessorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

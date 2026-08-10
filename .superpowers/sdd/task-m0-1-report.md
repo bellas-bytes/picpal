@@ -169,3 +169,35 @@ xcodebuild -project PicPal.xcodeproj -scheme PicPal \
    CameraConfigurationTests: 13/13 passed
    CaptureStateTests:       12/12 passed
 ```
+
+---
+
+## Five-finding fix pass — 2026-08-09
+
+**Commit**: d4eb3c3
+**Status**: DONE
+
+### Changes made
+
+| Fix | File | Change |
+|---|---|---|
+| 1 — stale config race | `CameraCapture.swift` line 101 | `applyConfigurationLocked(newConfig)` → re-reads `configLock` inside the async block as `latestConfig` so a concurrent `configure()` call cannot inject a stale snapshot |
+| 2 — silent error | `CameraCapture.swift` `applyConfigurationLocked` | `try? applyFrameRate(...)` → `do { try … } catch { logger.error(…) }` |
+| 3 — logger property | `CameraCapture.swift` | Added `private let logger = Logger(subsystem: "com.picpal", category: "CameraCapture")` (import os was already present; now used) |
+| 4 — Equatable synthesis | `CaptureState.swift` | Deleted 15-line hand-rolled `static func ==`; `: Equatable` already on the enum declaration; Swift synthesises correctly because `String` (the only associated value) is `Equatable` |
+| 5 — unnecessary sleep | `CameraCaptureTests.swift` | Removed `async throws` + `Task.sleep(for: .milliseconds(150))` from `testConfigureUpdatesPreset`, `testConfigureClampsLowFPS`, `testConfigureClampsHighFPS`; `configLock` is written synchronously before the async dispatch so `currentConfiguration` is immediately observable |
+
+### Build and test results
+
+```
+xcodebuild -project PicPal.xcodeproj -scheme PicPal \
+  -destination 'platform=iOS Simulator,name=iPhone 16' build
+→ BUILD SUCCEEDED
+
+xcodebuild -project PicPal.xcodeproj -scheme PicPal \
+  -destination 'platform=iOS Simulator,name=iPhone 16' test
+→ Test run with 33 tests in 3 suites passed after 0.065 seconds.
+   CameraCaptureTests:       8/8 passed
+   CameraConfigurationTests: 13/13 passed
+   CaptureStateTests:        12/12 passed
+```
