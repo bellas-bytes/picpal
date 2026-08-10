@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var telemetryFeed: TelemetryFeed?
     @State private var landmarkProbe: VisionLandmarkProbe?
     @State private var blurMonitor: BlurMonitor?
+    @State private var exposureMonitor: ExposureMonitor?
     @State private var motionManager = MotionManager()
     @State private var tiltMonitor: TiltMonitor?
 
@@ -33,7 +34,19 @@ struct ContentView: View {
     private func wireUp() {
         guard telemetryFeed == nil else { return }  // idempotent
 
-        let blurMon = BlurMonitor { [weak debugViewModel] signal in
+        let exposureMon = ExposureMonitor { [weak debugViewModel] signal in
+            let label: String
+            switch signal.level {
+            case .ok:           label = "ok"
+            case .underexposed: label = "under"
+            case .overexposed:  label = "over"
+            }
+            Task { @MainActor [weak debugViewModel] in
+                debugViewModel?.exposureLevel = label
+            }
+        }
+
+        let blurMon = BlurMonitor(downstream: exposureMon) { [weak debugViewModel] signal in
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.blurScore = signal.sharpnessScore
             }
@@ -54,6 +67,7 @@ struct ContentView: View {
         camera.requestPermissionAndStart()
 
         blurMonitor = blurMon
+        exposureMonitor = exposureMon
         landmarkProbe = probe
         telemetryFeed = feed
 

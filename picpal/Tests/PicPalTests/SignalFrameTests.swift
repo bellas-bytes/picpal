@@ -36,7 +36,7 @@ struct SignalFrameTests {
     func memberwiseInitAllFields() {
         let tilt = TiltSignal(angleDegrees: -1.2, isLevel: true)
         let blur = BlurSignal(sharpnessScore: 120.0, isBlurry: false)
-        let exposure = ExposureSignal()
+        let exposure = ExposureSignal(shadowClipFraction: 0.0, highlightClipFraction: 0.0, level: .ok)
         let framing = FramingSignal()
         let frame = SignalFrame(
             timestamp: 99.9,
