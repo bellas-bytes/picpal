@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 /// Holds the display values shown by `DebugOverlayView`.
@@ -51,6 +52,15 @@ final class DebugOverlayViewModel: ObservableObject {
     ///
     /// Updated after every signal tick. "—" means silence (no active cue).
     @Published var activeCue: String = "—"
+
+    // MARK: - Guides overlay fields
+
+    /// Whether the device is currently within the level dead-zone (placeholder: false).
+    @Published var isLevel: Bool = false
+
+    /// Normalized bounding box of the primary subject in Vision coords (origin bottom-left).
+    /// `nil` when no subject is detected (placeholder: nil).
+    @Published var subjectBox: CGRect? = nil
 
     // MARK: - Telemetry wiring
 

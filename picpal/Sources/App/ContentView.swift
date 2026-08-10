@@ -26,6 +26,9 @@ struct ContentView: View {
             CameraPreviewView(camera: camera)
                 .ignoresSafeArea()
 
+            GuidesOverlayView(viewModel: debugViewModel)
+                .ignoresSafeArea()
+
             DebugOverlayView(viewModel: debugViewModel)
         }
         .onAppear(perform: wireUp)
@@ -52,8 +55,10 @@ struct ContentView: View {
         let framingMon = FramingMonitor { [weak debugViewModel, accum] signal in
             accum.update(framing: signal)
             let label = signal.hint.rawValue
+            let box = signal.subjectBox
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.framingHint = label
+                debugViewModel?.subjectBox = box
             }
         }
 
@@ -103,6 +108,7 @@ struct ContentView: View {
             accum.update(tilt: signal)
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.tiltDegrees = signal.angleDegrees
+                debugViewModel?.isLevel = signal.isLevel
             }
         }
         motionManager.delegate = monitor
