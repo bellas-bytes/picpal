@@ -116,7 +116,10 @@ struct GuidesOverlayView: View {
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .rotationEffect(.degrees(tiltDegrees))
+        // Negate: the level indicator is an artificial horizon, so it must rotate
+        // *opposite* to the device tilt to show where true level is.
+        // Positive tiltDegrees = device tilted clockwise → line tilts counter-clockwise.
+        .rotationEffect(.degrees(-tiltDegrees))
         .allowsHitTesting(false)
     }
 

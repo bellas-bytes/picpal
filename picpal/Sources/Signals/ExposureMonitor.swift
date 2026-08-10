@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreMedia
 import CoreVideo
+import os
 
 // MARK: - Sendable wrapper
 
@@ -54,6 +55,10 @@ public final class ExposureMonitor: @unchecked Sendable, CameraFrameDelegate {
         qos:   QueueConstants.qos
     )
 
+    /// Prevents queue growth when processing is slower than frame delivery.
+    /// Frames arriving while a prior frame is still being analysed are dropped.
+    private let isProcessing = OSAllocatedUnfairLock<Bool>(initialState: false)
+
     // MARK: - Init
 
     /// Creates an `ExposureMonitor`.
@@ -84,9 +89,15 @@ public final class ExposureMonitor: @unchecked Sendable, CameraFrameDelegate {
         // Forward synchronously so downstream is never delayed by exposure computation.
         downstream?.cameraCapture(capture, didOutputPixelBuffer: pixelBuffer, timestamp: timestamp)
 
+        // Drop-if-busy: skip analysis when the previous frame hasn't finished yet.
+        // This bounds queue depth to 1 and prevents unbounded CVPixelBuffer retention.
+        guard isProcessing.withLock({ !$0 }) else { return }
+        isProcessing.withLock { $0 = true }
+
         // Dispatch exposure processing off the camera queue.
         let wrapped = SendablePixelBuffer(value: pixelBuffer)
         exposureQueue.async { [weak self] in
+            defer { self?.isProcessing.withLock { $0 = false } }
             guard let self else { return }
             let signal = processor.process(pixelBuffer: wrapped.value)
             onSignal(signal)

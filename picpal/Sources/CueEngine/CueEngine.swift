@@ -158,9 +158,18 @@ public final class CueEngine: @unchecked Sendable {
         let now = clock()
 
         return stateLock.withLock { state in
-            // Cadence cap: suppress all cues while within the cooldown window.
+            // Cadence cap: suppress cues while within the cooldown window — UNLESS the
+            // candidate has strictly higher priority (lower rawValue) than the last cue.
+            // A higher-priority hazard (e.g. stability) should never be blocked by an
+            // in-progress cooldown triggered by a lower-priority cue (e.g. composition).
             if let cooldownEnd = state.cooldownEndTime, now < cooldownEnd {
-                return nil
+                let bypassCooldown: Bool
+                if let last = state.lastCue {
+                    bypassCooldown = candidate.priority < last.priority
+                } else {
+                    bypassCooldown = false
+                }
+                guard bypassCooldown else { return nil }
             }
 
             // Repeat suppression: same cue text cannot fire within minRepeatIntervalSeconds.

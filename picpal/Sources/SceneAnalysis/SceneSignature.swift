@@ -70,7 +70,12 @@ public extension SceneSignature {
 
         for row in 0..<downsampleGridSize {
             for col in 0..<downsampleGridSize {
-                let offset = (row * stepY * bytesPerRow) + (col * stepX)
+                // Clamp sample coordinates so the index never exceeds the plane bounds.
+                // This is only relevant when width or height is smaller than the grid size
+                // (e.g. very small test buffers).
+                let sampleRow = min(row * stepY, height - 1)
+                let sampleCol = min(col * stepX, width - 1)
+                let offset = sampleRow * bytesPerRow + sampleCol
                 let byte = base.load(fromByteOffset: offset, as: UInt8.self)
                 values.append(Double(byte))
             }

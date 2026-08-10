@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreMedia
 import CoreVideo
+import os
 import Vision
 
 // MARK: - Sendable wrapper
@@ -54,6 +55,10 @@ public final class FramingMonitor: @unchecked Sendable, CameraFrameDelegate {
         qos:   QueueConstants.qos
     )
 
+    /// Prevents queue growth when Vision processing is slower than frame delivery.
+    /// Frames arriving while a prior frame is still being analysed are dropped.
+    private let isProcessing = OSAllocatedUnfairLock<Bool>(initialState: false)
+
     // MARK: - Init
 
     /// Creates a `FramingMonitor`.
@@ -84,8 +89,14 @@ public final class FramingMonitor: @unchecked Sendable, CameraFrameDelegate {
         // Forward synchronously so downstream is never delayed by framing computation.
         downstream?.cameraCapture(capture, didOutputPixelBuffer: pixelBuffer, timestamp: timestamp)
 
+        // Drop-if-busy: skip Vision analysis when the previous frame hasn't finished yet.
+        // This bounds queue depth to 1 and prevents unbounded CVPixelBuffer retention.
+        guard isProcessing.withLock({ !$0 }) else { return }
+        isProcessing.withLock { $0 = true }
+
         let wrapped = SendablePixelBuffer(value: pixelBuffer)
         framingQueue.async { [weak self] in
+            defer { self?.isProcessing.withLock { $0 = false } }
             guard let self else { return }
             let box    = Self.extractSalientBox(from: wrapped.value)
             let signal = processor.process(subjectBox: box)

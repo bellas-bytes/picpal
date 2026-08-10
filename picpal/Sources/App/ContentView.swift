@@ -92,7 +92,9 @@ struct ContentView: View {
             }
         }
 
-        let probe = VisionLandmarkProbe(isEnabled: true, downstream: blurMon) { [weak debugViewModel] stats in
+        // Landmark probe is disabled by default — body/hand/face Vision runs every frame
+        // and wastes thermal budget when nothing yet consumes landmark results (M2+).
+        let probe = VisionLandmarkProbe(isEnabled: false, downstream: blurMon) { [weak debugViewModel] stats in
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.bodyPoseMs         = stats.bodyPoseMs
                 debugViewModel?.handPoseMs         = stats.handPoseMs
@@ -127,6 +129,12 @@ struct ContentView: View {
         }
         motionManager.delegate = monitor
         motionManager.start()
+        // On Simulator (and any device where motion is unavailable), MotionManager.start()
+        // returns early without ever firing didChangeSettled.  Open the gate immediately so
+        // frames reach the analysis pipeline.
+        if !motionManager.isDeviceMotionAvailable {
+            sceneGate.update(isSettled: true)
+        }
         tiltMonitor = monitor
     }
 }

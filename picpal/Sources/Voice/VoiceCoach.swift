@@ -86,9 +86,21 @@ public final class VoiceCoach: NSObject, @unchecked Sendable {
     }
 
     /// Mute/unmute voice output. When muted, `speak(_:)` is a no-op.
+    ///
+    /// Transitioning from unmuted → muted also stops any utterance currently playing,
+    /// so audio does not continue to the end of an in-flight cue.
     public var isMuted: Bool {
         get { lock.withLock { $0.isMuted } }
-        set { lock.withLock { $0.isMuted = newValue } }
+        set {
+            let wasUnmuted = lock.withLock { state in
+                let was = !state.isMuted
+                state.isMuted = newValue
+                return was
+            }
+            if newValue && wasUnmuted {
+                stop()
+            }
+        }
     }
 
     // MARK: - Internal test hooks
