@@ -65,6 +65,10 @@ public final class VisionLandmarkProbe: @unchecked Sendable, CameraFrameDelegate
 
     private let logger = Logger(subsystem: "com.picpal", category: "VisionLandmarkProbe")
 
+    // MARK: - Downstream chaining
+
+    private weak var downstream: (any CameraFrameDelegate)?
+
     // MARK: - Init
 
     /// Create a probe.
@@ -72,15 +76,19 @@ public final class VisionLandmarkProbe: @unchecked Sendable, CameraFrameDelegate
     /// - Parameters:
     ///   - isEnabled: When `false` the probe ignores all incoming frames.
     ///     Toggle at any time via the `isEnabled` property.
+    ///   - downstream: Next pipeline delegate; receives every frame regardless of
+    ///     the `isEnabled` state, so downstream processing is never gated by Vision.
     ///   - onProbeStats: Called (off-main, on the Swift concurrency executor)
     ///     after each frame with updated rolling statistics. Dispatch to
     ///     `@MainActor` inside this closure to update UI.
     public init(
         isEnabled: Bool = true,
+        downstream: (any CameraFrameDelegate)? = nil,
         onProbeStats: @escaping @Sendable (LandmarkProbeStats) -> Void
     ) {
         self.enabledLock    = OSAllocatedUnfairLock(initialState: isEnabled)
         self.frameCountLock = OSAllocatedUnfairLock(initialState: 0)
+        self.downstream     = downstream
         self.onProbeStats   = onProbeStats
     }
 
@@ -99,6 +107,9 @@ public final class VisionLandmarkProbe: @unchecked Sendable, CameraFrameDelegate
         didOutputPixelBuffer pixelBuffer: CVPixelBuffer,
         timestamp: CMTime
     ) {
+        // Forward to downstream unconditionally — isEnabled only gates Vision work.
+        downstream?.cameraCapture(capture, didOutputPixelBuffer: pixelBuffer, timestamp: timestamp)
+
         guard enabledLock.withLock({ $0 }) else { return }
 
         // Wrap in @unchecked Sendable so the non-Sendable CVBuffer type can
@@ -113,7 +124,7 @@ public final class VisionLandmarkProbe: @unchecked Sendable, CameraFrameDelegate
         _ capture: CameraCapture,
         didChangeState state: CameraCapture.CaptureState
     ) {
-        // State changes are not relevant to the probe.
+        downstream?.cameraCapture(capture, didChangeState: state)
     }
 
     // MARK: - Internal (testing)

@@ -13,6 +13,7 @@ struct ContentView: View {
     // Retained for the lifetime of the view.
     @State private var telemetryFeed: TelemetryFeed?
     @State private var landmarkProbe: VisionLandmarkProbe?
+    @State private var blurMonitor: BlurMonitor?
     @State private var motionManager = MotionManager()
     @State private var tiltMonitor: TiltMonitor?
 
@@ -32,7 +33,13 @@ struct ContentView: View {
     private func wireUp() {
         guard telemetryFeed == nil else { return }  // idempotent
 
-        let probe = VisionLandmarkProbe(isEnabled: true) { [weak debugViewModel] stats in
+        let blurMon = BlurMonitor { [weak debugViewModel] signal in
+            Task { @MainActor [weak debugViewModel] in
+                debugViewModel?.blurScore = signal.sharpnessScore
+            }
+        }
+
+        let probe = VisionLandmarkProbe(isEnabled: true, downstream: blurMon) { [weak debugViewModel] stats in
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.bodyPoseMs         = stats.bodyPoseMs
                 debugViewModel?.handPoseMs         = stats.handPoseMs
@@ -46,6 +53,7 @@ struct ContentView: View {
         feed.start()
         camera.requestPermissionAndStart()
 
+        blurMonitor = blurMon
         landmarkProbe = probe
         telemetryFeed = feed
 

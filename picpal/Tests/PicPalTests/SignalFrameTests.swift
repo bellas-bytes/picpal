@@ -35,7 +35,7 @@ struct SignalFrameTests {
     @Test("Memberwise init with all fields supplied stores every value")
     func memberwiseInitAllFields() {
         let tilt = TiltSignal(angleDegrees: -1.2, isLevel: true)
-        let blur = BlurSignal()
+        let blur = BlurSignal(sharpnessScore: 120.0, isBlurry: false)
         let exposure = ExposureSignal()
         let framing = FramingSignal()
         let frame = SignalFrame(
