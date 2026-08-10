@@ -159,4 +159,17 @@ struct FramingProcessorTests {
         let signal = processor.process(subjectBox: box(visionCX: 0.95, visionCY: 0.8))
         #expect(signal.hint == .nudgeLeft)
     }
+
+    // MARK: - Test 12: subject above nearest thirds line → nudgeUp
+
+    @Test("Subject above nearest thirds line emits nudgeUp")
+    func subjectAboveThirdsLineEmitsNudgeUp() {
+        // Vision centre (1/3, 0.6) → UIKit centre (1/3, 0.4).
+        // Nearest thirds point: (1/3, 1/3).
+        // horizontalOffset = 1/3 − 1/3 = 0.0 → horizontal OK.
+        // verticalOffset   = 0.4 − 1/3 ≈ +0.067 (> 0) → subject above thirds → nudgeUp.
+        let processor = FramingProcessor()
+        let signal = processor.process(subjectBox: box(visionCX: 1.0 / 3.0, visionCY: 0.6))
+        #expect(signal.hint == .nudgeUp)
+    }
 }

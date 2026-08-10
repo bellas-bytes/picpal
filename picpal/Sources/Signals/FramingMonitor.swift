@@ -45,6 +45,8 @@ public final class FramingMonitor: @unchecked Sendable, CameraFrameDelegate {
 
     private let processor: FramingProcessor
     private let onSignal: @Sendable (FramingSignal) -> Void
+    // `weak var` is safe without an explicit lock: ARC guarantees atomic zeroing of weak
+    // references. Consistent with the same pattern in BlurMonitor and ExposureMonitor.
     private weak var downstream: (any CameraFrameDelegate)?
 
     private let framingQueue = DispatchQueue(
