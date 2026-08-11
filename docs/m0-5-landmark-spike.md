@@ -1,7 +1,7 @@
 # M0-5: Vision Landmark Latency Spike — Results
 
-**Date**: 2026-08-09
-**Status**: CONDITIONAL GO
+**Date**: 2026-08-09 · **On-device validated**: 2026-08-11
+**Status**: GO (YELLOW) — on-device confirmed
 
 ---
 
@@ -42,9 +42,27 @@ blocker; M2/M3 planning may proceed.
 
 ---
 
-## On-Device Validation Required
+## On-Device Validation Result (2026-08-11)
 
-Run the following on a physical iPhone 16 (or later) with the debug overlay open:
+Validated on a physical **iPhone 17**, debug overlay open, camera on a person.
+
+| Model | On-device (ms) |
+|-------|---------------:|
+| Body Pose | 32.2 |
+| Hand Pose | 84.1 |
+| Face Mesh | 24.3 |
+| **VisionTotal** | **140.7** |
+
+Thermal: **nominal**. Result falls in the **YELLOW** band (50–150 ms) → proceed with
+landmarks on settled frames only, ≤ 5 fps cadence, presence-gated. **Hand is the
+dominant cost (84.1 ms)** — M2-0 must re-measure it under MediaPipe before the hybrid
+stack is committed. See [picpal-tickets-m2.md](picpal-tickets-m2.md).
+
+---
+
+## Original Validation Procedure
+
+Run the following on a physical iPhone 17 (or later) with the debug overlay open:
 
 1. Point the camera at a person (all three detectors will have real subjects).
 2. Let the app run for at least 3–5 minutes to accumulate warm p95 numbers and
@@ -87,6 +105,6 @@ actual iOS Neural Engine path will be at minimum comparable, and likely faster.
 
 M2/M3 planning may begin with a default architecture of "all three models on every
 settled frame." Before committing to that in the M2 tech spec, a 5-minute sustained
-run on a physical iPhone 16 must confirm combined p95 < 150 ms and stable thermal
+run on a physical iPhone 17 must confirm combined p95 < 150 ms and stable thermal
 state. If the device result is YELLOW, switch to 5-fps cadenced landmarks. If RED
 (unlikely given proxy data), re-evaluate at M2 kickoff.
