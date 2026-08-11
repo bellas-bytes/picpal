@@ -31,6 +31,11 @@ public struct SignalFrame: Sendable {
     /// Subject framing assessment. `nil` until M1-4 is active.
     public let framing: FramingSignal?
 
+    // MARK: - Tier 2 signals
+
+    /// Body-framing signal produced by M2-3/4/5. `nil` until M2-3 is active.
+    public let body: BodySignal?
+
     // MARK: - Memberwise initialiser
 
     /// Full memberwise initialiser — new optional fields default to `nil`.
@@ -39,13 +44,15 @@ public struct SignalFrame: Sendable {
         tilt: TiltSignal? = nil,
         blur: BlurSignal? = nil,
         exposure: ExposureSignal? = nil,
-        framing: FramingSignal? = nil
+        framing: FramingSignal? = nil,
+        body: BodySignal? = nil
     ) {
         self.timestamp = timestamp
         self.tilt = tilt
         self.blur = blur
         self.exposure = exposure
         self.framing = framing
+        self.body = body
     }
 
     // MARK: - Convenience

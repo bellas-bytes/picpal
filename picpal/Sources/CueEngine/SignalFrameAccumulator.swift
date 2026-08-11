@@ -56,7 +56,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 tilt: tilt,
                 blur: current.blur,
                 exposure: current.exposure,
-                framing: current.framing
+                framing: current.framing,
+                body: current.body
             )
             current = updated
             return updated
@@ -72,7 +73,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 tilt: current.tilt,
                 blur: blur,
                 exposure: current.exposure,
-                framing: current.framing
+                framing: current.framing,
+                body: current.body
             )
             current = updated
             return updated
@@ -88,7 +90,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 tilt: current.tilt,
                 blur: current.blur,
                 exposure: exposure,
-                framing: current.framing
+                framing: current.framing,
+                body: current.body
             )
             current = updated
             return updated
@@ -104,7 +107,25 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 tilt: current.tilt,
                 blur: current.blur,
                 exposure: current.exposure,
-                framing: framing
+                framing: framing,
+                body: current.body
+            )
+            current = updated
+            return updated
+        }
+        onFrame(frame)
+    }
+
+    /// Merges a new `BodySignal` into the accumulated frame and fires `onFrame`.
+    public func update(body: BodySignal) {
+        let frame = lock.withLock { current in
+            let updated = SignalFrame(
+                timestamp: clock(),
+                tilt: current.tilt,
+                blur: current.blur,
+                exposure: current.exposure,
+                framing: current.framing,
+                body: body
             )
             current = updated
             return updated
