@@ -108,6 +108,7 @@
 		DAA66C0AF0DE7B190E8C1386 /* CueEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF03B1EC3166DCAF7F5A9D0 /* CueEngine.swift */; };
 		DC49FACCBC72BD4177477871 /* PipelineTelemetryBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F091BFAC557A758EE5BC92 /* PipelineTelemetryBridge.swift */; };
 		DF8F8FC2081231F7C9BEEEC1 /* PipelineTelemetryBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */; };
+		BC73B96F1E6B47F2ABCC38BC /* AestheticSignalLifetimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374327E2B2A34171B7FE180D /* AestheticSignalLifetimeTests.swift */; };
 		DFEBCB1F950CA4358609E6FD /* AestheticCueIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190A6E817BA2D5C2485525F9 /* AestheticCueIntegrationTests.swift */; };
 		E05FFC65CDC48E9709B5A808 /* TemporalSmootherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A43485EF2575B13A89774A /* TemporalSmootherTests.swift */; };
 		E0AEF43926A6E7452D36E8FD /* SignalFrameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */; };
@@ -150,6 +151,7 @@
 		147749BBACA3332439D78FB5 /* VLMPrivacyDisclosure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMPrivacyDisclosure.swift; sourceTree = "<group>"; };
 		14E877476931B692D36C6F26 /* VLMRequestGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMRequestGateTests.swift; sourceTree = "<group>"; };
 		190A6E817BA2D5C2485525F9 /* AestheticCueIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AestheticCueIntegrationTests.swift; sourceTree = "<group>"; };
+		374327E2B2A34171B7FE180D /* AestheticSignalLifetimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AestheticSignalLifetimeTests.swift; sourceTree = "<group>"; };
 		191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryExporterTests.swift; sourceTree = "<group>"; };
 		1E735B37FE10B0FB91995EF7 /* BlurSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurSignal.swift; sourceTree = "<group>"; };
 		254932E426C2845F9B9F05EA /* SceneGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGateTests.swift; sourceTree = "<group>"; };
@@ -375,6 +377,7 @@
 			isa = PBXGroup;
 			children = (
 				190A6E817BA2D5C2485525F9 /* AestheticCueIntegrationTests.swift */,
+				374327E2B2A34171B7FE180D /* AestheticSignalLifetimeTests.swift */,
 				C7FFEC8E961F2B4DAE735071 /* AestheticResponseParserTests.swift */,
 				82254738EA55D7785F0C0DD1 /* BatteryTests.swift */,
 				810DF6F7D37580667E224CC1 /* BlurProcessorTests.swift */,
@@ -691,6 +694,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DFEBCB1F950CA4358609E6FD /* AestheticCueIntegrationTests.swift in Sources */,
+				BC73B96F1E6B47F2ABCC38BC /* AestheticSignalLifetimeTests.swift in Sources */,
 				BB7BB313D5ABA222A8EF3A57 /* AestheticResponseParserTests.swift in Sources */,
 				122410582BA831E16D9384CD /* BatteryTests.swift in Sources */,
 				210AD17F07FD2400314677BA /* BlurProcessorTests.swift in Sources */,

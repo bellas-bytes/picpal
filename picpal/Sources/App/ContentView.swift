@@ -1,5 +1,26 @@
 import SwiftUI
 
+// MARK: - Private constants
+
+/// Auto-expiry window for an aesthetic remark: one second past the cue-engine repeat interval
+/// so the accumulator silences naturally before the coach would re-fire the same coaching line.
+private let aestheticRemarkExpirySeconds = CueEngine.defaultMinRepeatIntervalSeconds + 1.0
+
+// MARK: - AestheticExpiryHandle
+
+/// Holds a cancellable expiry Task so `@Sendable` closures in `wireUp()` can share
+/// the mutable task handle without capturing the view struct.
+///
+/// Declared as a `final class` (reference type) so the `@Sendable` closures that capture
+/// it by value still share the same underlying storage. All mutations are dispatched on
+/// `@MainActor` via `Task { @MainActor in … }` blocks.
+private final class AestheticExpiryHandle: @unchecked Sendable {
+    /// The pending expiry task, if any.  Always read and written on `@MainActor`.
+    nonisolated(unsafe) var task: Task<Void, Never>? = nil
+}
+
+// MARK: - ContentView
+
 /// Root view — full-screen camera preview with a toggleable debug overlay.
 ///
 /// Owns the camera, telemetry feed, and landmark probe for the lifetime of the scene.
@@ -26,6 +47,9 @@ struct ContentView: View {
     @State private var cueEngine: CueEngine?
     @State private var accumulator: SignalFrameAccumulator?
     @State private var voiceCoach = VoiceCoach()
+    /// Pending aesthetic-remark expiry Task wrapped in a class so `@Sendable` closures
+    /// can cancel and reschedule it through a shared reference.
+    @State private var aestheticExpiryTask = AestheticExpiryHandle()
 
     var body: some View {
         ZStack {
@@ -101,6 +125,9 @@ struct ContentView: View {
         // passes it to the engine on every update. Results are dispatched to @MainActor.
         let engine = CueEngine()
         let coach = voiceCoach  // capture strong local reference (no retain cycle)
+        // Capture the class reference so @Sendable closures below can cancel/reschedule
+        // the expiry Task through the shared handle without capturing the view struct.
+        let expiryHandle = aestheticExpiryTask
         let accum = SignalFrameAccumulator { [weak debugViewModel] frame in
             let cue = engine.process(frame: frame)
             if let cue {
@@ -158,8 +185,11 @@ struct ContentView: View {
         // callback to keep StaleSuppressor's body-hint arm updated.
         let vlmOrch = VLMOrchestrator(
             client: AnthropicVLMClient(proxyURL: VLMSettings.shared.proxyURL),
-            onRequestDispatched: { [weak debugViewModel] in
-                Task { @MainActor [weak debugViewModel] in
+            onRequestDispatched: { [weak debugViewModel, expiryHandle] in
+                // Cancel any pending expiry: the incoming response will set a fresh one.
+                Task { @MainActor [weak debugViewModel, expiryHandle] in
+                    expiryHandle.task?.cancel()
+                    expiryHandle.task = nil
                     debugViewModel?.isVLMInFlight = true
                 }
             },
@@ -173,11 +203,32 @@ struct ContentView: View {
                     debugViewModel?.vlmDiscardCount += 1
                 }
             },
-            onAestheticSignal: { [weak debugViewModel, accum] signal in
+            onAestheticSignal: { [weak debugViewModel, accum, expiryHandle] signal in
                 accum.update(aesthetic: signal)
-                let remark = signal.hint == .remark ? signal.remark : ""
-                Task { @MainActor [weak debugViewModel] in
-                    debugViewModel?.aestheticRemark = remark
+                switch signal.hint {
+                case .remark:
+                    // Cancel any previous expiry Task and schedule a fresh one.
+                    Task { @MainActor [weak debugViewModel, accum, expiryHandle] in
+                        expiryHandle.task?.cancel()
+                        expiryHandle.task = nil
+                        debugViewModel?.aestheticRemark = signal.remark
+                        let newTask = Task { [accum, weak debugViewModel] in
+                            try? await Task.sleep(for: .seconds(aestheticRemarkExpirySeconds))
+                            guard !Task.isCancelled else { return }
+                            accum.update(aesthetic: AestheticSignal.nothingToSay)
+                            await MainActor.run { [weak debugViewModel] in
+                                debugViewModel?.aestheticRemark = ""
+                            }
+                        }
+                        expiryHandle.task = newTask
+                    }
+                case .nothingToSay:
+                    // VLM returned nothing — cancel any pending expiry (no remark to expire).
+                    Task { @MainActor [weak debugViewModel, expiryHandle] in
+                        expiryHandle.task?.cancel()
+                        expiryHandle.task = nil
+                        debugViewModel?.aestheticRemark = ""
+                    }
                 }
             }
         )
