@@ -76,7 +76,46 @@ Fix wave (commit 701c3d7) addressed:
 - M0-4: Magic literals `1_000_000_000_000_000` and `1_000_000_000_000_000_000` (attosecond conversions) in `FrameTimer.swift` and `PipelineTelemetryBridge.swift` — should be named constants.
 - M0-3: `MotionProcessorTests.swift` line ~131 — `c!` force-unwrap in test code (`settleChangesAtMostOncePerTransition`); safe in practice but will crash test process if assertion above ever fails.
 
-## M2
+## M2 — Final whole-branch review fix wave
+
+Fix wave (commits 01c5e69..362f058): all Critical and Important findings resolved.
+Re-review: **Approved** — spec compliance ✅, code quality Approved.
+
+- C1 fixed: `LandmarkCadenceController.lastPresenceResult` now written before presence guard (3-line change); stuck-true bug eliminated; regression test added.
+- C2 fixed: Headroom hints corrected — `nudgeUpHeadroom` when head near top, `nudgeDownHeadroom` when too much space; tests and demo-script corrected.
+- I1 fixed: `isBusy` flag prevents probeQueue accumulation; CVPixelBuffer pool safe.
+- I2 fixed: Vision presence check moved off camera delivery queue (into probeQueue via `probe()` helper); Tier-0 forwarding still first statement.
+- I3 fixed: Reset path funneled through probeQueue; no cross-queue producer mutation.
+- I4 documented: MediaPipe keypoint confidence comment explains visibility/presence nil → detector-level gate is the effective floor.
+- I5 fixed: `CuePriority.obstruction = -1` (above `.stability = 0`); obstruction now bypasses tilt/blur cooldowns; new `lensObstructedBypassesTiltCooldown` test added.
+
+340 tests passing. Remote HEAD: 362f058.
+
+Minor deferred: `LandmarkOrchestrator.swift` is 335 lines (35 over the 300-line guideline). Follow-up refactor: extract `probe()` + `runInference()` into `LandmarkOrchestratorProbe` helper type.
+
+**Status: MERGE-READY** — all Critical and Important findings fixed and verified.
+
+Task M2-7: complete (commits b69f435..01c5e69, review clean)
+- BodyCueIntegrationTests.swift: 10 Swift Testing tests for BodySignal → CueEngine path
+- demo-script.md: M2 body section added (6 sub-sections: obstruction/crop/gaze/headroom/zero-false-cue/thermal)
+- develop pushed to remote (Remote HEAD: 01c5e69)
+- Minor deferred: 2 typos in test function names (zeroPalsePositiveBaseline, lensObstructedRefirers...)
+- 338 tests total
+
+Task M2-6: complete (commits 7f03182..b69f435, review clean)
+- LandmarkOrchestrator: CameraFrameDelegate, LandmarkCadenceController gating, Vision body + MediaPipe hand/face inference, BodyHint priority merge, onBodySignal callback
+- CueEvaluator: block 0.5 (lensObstructed → priority:.stability before tilt), block 4.5 (body cues after composition)
+- CueText: 5 new body cue strings
+- ContentView: orchestrator wired between SceneGateAdapter and pipeline; try? graceful degradation
+- DebugOverlayViewModel: bodyHint added and displayed
+- 10 new Swift Testing tests (CueEvaluatorBodyTests); 328 total
+- Minor deferred: missing sourceTier assertion in nudgeDownHeadroomYieldsBodyCue test
+
+Task M2-5: complete (commits 8d5d7a6..7f03182, review clean)
+- GazeAnalyzer: landmarks 234 (left temporal), 454 (right temporal), 4 (nose tip); yawFraction = noseMidOffsetX/faceWidthX; gazeAway when abs(yaw) > 0.15
+- GazeSignalProducer: wraps analyzer + TemporalSmoother<BodySignal>; empty → nil path → noPersonPresent
+- 12 new Swift Testing tests; 318 total
+- Minor deferred: bare 3.0 divisor in mean confidence (cf. named referenceKeypointCount)
 
 Task M2-4: complete (commits 29c2457..8d5d7a6, review clean)
 - HandObstructionAnalyzer: ≥3 high-confidence keypoints within 15% of any frame edge → lensObstructed; else goodBody; <3 qualified → nil
