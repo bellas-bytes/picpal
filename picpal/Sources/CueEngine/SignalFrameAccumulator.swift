@@ -57,7 +57,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 blur: current.blur,
                 exposure: current.exposure,
                 framing: current.framing,
-                body: current.body
+                body: current.body,
+                aesthetic: current.aesthetic
             )
             current = updated
             return updated
@@ -74,7 +75,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 blur: blur,
                 exposure: current.exposure,
                 framing: current.framing,
-                body: current.body
+                body: current.body,
+                aesthetic: current.aesthetic
             )
             current = updated
             return updated
@@ -91,7 +93,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 blur: current.blur,
                 exposure: exposure,
                 framing: current.framing,
-                body: current.body
+                body: current.body,
+                aesthetic: current.aesthetic
             )
             current = updated
             return updated
@@ -108,7 +111,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 blur: current.blur,
                 exposure: current.exposure,
                 framing: framing,
-                body: current.body
+                body: current.body,
+                aesthetic: current.aesthetic
             )
             current = updated
             return updated
@@ -125,7 +129,28 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 blur: current.blur,
                 exposure: current.exposure,
                 framing: current.framing,
-                body: body
+                body: body,
+                aesthetic: current.aesthetic
+            )
+            current = updated
+            return updated
+        }
+        onFrame(frame)
+    }
+
+    /// Merges a new `AestheticSignal` into the accumulated frame and fires `onFrame`.
+    ///
+    /// Pass `nil` to clear the aesthetic signal (e.g., when VLM tier is offline).
+    public func update(aesthetic: AestheticSignal?) {
+        let frame = lock.withLock { current in
+            let updated = SignalFrame(
+                timestamp: clock(),
+                tilt: current.tilt,
+                blur: current.blur,
+                exposure: current.exposure,
+                framing: current.framing,
+                body: current.body,
+                aesthetic: aesthetic
             )
             current = updated
             return updated

@@ -36,6 +36,11 @@ public struct SignalFrame: Sendable {
     /// Body-framing signal produced by M2-3/4/5. `nil` until M2-3 is active.
     public let body: BodySignal?
 
+    // MARK: - Tier 3 signals
+
+    /// Aesthetic coaching signal produced by M3-5 VLM tier. `nil` until M3-5 is active.
+    public let aesthetic: AestheticSignal?
+
     // MARK: - Memberwise initialiser
 
     /// Full memberwise initialiser — new optional fields default to `nil`.
@@ -45,7 +50,8 @@ public struct SignalFrame: Sendable {
         blur: BlurSignal? = nil,
         exposure: ExposureSignal? = nil,
         framing: FramingSignal? = nil,
-        body: BodySignal? = nil
+        body: BodySignal? = nil,
+        aesthetic: AestheticSignal? = nil
     ) {
         self.timestamp = timestamp
         self.tilt = tilt
@@ -53,6 +59,7 @@ public struct SignalFrame: Sendable {
         self.exposure = exposure
         self.framing = framing
         self.body = body
+        self.aesthetic = aesthetic
     }
 
     // MARK: - Convenience

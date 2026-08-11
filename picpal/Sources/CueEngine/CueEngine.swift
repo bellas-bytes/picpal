@@ -96,6 +96,12 @@ public struct CueEvaluator: Sendable {
             }
         }
 
+        // 5. Tier-2 VLM aesthetic cue.
+        //    Only `.remark` produces a cue — `.nothingToSay` is always silence.
+        if let aesthetic = frame.aesthetic, aesthetic.hint == .remark {
+            return Cue(text: aesthetic.remark, priority: .aesthetic, sourceTier: .tier2)
+        }
+
         // All signals are in a good state (or absent) — emit silence.
         return nil
     }
