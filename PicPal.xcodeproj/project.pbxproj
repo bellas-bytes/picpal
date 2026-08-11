@@ -75,6 +75,7 @@
 		AB55CD34EF56AB55CD34EF06 /* GazeAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */; };
 		AB66CD34EF56AB66CD34EF04 /* LandmarkOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB66CD34EF56AB66CD34EF03 /* LandmarkOrchestrator.swift */; };
 		AB77CD34EF56AB77CD34EF04 /* CueEvaluatorBodyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB77CD34EF56AB77CD34EF03 /* CueEvaluatorBodyTests.swift */; };
+		AB88CD34EF56AB88CD34EF04 /* BodyCueIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB88CD34EF56AB88CD34EF03 /* BodyCueIntegrationTests.swift */; };
 		AB354C403CE12A9E9C550114 /* ExposureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5112611E348867EF918B46 /* ExposureProcessor.swift */; };
 		B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */; };
 		B9C5FA3B65D5FB6022FB2471 /* SceneGateAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEEA89DA97F543B13A634549 /* SceneGateAdapter.swift */; };
@@ -188,6 +189,7 @@
 		AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeAnalyzerTests.swift; sourceTree = "<group>"; };
 		AB66CD34EF56AB66CD34EF03 /* LandmarkOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkOrchestrator.swift; sourceTree = "<group>"; };
 		AB77CD34EF56AB77CD34EF03 /* CueEvaluatorBodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorBodyTests.swift; sourceTree = "<group>"; };
+		AB88CD34EF56AB88CD34EF03 /* BodyCueIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyCueIntegrationTests.swift; sourceTree = "<group>"; };
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
 		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
@@ -335,6 +337,7 @@
 				AF0486A7342920630558BDFB /* CameraCaptureTests.swift */,
 				AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */,
 				AB77CD34EF56AB77CD34EF03 /* CueEvaluatorBodyTests.swift */,
+				AB88CD34EF56AB88CD34EF03 /* BodyCueIntegrationTests.swift */,
 				AB44CD34EF56AB44CD34EF05 /* HandObstructionAnalyzerTests.swift */,
 				AB22CD34EF56AB22CD34EF07 /* KeypointFilterTests.swift */,
 				8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */,
@@ -609,6 +612,7 @@
 				AB33CD34EF56AB33CD34EF06 /* BodyPoseAnalyzerTests.swift in Sources */,
 				AB55CD34EF56AB55CD34EF06 /* GazeAnalyzerTests.swift in Sources */,
 				AB77CD34EF56AB77CD34EF04 /* CueEvaluatorBodyTests.swift in Sources */,
+				AB88CD34EF56AB88CD34EF04 /* BodyCueIntegrationTests.swift in Sources */,
 				AB44CD34EF56AB44CD34EF06 /* HandObstructionAnalyzerTests.swift in Sources */,
 				94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */,
 				59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */,
