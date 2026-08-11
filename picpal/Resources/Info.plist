@@ -20,6 +20,11 @@
 	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>PicPal uses the camera to analyze your photo framing in real time.</string>
 	<key>NSMotionUsageDescription</key>

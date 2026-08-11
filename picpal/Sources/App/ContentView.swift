@@ -31,6 +31,9 @@ struct ContentView: View {
     @State private var camera = CameraCapture()
     @StateObject private var debugViewModel = DebugOverlayViewModel()
     @State private var showingVLMSettings = false
+    #if DEBUG
+    @State private var showSessionKit = false
+    #endif
 
     // Retained for the lifetime of the view.
     @State private var telemetryFeed: TelemetryFeed?
@@ -65,6 +68,18 @@ struct ContentView: View {
             VStack {
                 Spacer()
                 HStack {
+                    #if DEBUG
+                    // Session kit button — bottom-left corner, debug only.
+                    Button {
+                        showSessionKit = true
+                    } label: {
+                        Image(systemName: "list.clipboard")
+                            .imageScale(.medium)
+                            .padding(10)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .padding([.bottom, .leading], 16)
+                    #endif
                     Spacer()
                     Button {
                         showingVLMSettings = true
@@ -81,6 +96,14 @@ struct ContentView: View {
         .sheet(isPresented: $showingVLMSettings) {
             vlmSettingsSheet
         }
+        #if DEBUG
+        .sheet(isPresented: $showSessionKit) {
+            SessionTaskOverlay(tasks: SessionTaskScript.m4Tasks) {
+                showSessionKit = false
+            }
+            .presentationDetents([.large])
+        }
+        #endif
         .onAppear(perform: wireUp)
         .onChange(of: debugViewModel.isMuted) { _, muted in
             voiceCoach.isMuted = muted
