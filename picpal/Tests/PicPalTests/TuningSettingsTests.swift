@@ -4,6 +4,7 @@ import Testing
 
 // MARK: - TuningSettingsTests
 
+@Suite(.serialized)
 struct TuningSettingsTests {
 
     // MARK: - resetToDefaults → cue engine default
@@ -38,18 +39,16 @@ struct TuningSettingsTests {
     func resetToDefaults_clearsAllKeys() {
         TuningSettings.shared.resetToDefaults()
 
-        // Set all four properties to non-default values.
+        // Set all three properties to non-default values.
         TuningSettings.shared.cueCooldownSeconds = 9.0
         TuningSettings.shared.minRepeatIntervalSeconds = 12.0
         TuningSettings.shared.vlmCadenceSeconds = 20.0
-        TuningSettings.shared.aestheticExpirySeconds = 15.0
 
         TuningSettings.shared.resetToDefaults()
 
         #expect(TuningSettings.shared.cueCooldownSeconds == CueEngine.defaultCueCooldownSeconds)
         #expect(TuningSettings.shared.minRepeatIntervalSeconds == CueEngine.defaultMinRepeatIntervalSeconds)
         #expect(TuningSettings.shared.vlmCadenceSeconds == VLMRequestGate.defaultCadenceSeconds)
-        #expect(TuningSettings.shared.aestheticExpirySeconds == CueEngine.defaultMinRepeatIntervalSeconds + 1.0)
     }
 }
 #endif

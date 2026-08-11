@@ -1,7 +1,7 @@
 import Testing
 @testable import PicPal
 
-@Suite("PostSessionSurvey")
+@Suite("PostSessionSurvey", .serialized)
 struct PostSessionSurveyTests {
 
     @Test("lastResponse is nil when no response has been recorded")

@@ -11,7 +11,6 @@ final class TuningSettings: @unchecked Sendable {
         static let cueCooldown       = "com.picpal.tuning.cueCooldown"
         static let minRepeatInterval = "com.picpal.tuning.minRepeatInterval"
         static let vlmCadence        = "com.picpal.tuning.vlmCadence"
-        static let aestheticExpiry   = "com.picpal.tuning.aestheticExpiry"
     }
 
     var cueCooldownSeconds: Double {
@@ -26,13 +25,9 @@ final class TuningSettings: @unchecked Sendable {
         get { stored(Keys.vlmCadence, default: VLMRequestGate.defaultCadenceSeconds) }
         set { UserDefaults.standard.set(newValue, forKey: Keys.vlmCadence) }
     }
-    var aestheticExpirySeconds: Double {
-        get { stored(Keys.aestheticExpiry, default: CueEngine.defaultMinRepeatIntervalSeconds + 1.0) }
-        set { UserDefaults.standard.set(newValue, forKey: Keys.aestheticExpiry) }
-    }
 
     func resetToDefaults() {
-        [Keys.cueCooldown, Keys.minRepeatInterval, Keys.vlmCadence, Keys.aestheticExpiry]
+        [Keys.cueCooldown, Keys.minRepeatInterval, Keys.vlmCadence]
             .forEach { UserDefaults.standard.removeObject(forKey: $0) }
     }
 

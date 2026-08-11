@@ -16,15 +16,19 @@ struct DebugOverlayView: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             // Transparent hit area — tapping anywhere toggles the panel.
+            // NOTE: The count:3 gesture is declared before count:1 so SwiftUI
+            // waits for additional taps before settling on a single-tap match.
+            // Declaring count:1 first would consume the first tap immediately,
+            // making the triple-tap unreachable.
             Color.clear
                 .contentShape(Rectangle())
-                .onTapGesture { isVisible.toggle() }
                 #if DEBUG
-                .onLongPressGesture { onLongPress?() }
                 .onTapGesture(count: 3) {
                     viewModel.onExportTelemetry?()
                 }
+                .onLongPressGesture { onLongPress?() }
                 #endif
+                .onTapGesture { isVisible.toggle() }
 
             if isVisible {
                 overlayPanel

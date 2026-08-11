@@ -140,6 +140,7 @@
 		F08F7587EB726EBFE4852C90 /* BlurMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93C920A73E0065F412030EB /* BlurMonitor.swift */; };
 		F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 576EAE74AC58442D1D45B548 /* ContentView.swift */; };
 		F1074965CD86018D140DE864 /* MotionReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */; };
+		F51BA3A1CB6409C033010315 /* ContentView+Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE139A0A5DCBCDE12A3D4541 /* ContentView+Session.swift */; };
 		F54210CA7A2B325AD9A30D15 /* KeypointFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1184A53EF8940BB7BBF5B1E1 /* KeypointFilterTests.swift */; };
 		F7D6EB43E75C9E308555532F /* LandmarkOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118281EF089993EAAEF6D73E /* LandmarkOrchestrator.swift */; };
 		F818C4D7F4FE70547CDBCE07 /* BodyPoseSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0077F107E65BE314CEBB86 /* BodyPoseSignalProducer.swift */; };
@@ -256,6 +257,7 @@
 		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
 		BAAA820EDBB51ED8951678C8 /* SceneGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGate.swift; sourceTree = "<group>"; };
+		BE139A0A5DCBCDE12A3D4541 /* ContentView+Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+Session.swift"; sourceTree = "<group>"; };
 		C384E5F0209CBC2A50813F3F /* VLMOrchestratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMOrchestratorTests.swift; sourceTree = "<group>"; };
 		C44FA4CB9FC027A384842A05 /* KeypointFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeypointFilter.swift; sourceTree = "<group>"; };
 		C45F7078BF74C5C1D1E30417 /* CueEvaluatorBodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorBodyTests.swift; sourceTree = "<group>"; };
@@ -374,6 +376,7 @@
 			children = (
 				F06BD9107917BB51D6EA4C3B /* ConsentGate.swift */,
 				576EAE74AC58442D1D45B548 /* ContentView.swift */,
+				BE139A0A5DCBCDE12A3D4541 /* ContentView+Session.swift */,
 				B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */,
 				46707AA5A2CFA2E197263E30 /* PostSessionSurvey.swift */,
 				FBFEC25A7C4F3152BB6901AD /* SessionTask.swift */,
@@ -688,6 +691,7 @@
 				5C5BD9F90A9E0DBDA68BADDC /* CaptureState.swift in Sources */,
 				5E2D054645B4F1F8CE5948D4 /* ConsentGate.swift in Sources */,
 				9E368E7C44503AF2B422488B /* ConsentSheet.swift in Sources */,
+				F51BA3A1CB6409C033010315 /* ContentView+Session.swift in Sources */,
 				F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */,
 				EEDE27CC14CEEF6A288AAC67 /* Cue.swift in Sources */,
 				DAA66C0AF0DE7B190E8C1386 /* CueEngine.swift in Sources */,

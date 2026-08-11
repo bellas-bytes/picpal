@@ -14,7 +14,24 @@ import os
 /// 2. Drop-if-busy — at most one VLM request in flight.
 ///
 /// No real network calls are made; `VLMClient` is replaced by test doubles.
+///
+/// `@Suite(.serialized)` prevents parallel execution that would cause races on
+/// `VLMSettings.shared.isOnDeviceOnly` (backed by `UserDefaults.standard`).
+/// Tests that dispatch cloud VLM requests explicitly opt in to cloud mode and clean up.
+@Suite(.serialized)
 struct VLMOrchestratorTests {
+
+    /// Enables cloud VLM for the current test. Call at the start of any test that
+    /// expects the VLM client to be invoked, since `isOnDeviceOnly` now defaults to
+    /// `true` (on-device only) when the UserDefaults key is absent.
+    private func enableCloudVLM() {
+        VLMSettings.shared.isOnDeviceOnly = false
+    }
+
+    /// Removes the `isOnDeviceOnly` key so subsequent tests start from the safe default.
+    private func resetVLMSettings() {
+        UserDefaults.standard.removeObject(forKey: VLMSettings.onDeviceOnlyKey)
+    }
 
     // MARK: - Test 1: downstream forwarding invariant
 
@@ -75,6 +92,9 @@ struct VLMOrchestratorTests {
 
     @Test("second frame dropped while isBusy — VLMClient called at most once")
     func aestheticSignal_gatedOnBusy() async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+
         let client = CountingVLMClient()
         // 0s cadence so the cadence gate never interferes in this test.
         let gate = VLMRequestGate(cadenceSeconds: 0)
@@ -156,6 +176,9 @@ struct VLMOrchestratorTests {
     /// orchestrator silently stops dispatching further Tier-2 requests.
     @Test("consecutive failures disable Tier 2 for the remainder of the session")
     func consecutiveFailures_disablesTier2ForSession() async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+
         let client = AlwaysFailingVLMClient()
         let gate = VLMRequestGate(cadenceSeconds: 0)
         // backoffBaseSeconds: 0 so failures accumulate without waiting for backoff windows.
@@ -195,6 +218,9 @@ struct VLMOrchestratorTests {
     /// very next frame from reaching the client — even after `isBusy` has cleared.
     @Test("backoff deadline prevents immediate retry after a single failure")
     func backoffDeadline_preventsImmediateRetryAfterFailure() async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+
         let client = AlwaysFailingVLMClient()
         let gate = VLMRequestGate(cadenceSeconds: 0)
         // Use the default 2s backoff so the window is well beyond the 200 ms sleep below.
@@ -241,6 +267,9 @@ struct VLMOrchestratorTests {
     /// `onAestheticSignal` does NOT fire.
     @Test("staleSuppressor discards response when scene changes mid-flight")
     func staleSuppressor_discardsWhenSignatureChanges() async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+
         let suspendingClient = SuspendingVLMClient(text: "Move subject left")
         // 0s cadence so the cadence gate never interferes.
         let gate = VLMRequestGate(cadenceSeconds: 0)
@@ -288,6 +317,9 @@ struct VLMOrchestratorTests {
 
     @Test("valid VLM remark triggers onAestheticSignal callback")
     func validRemarkTriggersCallback() async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+
         // Use a gate with 0s cadence and a client that returns a valid remark.
         let gate = VLMRequestGate(cadenceSeconds: 0)
         let remarkText = "Move the subject to the left"

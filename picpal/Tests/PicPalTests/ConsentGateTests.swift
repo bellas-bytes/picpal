@@ -10,7 +10,8 @@ import Foundation
 /// making every test idempotent regardless of execution order.
 ///
 /// Tests that mutate `VLMSettings.shared.isOnDeviceOnly` restore the
-/// default (`false`) afterwards to avoid bleeding state between tests.
+/// default afterwards to avoid bleeding state between tests.
+@Suite(.serialized)
 struct ConsentGateTests {
 
     // MARK: - Helpers

@@ -13,9 +13,6 @@ private enum TuningRanges {
     static let cadenceMin: Double = 2.0
     static let cadenceMax: Double = 30.0
     static let cadenceStep: Double = 1.0
-    static let expiryMin: Double = 3.0
-    static let expiryMax: Double = 20.0
-    static let expiryStep: Double = 0.5
 }
 
 // MARK: - TuningPanel
@@ -26,7 +23,6 @@ struct TuningPanel: View {
     @State private var cueCooldown: Double = TuningSettings.shared.cueCooldownSeconds
     @State private var minRepeat: Double = TuningSettings.shared.minRepeatIntervalSeconds
     @State private var vlmCadence: Double = TuningSettings.shared.vlmCadenceSeconds
-    @State private var aestheticExpiry: Double = TuningSettings.shared.aestheticExpirySeconds
 
     var body: some View {
         NavigationStack {
@@ -63,16 +59,6 @@ struct TuningPanel: View {
                     .onChange(of: vlmCadence) { _, newValue in
                         TuningSettings.shared.vlmCadenceSeconds = newValue
                     }
-
-                    Stepper(
-                        "Remark expiry: \(String(format: "%.1f", aestheticExpiry))s",
-                        value: $aestheticExpiry,
-                        in: TuningRanges.expiryMin...TuningRanges.expiryMax,
-                        step: TuningRanges.expiryStep
-                    )
-                    .onChange(of: aestheticExpiry) { _, newValue in
-                        TuningSettings.shared.aestheticExpirySeconds = newValue
-                    }
                 }
 
                 Section {
@@ -81,7 +67,6 @@ struct TuningPanel: View {
                         cueCooldown = TuningSettings.shared.cueCooldownSeconds
                         minRepeat = TuningSettings.shared.minRepeatIntervalSeconds
                         vlmCadence = TuningSettings.shared.vlmCadenceSeconds
-                        aestheticExpiry = TuningSettings.shared.aestheticExpirySeconds
                     }
                     .foregroundStyle(.red)
                 }

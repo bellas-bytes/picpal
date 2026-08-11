@@ -7,22 +7,23 @@ import Foundation
 /// Unit tests for `VLMSettings`.
 ///
 /// Tests verify:
-/// 1. `isOnDeviceOnly` defaults to `false` (cloud coaching enabled).
+/// 1. `isOnDeviceOnly` defaults to `true` (on-device only, cloud disabled until consent).
 /// 2. Setting `isOnDeviceOnly = true` persists (readable back as `true`).
 /// 3. Setting `isOnDeviceOnly = false` persists (readable back as `false`).
 /// 4. `VLMSettings.shared` is the same singleton instance.
 ///
 /// Each test cleans up after itself so tests do not influence each other
 /// through the shared `UserDefaults` key.
+@Suite(.serialized)
 struct VLMSettingsTests {
 
     // MARK: - Test 1: default value
 
-    @Test("isOnDeviceOnly defaults to false when key is absent")
-    func defaultsToFalse() {
-        // Remove the key so UserDefaults returns the zero-value (false).
+    @Test("isOnDeviceOnly defaults to true when key is absent")
+    func isOnDeviceOnly_defaultsToTrue_whenKeyAbsent() {
+        // Remove the key so the guard path triggers, returning the safe default.
         UserDefaults.standard.removeObject(forKey: VLMSettings.onDeviceOnlyKey)
-        #expect(VLMSettings.shared.isOnDeviceOnly == false)
+        #expect(VLMSettings.shared.isOnDeviceOnly == true)
     }
 
     // MARK: - Test 2: set true persists
