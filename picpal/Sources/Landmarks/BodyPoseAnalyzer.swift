@@ -117,7 +117,8 @@ public final class BodyPoseAnalyzer: @unchecked Sendable {
     ) -> [VNHumanBodyPoseObservation.JointName: Keypoint] {
         var result: [VNHumanBodyPoseObservation.JointName: Keypoint] = [:]
         // Build the union of crop-watch joints and head-proxy joints.
-        let candidates = JointGroup.cropWatch + JointGroup.headProxies
+        // Union avoids extracting .neck twice (it appears in both cropWatch and headProxies).
+        let candidates = Array(Set(JointGroup.cropWatch + JointGroup.headProxies))
         for joint in candidates {
             guard let recognized = try? observation.recognizedPoint(joint) else { continue }
             // Convert Vision coords (bottom-left origin) → UIKit (top-left origin).
