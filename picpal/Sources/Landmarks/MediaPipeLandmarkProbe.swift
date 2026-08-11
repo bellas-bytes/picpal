@@ -95,6 +95,8 @@ public final class MediaPipeLandmarkProbe: @unchecked Sendable, CameraFrameDeleg
 
     // MARK: - Downstream chaining
 
+    // Written once at init; never mutated afterward. ARC guarantees atomic
+    // zeroing on deallocation, so nonisolated reads are safe without a lock.
     private weak var downstream: (any CameraFrameDelegate)?
 
     // MARK: - Init
@@ -206,12 +208,20 @@ public final class MediaPipeLandmarkProbe: @unchecked Sendable, CameraFrameDeleg
 
         // --- Hand Landmarker ---
         let handToken = handTimer.start()
-        _ = try? handLandmarker.detect(videoFrame: mpImage, timestampInMilliseconds: timestampMs)
+        do {
+            _ = try handLandmarker.detect(videoFrame: mpImage, timestampInMilliseconds: timestampMs)
+        } catch {
+            logger.error("Hand detect failed: \(error.localizedDescription, privacy: .public)")
+        }
         let handEnd = ContinuousClock.now
 
         // --- Face Landmarker ---
         let faceToken = faceTimer.start()
-        _ = try? faceLandmarker.detect(videoFrame: mpImage, timestampInMilliseconds: timestampMs)
+        do {
+            _ = try faceLandmarker.detect(videoFrame: mpImage, timestampInMilliseconds: timestampMs)
+        } catch {
+            logger.error("Face detect failed: \(error.localizedDescription, privacy: .public)")
+        }
         let faceEnd = ContinuousClock.now
 
         let combinedEnd = faceEnd
