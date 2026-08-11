@@ -9,6 +9,9 @@ struct DebugOverlayView: View {
 
     @ObservedObject var viewModel: DebugOverlayViewModel
     @State private var isVisible: Bool = false
+    #if DEBUG
+    var onLongPress: (() -> Void)?
+    #endif
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -16,6 +19,9 @@ struct DebugOverlayView: View {
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture { isVisible.toggle() }
+                #if DEBUG
+                .onLongPressGesture { onLongPress?() }
+                #endif
 
             if isVisible {
                 overlayPanel

@@ -39,6 +39,7 @@ struct ContentView: View {
     @State private var showingVLMSettings = false
     #if DEBUG
     @State private var showSessionKit = false
+    @State private var showTuningPanel = false
     #endif
 
     // Retained for the lifetime of the view.
@@ -68,7 +69,11 @@ struct ContentView: View {
             GuidesOverlayView(viewModel: debugViewModel)
                 .ignoresSafeArea()
 
+            #if DEBUG
+            DebugOverlayView(viewModel: debugViewModel, onLongPress: { showTuningPanel = true })
+            #else
             DebugOverlayView(viewModel: debugViewModel)
+            #endif
 
             // Settings button — bottom-right corner, unobtrusive.
             VStack {
@@ -108,6 +113,10 @@ struct ContentView: View {
                 showSessionKit = false
             }
             .presentationDetents([.large])
+        }
+        .sheet(isPresented: $showTuningPanel) {
+            TuningPanel()
+                .presentationDetents([.medium, .large])
         }
         #endif
         .onAppear(perform: wireUp)
@@ -152,7 +161,14 @@ struct ContentView: View {
         // Create the cue engine and signal accumulator.
         // The accumulator merges individual signals into a complete SignalFrame and
         // passes it to the engine on every update. Results are dispatched to @MainActor.
+        #if DEBUG
+        let engine = CueEngine(
+            cueCooldownSeconds: TuningSettings.shared.cueCooldownSeconds,
+            minRepeatIntervalSeconds: TuningSettings.shared.minRepeatIntervalSeconds
+        )
+        #else
         let engine = CueEngine()
+        #endif
         let coach = voiceCoach  // capture strong local reference (no retain cycle)
         // Capture the class reference so @Sendable closures below can cancel/reschedule
         // the expiry Task through the shared handle without capturing the view struct.
@@ -212,8 +228,14 @@ struct ContentView: View {
         // Tier-2: VLMOrchestrator sits between LandmarkOrchestrator and the telemetry bridge.
         // Created before LandmarkOrchestrator so vlmOrch can be captured in the body-signal
         // callback to keep StaleSuppressor's body-hint arm updated.
+        #if DEBUG
+        let vlmGate = VLMRequestGate(cadenceSeconds: TuningSettings.shared.vlmCadenceSeconds)
+        #else
+        let vlmGate = VLMRequestGate()
+        #endif
         let vlmOrch = VLMOrchestrator(
             client: AnthropicVLMClient(proxyURL: VLMSettings.shared.proxyURL),
+            gate: vlmGate,
             onRequestDispatched: { [weak debugViewModel, expiryHandle] in
                 // Cancel any pending expiry: the incoming response will set a fresh one.
                 Task { @MainActor [weak debugViewModel, expiryHandle] in

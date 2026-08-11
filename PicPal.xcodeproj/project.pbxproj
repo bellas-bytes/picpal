@@ -128,6 +128,9 @@
 		F7D6EB43E75C9E308555532F /* LandmarkOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118281EF089993EAAEF6D73E /* LandmarkOrchestrator.swift */; };
 		F818C4D7F4FE70547CDBCE07 /* BodyPoseSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0077F107E65BE314CEBB86 /* BodyPoseSignalProducer.swift */; };
 		F8D69246C068DF3E16F43468 /* VLMSessionBudget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 932F14F83474E2C3D769E7C9 /* VLMSessionBudget.swift */; };
+		6F1B7B9AB19A41C5BCD1F140 /* TuningSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA2161AC5D4EF9A4FB17F8 /* TuningSettings.swift */; };
+		F9A5EBEB27CC457796AB44F8 /* TuningPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676E12EAD54145969F00933E /* TuningPanel.swift */; };
+		7A90ECA8753945A2AAF1AA82 /* TuningSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6E75F94C144B5088D8A094 /* TuningSettingsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -263,6 +266,9 @@
 		FBA507E9D656071A43579101 /* MotionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionProcessor.swift; sourceTree = "<group>"; };
 		FBFEC25A7C4F3152BB6901AD /* SessionTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTask.swift; sourceTree = "<group>"; };
 		FE231F2901A4A8023330FA19 /* HandObstructionAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionAnalyzerTests.swift; sourceTree = "<group>"; };
+		2BEA2161AC5D4EF9A4FB17F8 /* TuningSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TuningSettings.swift; sourceTree = "<group>"; };
+		676E12EAD54145969F00933E /* TuningPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TuningPanel.swift; sourceTree = "<group>"; };
+		5A6E75F94C144B5088D8A094 /* TuningSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TuningSettingsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -343,6 +349,7 @@
 				576EAE74AC58442D1D45B548 /* ContentView.swift */,
 				B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */,
 				FBFEC25A7C4F3152BB6901AD /* SessionTask.swift */,
+				2BEA2161AC5D4EF9A4FB17F8 /* TuningSettings.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -426,6 +433,7 @@
 				4DF4CD0466690750F3EDC9D4 /* VLMSettingsTests.swift */,
 				05956EC4E2CA8D1684A610E4 /* VLMTestSupport.swift */,
 				680BF112ACB21BC3D65C1732 /* VoiceCoachTests.swift */,
+				5A6E75F94C144B5088D8A094 /* TuningSettingsTests.swift */,
 			);
 			path = PicPalTests;
 			sourceTree = "<group>";
@@ -529,6 +537,7 @@
 				392889F7712A93E12BF45BC0 /* DebugOverlayViewModel.swift */,
 				3C2D3687B141011C3E81A1F9 /* GuidesOverlayView.swift */,
 				F4730B49FD58A54FF8E75C7F /* SessionTaskOverlay.swift */,
+				676E12EAD54145969F00933E /* TuningPanel.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -695,6 +704,8 @@
 				5AC3C9AEBF688508C5EAECA6 /* VLMRequestGate.swift in Sources */,
 				F8D69246C068DF3E16F43468 /* VLMSessionBudget.swift in Sources */,
 				D08302C38BCC2894D15C3280 /* VLMSettings.swift in Sources */,
+				6F1B7B9AB19A41C5BCD1F140 /* TuningSettings.swift in Sources */,
+				F9A5EBEB27CC457796AB44F8 /* TuningPanel.swift in Sources */,
 				C769A9B463F7F39C86C29B2A /* VisionLandmarkProbe.swift in Sources */,
 				C231236CBCFF65EF441E79E9 /* VoiceCoach.swift in Sources */,
 			);
@@ -747,6 +758,7 @@
 				6ACB6313D1FF1DD5200BC989 /* VLMSettingsTests.swift in Sources */,
 				023A80ED8C0FD5F4955D7F55 /* VLMTestSupport.swift in Sources */,
 				29175BC4389E7DE5C711DEF8 /* VoiceCoachTests.swift in Sources */,
+				7A90ECA8753945A2AAF1AA82 /* TuningSettingsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
