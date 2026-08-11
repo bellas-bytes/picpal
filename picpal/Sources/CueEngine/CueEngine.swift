@@ -137,6 +137,7 @@ public final class CueEngine: @unchecked Sendable {
     private let cueCooldownSeconds: Double
     private let minRepeatIntervalSeconds: Double
     private let clock: @Sendable () -> Date
+    private let onCueEmitted: (@Sendable (Cue) -> Void)?
 
     // MARK: - Mutable state (protected by lock)
 
@@ -158,16 +159,21 @@ public final class CueEngine: @unchecked Sendable {
     ///   - minRepeatIntervalSeconds: Minimum gap before the same cue text repeats.
     ///   - clock: Injectable time source — defaults to `{ Date() }`. Override in tests
     ///     to control time precisely without real delays.
+    ///   - onCueEmitted: Optional callback invoked (outside the state lock) each time a
+    ///     non-nil cue passes all debounce gates. Defaults to `nil`. Existing call sites
+    ///     that omit this parameter are unaffected.
     public init(
         evaluator: CueEvaluator = CueEvaluator(),
         cueCooldownSeconds: Double = CueEngine.defaultCueCooldownSeconds,
         minRepeatIntervalSeconds: Double = CueEngine.defaultMinRepeatIntervalSeconds,
-        clock: @escaping @Sendable () -> Date = { Date() }
+        clock: @escaping @Sendable () -> Date = { Date() },
+        onCueEmitted: (@Sendable (Cue) -> Void)? = nil
     ) {
         self.evaluator = evaluator
         self.cueCooldownSeconds = cueCooldownSeconds
         self.minRepeatIntervalSeconds = minRepeatIntervalSeconds
         self.clock = clock
+        self.onCueEmitted = onCueEmitted
         self.stateLock = OSAllocatedUnfairLock(initialState: EngineState())
     }
 
@@ -186,7 +192,7 @@ public final class CueEngine: @unchecked Sendable {
 
         let now = clock()
 
-        return stateLock.withLock { state in
+        let emitted: Cue? = stateLock.withLock { state in
             // Cadence cap: suppress cues while within the cooldown window — UNLESS the
             // candidate has strictly higher priority (lower rawValue) than the last cue.
             // A higher-priority hazard (e.g. stability) should never be blocked by an
@@ -215,5 +221,11 @@ public final class CueEngine: @unchecked Sendable {
             state.cooldownEndTime = Date(timeInterval: cueCooldownSeconds, since: now)
             return candidate
         }
+
+        // Fire the callback outside the lock to avoid reentrancy deadlocks.
+        if let emitted {
+            onCueEmitted?(emitted)
+        }
+        return emitted
     }
 }

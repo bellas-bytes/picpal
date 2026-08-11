@@ -57,6 +57,8 @@ struct ContentView: View {
     @State private var cueEngine: CueEngine?
     @State private var accumulator: SignalFrameAccumulator?
     @State private var voiceCoach = VoiceCoach()
+    @State private var cueLogger: CueLogger?
+    @State private var settleEventTimer: SettleEventTimer?
     /// Pending aesthetic-remark expiry Task wrapped in a class so `@Sendable` closures
     /// can cancel and reschedule it through a shared reference.
     @State private var aestheticExpiryTask = AestheticExpiryHandle()
@@ -173,9 +175,21 @@ struct ContentView: View {
         // Capture the class reference so @Sendable closures below can cancel/reschedule
         // the expiry Task through the shared handle without capturing the view struct.
         let expiryHandle = aestheticExpiryTask
+        let logger = CueLogger()
+        let settleTimer = SettleEventTimer()
         let accum = SignalFrameAccumulator { [weak debugViewModel] frame in
             let cue = engine.process(frame: frame)
             if let cue {
+                let now = Date()
+                let latencyMs = settleTimer.latencyMilliseconds(cueAt: now)
+                let event = CueEvent(
+                    timestamp: now,
+                    text: cue.text,
+                    tier: cue.sourceTier,
+                    latencyFromSettleMs: latencyMs
+                )
+                logger.record(event)
+                settleTimer.reset()   // reset after first cue; next settle starts a new burst
                 coach.speak(cue)
             }
             let cueText = cue?.text ?? "—"
@@ -318,9 +332,14 @@ struct ContentView: View {
         sceneGateAdapter = adapter
         cueEngine = engine
         accumulator = accum
+        cueLogger = logger
+        settleEventTimer = settleTimer
 
         let monitor = TiltMonitor(onSettleChange: { [sceneGate] settled in
             sceneGate.update(isSettled: settled)
+            if settled {
+                settleTimer.recordSettle()
+            }
         }) { [weak debugViewModel, accum] signal in
             accum.update(tilt: signal)
             Task { @MainActor [weak debugViewModel] in
