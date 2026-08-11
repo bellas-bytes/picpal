@@ -7,30 +7,43 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04934DEAE02D1EF0108E2FF6 /* HandObstructionAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE231F2901A4A8023330FA19 /* HandObstructionAnalyzerTests.swift */; };
 		053364749FA04D2802935346 /* SceneSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F817A8E225C5B2DE0557CB1C /* SceneSignature.swift */; };
+		0573702B61CE710686C00F04 /* VLMClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07861590B7571AE61176B61F /* VLMClientTests.swift */; };
+		0C1AF54AA69E461CF3918833 /* VLMClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990BF00AA7F4C79C3F7BD3BF /* VLMClient.swift */; };
 		0E2808E915A30DC6D8736FCD /* MotionDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */; };
+		111C1544C100591ADA261A63 /* GazeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA1343B4820CD122FAE0D312 /* GazeAnalyzer.swift */; };
 		122410582BA831E16D9384CD /* BatteryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82254738EA55D7785F0C0DD1 /* BatteryTests.swift */; };
+		16E94C529FDEE20C3E416953 /* TemporalSmoother.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0A8DC03D821610C662FDB8 /* TemporalSmoother.swift */; };
+		17BB8337ECF269246C990EEF /* CueEvaluatorBodyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C45F7078BF74C5C1D1E30417 /* CueEvaluatorBodyTests.swift */; };
 		18D1408B13222EABEC51CAF1 /* LandmarkProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C58CC4E053C73E35829D55C /* LandmarkProbeTests.swift */; };
+		19D78658DA40EF15AEB25A47 /* HandObstructionAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B2CD19B05E00CC59B1A45 /* HandObstructionAnalyzer.swift */; };
 		1A0BC04BEC8F942BA1DE86A8 /* TiltProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C905A78CCC06CD386CEFD97 /* TiltProcessorTests.swift */; };
 		1CDEEA8EBE25B9B0E43C2B58 /* SignalFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B840731120BD2389BAB6940 /* SignalFrame.swift */; };
 		1D4FED6ED507315E9B8C929B /* FrameTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F403C544AFB8CFB048AEC2 /* FrameTimer.swift */; };
 		210AD17F07FD2400314677BA /* BlurProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810DF6F7D37580667E224CC1 /* BlurProcessorTests.swift */; };
 		23137DA7AD71ED09E7E7FBB5 /* SceneGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAAA820EDBB51ED8951678C8 /* SceneGate.swift */; };
+		267D78CE6B4A6059C1E1EED0 /* HandObstructionSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72EE64DF8B252B7164C1EC26 /* HandObstructionSignalProducer.swift */; };
 		277DFB380A7B72895217D3B4 /* TelemetryFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574D8F8FF911716A77E1A02 /* TelemetryFeed.swift */; };
+		27EFA89BE8892B70C89FAF03 /* LandmarkOrchestratorProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C300CF4F081672847862B4A /* LandmarkOrchestratorProbe.swift */; };
 		29175BC4389E7DE5C711DEF8 /* VoiceCoachTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680BF112ACB21BC3D65C1732 /* VoiceCoachTests.swift */; };
 		29ED535768FA95BC8D0D998C /* MotionManager+Internal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95EE88A21316305B4A989D9 /* MotionManager+Internal.swift */; };
 		2A5689188E70379D01FD9E28 /* DebugOverlayViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */; };
 		2E70361870749E68E8C1D350 /* FramingSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8043A0736551BD4DBA3F3C /* FramingSignal.swift */; };
 		31C2255D61A64E283C0131F0 /* IntegrationLatencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DF9AC3850B7AC25D1039BF5 /* IntegrationLatencyTests.swift */; };
+		348BD7A872A9F747920D0F19 /* BodySignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEDDCB6D79C71B0C38F980F /* BodySignal.swift */; };
 		40737DFC7B3A0AC9A8CD0C62 /* TiltProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BCA7A88868D2B3B568534F /* TiltProcessor.swift */; };
 		44193E4453E6F0C442CE6C9E /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD84759A4FAEFB9FB9BCA704 /* Vision.framework */; };
 		49F44C66CDE324EB6C922F42 /* MediaPipeProbeStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3165FBF8E23EAB79116BF4D /* MediaPipeProbeStats.swift */; };
 		4B82B9E46EF7D888060DCAD4 /* FramingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38C1C2627D45B67BE8EBB4A /* FramingMonitor.swift */; };
 		4ED7A17D3A976F3BEB25B4AF /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4778C501A42ABF4B6FDF83F4 /* Accelerate.framework */; };
 		520F8AA439C4593A02B46EA8 /* MotionProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555FAB8C66A68F763C5EC202 /* MotionProcessorTests.swift */; };
+		560542B5353D00B33897EB5C /* GazeSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A96197A9D26E8314EBE9F3 /* GazeSignalProducer.swift */; };
 		5972CA0B783B1E7E763FB2AB /* BlurSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E735B37FE10B0FB91995EF7 /* BlurSignal.swift */; };
 		59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */; };
+		5AC3C9AEBF688508C5EAECA6 /* VLMRequestGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F3D0F915EEDDA0517E6EA9 /* VLMRequestGate.swift */; };
 		5BF922D11EF68D8A70FCB581 /* CueEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93DE11B3F0CC3B1F4A31C490 /* CueEvaluatorTests.swift */; };
+		5C0801F08150564C1A68E4EF /* PresenceGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A762F613F421BA418C111F7 /* PresenceGate.swift */; };
 		5C5BD9F90A9E0DBDA68BADDC /* CaptureState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3352C7D6EC951111FEECA967 /* CaptureState.swift */; };
 		5EBBF5F5CA42F355439D67BA /* CueEngineDebounceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52AD6975E666CEBDF96F1FB8 /* CueEngineDebounceTests.swift */; };
 		6602A80CCA4BED724176E82B /* DebugOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6FBDC73456CC10ED0DD44B /* DebugOverlayView.swift */; };
@@ -40,7 +53,9 @@
 		711B6C93656741CFF936E2C9 /* MediaPipeLandmarkProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B8684DB990341CC549DB3C /* MediaPipeLandmarkProbe.swift */; };
 		737C08439DDECE4B8B368A0B /* DebugOverlayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 392889F7712A93E12BF45BC0 /* DebugOverlayViewModel.swift */; };
 		763D884B07941BF62813672D /* BlurProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A9BDDD5C17F50D0EA3E00E /* BlurProcessor.swift */; };
+		77C852AE358D4939A7D525D6 /* KeypointFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44FA4CB9FC027A384842A05 /* KeypointFilter.swift */; };
 		7CB5FF9ED0A9F082073CC0C6 /* CueText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B5192EA007595F31EF1398E /* CueText.swift */; };
+		7DB962588EDE87327D618029 /* VLMRequestGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E877476931B692D36C6F26 /* VLMRequestGateTests.swift */; };
 		80B18AC11425ABBBCCC805D1 /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27DFBBA6291517BEA6072640 /* CameraPreviewView.swift */; };
 		850777A429DBA928DC057263 /* ExposureSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADFEDF55650357403AF8A8E /* ExposureSignal.swift */; };
 		85592F0D667CFE9386259F20 /* SignalFrameAccumulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC23307A22D070C51FD44AD /* SignalFrameAccumulator.swift */; };
@@ -51,34 +66,18 @@
 		94ACC9045C767F036E8C7849 /* LandmarkProbeStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF4D58B615E212399068FE51 /* LandmarkProbeStats.swift */; };
 		94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0486A7342920630558BDFB /* CameraCaptureTests.swift */; };
 		953A6F489E6EF89C42156803 /* FramingProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17C340393E02E2CD88E0C8C /* FramingProcessor.swift */; };
+		9923E460A1B2069E8C2F6F4D /* BodyPoseAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C800CC086824DADE0DF5B46 /* BodyPoseAnalyzerTests.swift */; };
 		A07CDCA843E145B949E0010F /* ThermalMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E17352296C3AF1FCB09C1B90 /* ThermalMonitor.swift */; };
 		A38CDDB52597EB4F93E7CBE1 /* FrameTimerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B9FADA996D75EC6DADF79A /* FrameTimerTests.swift */; };
 		A3E530D825160B67C6EE26FB /* TiltMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA6168FE7D6DC8079864214 /* TiltMonitor.swift */; };
 		A4E2AF8E6211A90E18CAA33F /* SceneGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 254932E426C2845F9B9F05EA /* SceneGateTests.swift */; };
 		AA31C1D0F537D6862D4D0822 /* LandmarkCoordinates.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB7648B2D56A3423C4D1687 /* LandmarkCoordinates.swift */; };
-		AB12CD34EF56AB12CD34EF02 /* PresenceGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB12CD34EF01 /* PresenceGate.swift */; };
-		AB12CD34EF56AB12CD34EF04 /* LandmarkCadenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB12CD34EF03 /* LandmarkCadenceController.swift */; };
-		AB12CD34EF56AB12CD34EF06 /* LandmarkCadenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB12CD34EF05 /* LandmarkCadenceTests.swift */; };
-		AB22CD34EF56AB22CD34EF02 /* KeypointFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CD34EF56AB22CD34EF01 /* KeypointFilter.swift */; };
-		AB22CD34EF56AB22CD34EF04 /* TemporalSmoother.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CD34EF56AB22CD34EF03 /* TemporalSmoother.swift */; };
-		AB22CD34EF56AB22CD34EF06 /* BodySignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CD34EF56AB22CD34EF05 /* BodySignal.swift */; };
-		AB22CD34EF56AB22CD34EF08 /* KeypointFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CD34EF56AB22CD34EF07 /* KeypointFilterTests.swift */; };
-		AB22CD34EF56AB22CD34EF0A /* TemporalSmootherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CD34EF56AB22CD34EF09 /* TemporalSmootherTests.swift */; };
-		AB33CD34EF56AB33CD34EF02 /* BodyPoseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB33CD34EF56AB33CD34EF01 /* BodyPoseAnalyzer.swift */; };
-		AB33CD34EF56AB33CD34EF04 /* BodyPoseSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB33CD34EF56AB33CD34EF03 /* BodyPoseSignalProducer.swift */; };
-		AB33CD34EF56AB33CD34EF06 /* BodyPoseAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB33CD34EF56AB33CD34EF05 /* BodyPoseAnalyzerTests.swift */; };
-		AB44CD34EF56AB44CD34EF02 /* HandObstructionAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB44CD34EF56AB44CD34EF01 /* HandObstructionAnalyzer.swift */; };
-		AB44CD34EF56AB44CD34EF04 /* HandObstructionSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB44CD34EF56AB44CD34EF03 /* HandObstructionSignalProducer.swift */; };
-		AB44CD34EF56AB44CD34EF06 /* HandObstructionAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB44CD34EF56AB44CD34EF05 /* HandObstructionAnalyzerTests.swift */; };
-		AB55CD34EF56AB55CD34EF02 /* GazeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB55CD34EF56AB55CD34EF01 /* GazeAnalyzer.swift */; };
-		AB55CD34EF56AB55CD34EF04 /* GazeSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB55CD34EF56AB55CD34EF03 /* GazeSignalProducer.swift */; };
-		AB55CD34EF56AB55CD34EF06 /* GazeAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */; };
-		AB66CD34EF56AB66CD34EF04 /* LandmarkOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB66CD34EF56AB66CD34EF03 /* LandmarkOrchestrator.swift */; };
-		3E22D55A030549BF9E302FED /* LandmarkOrchestratorProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10F42857408495F859441BD /* LandmarkOrchestratorProbe.swift */; };
-		AB77CD34EF56AB77CD34EF04 /* CueEvaluatorBodyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB77CD34EF56AB77CD34EF03 /* CueEvaluatorBodyTests.swift */; };
-		AB88CD34EF56AB88CD34EF04 /* BodyCueIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB88CD34EF56AB88CD34EF03 /* BodyCueIntegrationTests.swift */; };
 		AB354C403CE12A9E9C550114 /* ExposureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5112611E348867EF918B46 /* ExposureProcessor.swift */; };
+		B27187008E6443B731DD1888 /* BodyCueIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8BB80326F864A7A45A98492 /* BodyCueIntegrationTests.swift */; };
+		B570FCF6881ED92CBA02D332 /* BodyPoseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84A7F04A6A97845176ADE5C3 /* BodyPoseAnalyzer.swift */; };
+		B6407873BF84C5DCDDB23DE3 /* LandmarkCadenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17731ACA076FED46E1B9A4E /* LandmarkCadenceTests.swift */; };
 		B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */; };
+		B84500331F3A2A7FD896C3CE /* LandmarkCadenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C345FA31BA31DBFFC0B832F /* LandmarkCadenceController.swift */; };
 		B9C5FA3B65D5FB6022FB2471 /* SceneGateAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEEA89DA97F543B13A634549 /* SceneGateAdapter.swift */; };
 		BAD8540EDF6688B97240395A /* BatteryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D03BC28784FF4637455CA42 /* BatteryMonitor.swift */; };
 		BF659892E4EA6C97DE6A0553 /* CameraConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */; };
@@ -95,15 +94,21 @@
 		DAA66C0AF0DE7B190E8C1386 /* CueEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF03B1EC3166DCAF7F5A9D0 /* CueEngine.swift */; };
 		DC49FACCBC72BD4177477871 /* PipelineTelemetryBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F091BFAC557A758EE5BC92 /* PipelineTelemetryBridge.swift */; };
 		DF8F8FC2081231F7C9BEEEC1 /* PipelineTelemetryBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */; };
+		E05FFC65CDC48E9709B5A808 /* TemporalSmootherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A43485EF2575B13A89774A /* TemporalSmootherTests.swift */; };
 		E0AEF43926A6E7452D36E8FD /* SignalFrameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */; };
 		E132F8D24D5E9A2B54B0AF1C /* FramingProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D031C255A21D6CFCAFC81950 /* FramingProcessorTests.swift */; };
 		E8565AAD8B01523B96D39510 /* ExposureProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4E630941D5EEA5BF4A4CB7 /* ExposureProcessorTests.swift */; };
 		EB2D66A11102A151445E3BF9 /* MotionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA507E9D656071A43579101 /* MotionProcessor.swift */; };
+		EC76F9F8DB44287F85045BD7 /* GazeAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1068C1CE175ED471E3DDDC88 /* GazeAnalyzerTests.swift */; };
 		EEDE27CC14CEEF6A288AAC67 /* Cue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94A359D8B178D5857F37DB67 /* Cue.swift */; };
 		F00A5DEDCE9B7366FFAC7B17 /* GuidesOverlayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B30150F337B9E19B5F720F0 /* GuidesOverlayTests.swift */; };
 		F08F7587EB726EBFE4852C90 /* BlurMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93C920A73E0065F412030EB /* BlurMonitor.swift */; };
 		F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 576EAE74AC58442D1D45B548 /* ContentView.swift */; };
 		F1074965CD86018D140DE864 /* MotionReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */; };
+		F54210CA7A2B325AD9A30D15 /* KeypointFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1184A53EF8940BB7BBF5B1E1 /* KeypointFilterTests.swift */; };
+		F7D6EB43E75C9E308555532F /* LandmarkOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118281EF089993EAAEF6D73E /* LandmarkOrchestrator.swift */; };
+		F818C4D7F4FE70547CDBCE07 /* BodyPoseSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0077F107E65BE314CEBB86 /* BodyPoseSignalProducer.swift */; };
+		F8D69246C068DF3E16F43468 /* VLMSessionBudget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 932F14F83474E2C3D769E7C9 /* VLMSessionBudget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,16 +124,22 @@
 /* Begin PBXFileReference section */
 		01A9BDDD5C17F50D0EA3E00E /* BlurProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurProcessor.swift; sourceTree = "<group>"; };
 		0574D8F8FF911716A77E1A02 /* TelemetryFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryFeed.swift; sourceTree = "<group>"; };
+		07861590B7571AE61176B61F /* VLMClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMClientTests.swift; sourceTree = "<group>"; };
 		0DF9AC3850B7AC25D1039BF5 /* IntegrationLatencyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationLatencyTests.swift; sourceTree = "<group>"; };
+		1068C1CE175ED471E3DDDC88 /* GazeAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeAnalyzerTests.swift; sourceTree = "<group>"; };
+		118281EF089993EAAEF6D73E /* LandmarkOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkOrchestrator.swift; sourceTree = "<group>"; };
+		1184A53EF8940BB7BBF5B1E1 /* KeypointFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeypointFilterTests.swift; sourceTree = "<group>"; };
 		11B8684DB990341CC549DB3C /* MediaPipeLandmarkProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPipeLandmarkProbe.swift; sourceTree = "<group>"; };
 		1243DDAF4DADFD1572EC329D /* ThermalMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalMonitorTests.swift; sourceTree = "<group>"; };
 		1408C43CD74866EC40E4371C /* CameraCapture+Internal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CameraCapture+Internal.swift"; sourceTree = "<group>"; };
+		14E877476931B692D36C6F26 /* VLMRequestGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMRequestGateTests.swift; sourceTree = "<group>"; };
 		191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryExporterTests.swift; sourceTree = "<group>"; };
 		1E735B37FE10B0FB91995EF7 /* BlurSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurSignal.swift; sourceTree = "<group>"; };
 		254932E426C2845F9B9F05EA /* SceneGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGateTests.swift; sourceTree = "<group>"; };
 		27DFBBA6291517BEA6072640 /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
 		27F091BFAC557A758EE5BC92 /* PipelineTelemetryBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineTelemetryBridge.swift; sourceTree = "<group>"; };
 		2B30150F337B9E19B5F720F0 /* GuidesOverlayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidesOverlayTests.swift; sourceTree = "<group>"; };
+		2C800CC086824DADE0DF5B46 /* BodyPoseAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseAnalyzerTests.swift; sourceTree = "<group>"; };
 		2C8043A0736551BD4DBA3F3C /* FramingSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingSignal.swift; sourceTree = "<group>"; };
 		3352C7D6EC951111FEECA967 /* CaptureState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureState.swift; sourceTree = "<group>"; };
 		392889F7712A93E12BF45BC0 /* DebugOverlayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlayViewModel.swift; sourceTree = "<group>"; };
@@ -143,6 +154,7 @@
 		505300E876373EAE8F30B10B /* MotionManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManagerTests.swift; sourceTree = "<group>"; };
 		52AD6975E666CEBDF96F1FB8 /* CueEngineDebounceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEngineDebounceTests.swift; sourceTree = "<group>"; };
 		555FAB8C66A68F763C5EC202 /* MotionProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionProcessorTests.swift; sourceTree = "<group>"; };
+		56A96197A9D26E8314EBE9F3 /* GazeSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeSignalProducer.swift; sourceTree = "<group>"; };
 		576EAE74AC58442D1D45B548 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		5F6FBDC73456CC10ED0DD44B /* DebugOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlayView.swift; sourceTree = "<group>"; };
 		60F121BAC17B1B44B1952C87 /* TelemetryExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryExporter.swift; sourceTree = "<group>"; };
@@ -154,67 +166,65 @@
 		6FAAF108C70285DB6D41DDD4 /* PicPal.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PicPal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineTelemetryBridgeTests.swift; sourceTree = "<group>"; };
 		7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlayViewModelTests.swift; sourceTree = "<group>"; };
+		72EE64DF8B252B7164C1EC26 /* HandObstructionSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionSignalProducer.swift; sourceTree = "<group>"; };
 		7789276B1ABFC03AA51DB676 /* TiltSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltSignal.swift; sourceTree = "<group>"; };
 		79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureStateTests.swift; sourceTree = "<group>"; };
+		7A762F613F421BA418C111F7 /* PresenceGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceGate.swift; sourceTree = "<group>"; };
+		7BEDDCB6D79C71B0C38F980F /* BodySignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodySignal.swift; sourceTree = "<group>"; };
 		80503720A6F016047BFFFB2C /* VoiceCoach.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceCoach.swift; sourceTree = "<group>"; };
 		810DF6F7D37580667E224CC1 /* BlurProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurProcessorTests.swift; sourceTree = "<group>"; };
 		82254738EA55D7785F0C0DD1 /* BatteryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryTests.swift; sourceTree = "<group>"; };
+		84A7F04A6A97845176ADE5C3 /* BodyPoseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseAnalyzer.swift; sourceTree = "<group>"; };
 		8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfigurationTests.swift; sourceTree = "<group>"; };
 		8C5B3440F257F5258241DA3C /* MotionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDelegate.swift; sourceTree = "<group>"; };
 		8C905A78CCC06CD386CEFD97 /* TiltProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltProcessorTests.swift; sourceTree = "<group>"; };
+		932F14F83474E2C3D769E7C9 /* VLMSessionBudget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMSessionBudget.swift; sourceTree = "<group>"; };
 		93DE11B3F0CC3B1F4A31C490 /* CueEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorTests.swift; sourceTree = "<group>"; };
 		94A359D8B178D5857F37DB67 /* Cue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cue.swift; sourceTree = "<group>"; };
+		990BF00AA7F4C79C3F7BD3BF /* VLMClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMClient.swift; sourceTree = "<group>"; };
 		9B840731120BD2389BAB6940 /* SignalFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalFrame.swift; sourceTree = "<group>"; };
+		9C300CF4F081672847862B4A /* LandmarkOrchestratorProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkOrchestratorProbe.swift; sourceTree = "<group>"; };
+		9C345FA31BA31DBFFC0B832F /* LandmarkCadenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkCadenceController.swift; sourceTree = "<group>"; };
 		9C58CC4E053C73E35829D55C /* LandmarkProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkProbeTests.swift; sourceTree = "<group>"; };
 		9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalFrameTests.swift; sourceTree = "<group>"; };
 		A3165FBF8E23EAB79116BF4D /* MediaPipeProbeStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPipeProbeStats.swift; sourceTree = "<group>"; };
 		A5B9FADA996D75EC6DADF79A /* FrameTimerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameTimerTests.swift; sourceTree = "<group>"; };
+		A8BB80326F864A7A45A98492 /* BodyCueIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyCueIntegrationTests.swift; sourceTree = "<group>"; };
 		A93C920A73E0065F412030EB /* BlurMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurMonitor.swift; sourceTree = "<group>"; };
 		AA73CAB72B6E7B9900695EF9 /* VisionLandmarkProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionLandmarkProbe.swift; sourceTree = "<group>"; };
-		AB12CD34EF56AB12CD34EF01 /* PresenceGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceGate.swift; sourceTree = "<group>"; };
-		AB12CD34EF56AB12CD34EF03 /* LandmarkCadenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkCadenceController.swift; sourceTree = "<group>"; };
-		AB12CD34EF56AB12CD34EF05 /* LandmarkCadenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkCadenceTests.swift; sourceTree = "<group>"; };
-		AB22CD34EF56AB22CD34EF01 /* KeypointFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeypointFilter.swift; sourceTree = "<group>"; };
-		AB22CD34EF56AB22CD34EF03 /* TemporalSmoother.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporalSmoother.swift; sourceTree = "<group>"; };
-		AB22CD34EF56AB22CD34EF05 /* BodySignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodySignal.swift; sourceTree = "<group>"; };
-		AB22CD34EF56AB22CD34EF07 /* KeypointFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeypointFilterTests.swift; sourceTree = "<group>"; };
-		AB22CD34EF56AB22CD34EF09 /* TemporalSmootherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporalSmootherTests.swift; sourceTree = "<group>"; };
-		AB33CD34EF56AB33CD34EF01 /* BodyPoseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseAnalyzer.swift; sourceTree = "<group>"; };
-		AB33CD34EF56AB33CD34EF03 /* BodyPoseSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseSignalProducer.swift; sourceTree = "<group>"; };
-		AB33CD34EF56AB33CD34EF05 /* BodyPoseAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseAnalyzerTests.swift; sourceTree = "<group>"; };
-		AB44CD34EF56AB44CD34EF01 /* HandObstructionAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionAnalyzer.swift; sourceTree = "<group>"; };
-		AB44CD34EF56AB44CD34EF03 /* HandObstructionSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionSignalProducer.swift; sourceTree = "<group>"; };
-		AB44CD34EF56AB44CD34EF05 /* HandObstructionAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionAnalyzerTests.swift; sourceTree = "<group>"; };
-		AB55CD34EF56AB55CD34EF01 /* GazeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeAnalyzer.swift; sourceTree = "<group>"; };
-		AB55CD34EF56AB55CD34EF03 /* GazeSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeSignalProducer.swift; sourceTree = "<group>"; };
-		AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeAnalyzerTests.swift; sourceTree = "<group>"; };
-		AB66CD34EF56AB66CD34EF03 /* LandmarkOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkOrchestrator.swift; sourceTree = "<group>"; };
-		C10F42857408495F859441BD /* LandmarkOrchestratorProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkOrchestratorProbe.swift; sourceTree = "<group>"; };
-		AB77CD34EF56AB77CD34EF03 /* CueEvaluatorBodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorBodyTests.swift; sourceTree = "<group>"; };
-		AB88CD34EF56AB88CD34EF03 /* BodyCueIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyCueIntegrationTests.swift; sourceTree = "<group>"; };
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
+		B17731ACA076FED46E1B9A4E /* LandmarkCadenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkCadenceTests.swift; sourceTree = "<group>"; };
 		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
 		BAAA820EDBB51ED8951678C8 /* SceneGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGate.swift; sourceTree = "<group>"; };
+		C44FA4CB9FC027A384842A05 /* KeypointFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeypointFilter.swift; sourceTree = "<group>"; };
+		C45F7078BF74C5C1D1E30417 /* CueEvaluatorBodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorBodyTests.swift; sourceTree = "<group>"; };
 		C63650A5474A82D6183BBD5E /* CameraCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCapture.swift; sourceTree = "<group>"; };
+		C7F3D0F915EEDDA0517E6EA9 /* VLMRequestGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMRequestGate.swift; sourceTree = "<group>"; };
 		C989CACDEA5CD57E0938515C /* MotionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionManager.swift; sourceTree = "<group>"; };
 		C9BCA7A88868D2B3B568534F /* TiltProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltProcessor.swift; sourceTree = "<group>"; };
 		CD84759A4FAEFB9FB9BCA704 /* Vision.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vision.framework; path = System/Library/Frameworks/Vision.framework; sourceTree = SDKROOT; };
 		CF4D58B615E212399068FE51 /* LandmarkProbeStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkProbeStats.swift; sourceTree = "<group>"; };
 		CFC23307A22D070C51FD44AD /* SignalFrameAccumulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalFrameAccumulator.swift; sourceTree = "<group>"; };
 		D031C255A21D6CFCAFC81950 /* FramingProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingProcessorTests.swift; sourceTree = "<group>"; };
+		D04B2CD19B05E00CC59B1A45 /* HandObstructionAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionAnalyzer.swift; sourceTree = "<group>"; };
 		D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfiguration.swift; sourceTree = "<group>"; };
 		D6F403C544AFB8CFB048AEC2 /* FrameTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameTimer.swift; sourceTree = "<group>"; };
 		D95EE88A21316305B4A989D9 /* MotionManager+Internal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MotionManager+Internal.swift"; sourceTree = "<group>"; };
+		DE0A8DC03D821610C662FDB8 /* TemporalSmoother.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporalSmoother.swift; sourceTree = "<group>"; };
 		DEEA89DA97F543B13A634549 /* SceneGateAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGateAdapter.swift; sourceTree = "<group>"; };
 		E17352296C3AF1FCB09C1B90 /* ThermalMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermalMonitor.swift; sourceTree = "<group>"; };
 		E17C340393E02E2CD88E0C8C /* FramingProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingProcessor.swift; sourceTree = "<group>"; };
+		E3A43485EF2575B13A89774A /* TemporalSmootherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporalSmootherTests.swift; sourceTree = "<group>"; };
 		ECB7648B2D56A3423C4D1687 /* LandmarkCoordinates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkCoordinates.swift; sourceTree = "<group>"; };
 		F38C1C2627D45B67BE8EBB4A /* FramingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingMonitor.swift; sourceTree = "<group>"; };
 		F41A749E3797C46A13C74301 /* LandmarkCoordinateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkCoordinateTests.swift; sourceTree = "<group>"; };
 		F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionReading.swift; sourceTree = "<group>"; };
 		F817A8E225C5B2DE0557CB1C /* SceneSignature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneSignature.swift; sourceTree = "<group>"; };
+		FA1343B4820CD122FAE0D312 /* GazeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeAnalyzer.swift; sourceTree = "<group>"; };
+		FB0077F107E65BE314CEBB86 /* BodyPoseSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseSignalProducer.swift; sourceTree = "<group>"; };
 		FBA507E9D656071A43579101 /* MotionProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionProcessor.swift; sourceTree = "<group>"; };
+		FE231F2901A4A8023330FA19 /* HandObstructionAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionAnalyzerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -301,23 +311,23 @@
 		57D8081C6B522B3F20F9B767 /* Landmarks */ = {
 			isa = PBXGroup;
 			children = (
-				AB22CD34EF56AB22CD34EF05 /* BodySignal.swift */,
-				AB33CD34EF56AB33CD34EF01 /* BodyPoseAnalyzer.swift */,
-				AB33CD34EF56AB33CD34EF03 /* BodyPoseSignalProducer.swift */,
-				AB55CD34EF56AB55CD34EF01 /* GazeAnalyzer.swift */,
-				AB55CD34EF56AB55CD34EF03 /* GazeSignalProducer.swift */,
-				AB66CD34EF56AB66CD34EF03 /* LandmarkOrchestrator.swift */,
-				C10F42857408495F859441BD /* LandmarkOrchestratorProbe.swift */,
-				AB44CD34EF56AB44CD34EF01 /* HandObstructionAnalyzer.swift */,
-				AB44CD34EF56AB44CD34EF03 /* HandObstructionSignalProducer.swift */,
-				AB22CD34EF56AB22CD34EF01 /* KeypointFilter.swift */,
-				AB12CD34EF56AB12CD34EF03 /* LandmarkCadenceController.swift */,
+				84A7F04A6A97845176ADE5C3 /* BodyPoseAnalyzer.swift */,
+				FB0077F107E65BE314CEBB86 /* BodyPoseSignalProducer.swift */,
+				7BEDDCB6D79C71B0C38F980F /* BodySignal.swift */,
+				FA1343B4820CD122FAE0D312 /* GazeAnalyzer.swift */,
+				56A96197A9D26E8314EBE9F3 /* GazeSignalProducer.swift */,
+				D04B2CD19B05E00CC59B1A45 /* HandObstructionAnalyzer.swift */,
+				72EE64DF8B252B7164C1EC26 /* HandObstructionSignalProducer.swift */,
+				C44FA4CB9FC027A384842A05 /* KeypointFilter.swift */,
+				9C345FA31BA31DBFFC0B832F /* LandmarkCadenceController.swift */,
 				ECB7648B2D56A3423C4D1687 /* LandmarkCoordinates.swift */,
+				118281EF089993EAAEF6D73E /* LandmarkOrchestrator.swift */,
+				9C300CF4F081672847862B4A /* LandmarkOrchestratorProbe.swift */,
 				CF4D58B615E212399068FE51 /* LandmarkProbeStats.swift */,
 				11B8684DB990341CC549DB3C /* MediaPipeLandmarkProbe.swift */,
 				A3165FBF8E23EAB79116BF4D /* MediaPipeProbeStats.swift */,
-				AB12CD34EF56AB12CD34EF01 /* PresenceGate.swift */,
-				AB22CD34EF56AB22CD34EF03 /* TemporalSmoother.swift */,
+				7A762F613F421BA418C111F7 /* PresenceGate.swift */,
+				DE0A8DC03D821610C662FDB8 /* TemporalSmoother.swift */,
 				AA73CAB72B6E7B9900695EF9 /* VisionLandmarkProbe.swift */,
 			);
 			path = Landmarks;
@@ -336,24 +346,24 @@
 			children = (
 				82254738EA55D7785F0C0DD1 /* BatteryTests.swift */,
 				810DF6F7D37580667E224CC1 /* BlurProcessorTests.swift */,
-				AB33CD34EF56AB33CD34EF05 /* BodyPoseAnalyzerTests.swift */,
+				A8BB80326F864A7A45A98492 /* BodyCueIntegrationTests.swift */,
+				2C800CC086824DADE0DF5B46 /* BodyPoseAnalyzerTests.swift */,
 				AF0486A7342920630558BDFB /* CameraCaptureTests.swift */,
-				AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */,
-				AB77CD34EF56AB77CD34EF03 /* CueEvaluatorBodyTests.swift */,
-				AB88CD34EF56AB88CD34EF03 /* BodyCueIntegrationTests.swift */,
-				AB44CD34EF56AB44CD34EF05 /* HandObstructionAnalyzerTests.swift */,
-				AB22CD34EF56AB22CD34EF07 /* KeypointFilterTests.swift */,
 				8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */,
 				79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */,
 				52AD6975E666CEBDF96F1FB8 /* CueEngineDebounceTests.swift */,
+				C45F7078BF74C5C1D1E30417 /* CueEvaluatorBodyTests.swift */,
 				93DE11B3F0CC3B1F4A31C490 /* CueEvaluatorTests.swift */,
 				7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */,
 				6E4E630941D5EEA5BF4A4CB7 /* ExposureProcessorTests.swift */,
 				A5B9FADA996D75EC6DADF79A /* FrameTimerTests.swift */,
 				D031C255A21D6CFCAFC81950 /* FramingProcessorTests.swift */,
+				1068C1CE175ED471E3DDDC88 /* GazeAnalyzerTests.swift */,
 				2B30150F337B9E19B5F720F0 /* GuidesOverlayTests.swift */,
+				FE231F2901A4A8023330FA19 /* HandObstructionAnalyzerTests.swift */,
 				0DF9AC3850B7AC25D1039BF5 /* IntegrationLatencyTests.swift */,
-				AB12CD34EF56AB12CD34EF05 /* LandmarkCadenceTests.swift */,
+				1184A53EF8940BB7BBF5B1E1 /* KeypointFilterTests.swift */,
+				B17731ACA076FED46E1B9A4E /* LandmarkCadenceTests.swift */,
 				F41A749E3797C46A13C74301 /* LandmarkCoordinateTests.swift */,
 				9C58CC4E053C73E35829D55C /* LandmarkProbeTests.swift */,
 				505300E876373EAE8F30B10B /* MotionManagerTests.swift */,
@@ -362,9 +372,11 @@
 				254932E426C2845F9B9F05EA /* SceneGateTests.swift */,
 				9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */,
 				191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */,
-				AB22CD34EF56AB22CD34EF09 /* TemporalSmootherTests.swift */,
+				E3A43485EF2575B13A89774A /* TemporalSmootherTests.swift */,
 				1243DDAF4DADFD1572EC329D /* ThermalMonitorTests.swift */,
 				8C905A78CCC06CD386CEFD97 /* TiltProcessorTests.swift */,
+				07861590B7571AE61176B61F /* VLMClientTests.swift */,
+				14E877476931B692D36C6F26 /* VLMRequestGateTests.swift */,
 				680BF112ACB21BC3D65C1732 /* VoiceCoachTests.swift */,
 			);
 			path = PicPalTests;
@@ -382,9 +394,20 @@
 				2D105048843250F00B1B7552 /* Signals */,
 				DB021A4B049B9D18C6CAC5A7 /* Telemetry */,
 				EC5A252457254CF453584AF6 /* UI */,
+				8FCDD3A26046B7227D26BB66 /* VLM */,
 				0DE0FD6A92E61A387A3D03B9 /* Voice */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		8FCDD3A26046B7227D26BB66 /* VLM */ = {
+			isa = PBXGroup;
+			children = (
+				990BF00AA7F4C79C3F7BD3BF /* VLMClient.swift */,
+				C7F3D0F915EEDDA0517E6EA9 /* VLMRequestGate.swift */,
+				932F14F83474E2C3D769E7C9 /* VLMSessionBudget.swift */,
+			);
+			path = VLM;
 			sourceTree = "<group>";
 		};
 		95F3665B7603A4993CF2B526 /* Motion */ = {
@@ -546,6 +569,9 @@
 				F08F7587EB726EBFE4852C90 /* BlurMonitor.swift in Sources */,
 				763D884B07941BF62813672D /* BlurProcessor.swift in Sources */,
 				5972CA0B783B1E7E763FB2AB /* BlurSignal.swift in Sources */,
+				B570FCF6881ED92CBA02D332 /* BodyPoseAnalyzer.swift in Sources */,
+				F818C4D7F4FE70547CDBCE07 /* BodyPoseSignalProducer.swift in Sources */,
+				348BD7A872A9F747920D0F19 /* BodySignal.swift in Sources */,
 				D44779D742AEA80E7D6C732C /* CameraCapture+Internal.swift in Sources */,
 				8978D97B80D4BA041A05E124 /* CameraCapture.swift in Sources */,
 				BF659892E4EA6C97DE6A0553 /* CameraConfiguration.swift in Sources */,
@@ -565,22 +591,17 @@
 				4B82B9E46EF7D888060DCAD4 /* FramingMonitor.swift in Sources */,
 				953A6F489E6EF89C42156803 /* FramingProcessor.swift in Sources */,
 				2E70361870749E68E8C1D350 /* FramingSignal.swift in Sources */,
+				111C1544C100591ADA261A63 /* GazeAnalyzer.swift in Sources */,
+				560542B5353D00B33897EB5C /* GazeSignalProducer.swift in Sources */,
 				D31ABBD233E52418622F59F0 /* GuidesOverlayView.swift in Sources */,
-				AB22CD34EF56AB22CD34EF06 /* BodySignal.swift in Sources */,
-				AB33CD34EF56AB33CD34EF02 /* BodyPoseAnalyzer.swift in Sources */,
-				AB33CD34EF56AB33CD34EF04 /* BodyPoseSignalProducer.swift in Sources */,
-				AB55CD34EF56AB55CD34EF02 /* GazeAnalyzer.swift in Sources */,
-				AB55CD34EF56AB55CD34EF04 /* GazeSignalProducer.swift in Sources */,
-				AB66CD34EF56AB66CD34EF04 /* LandmarkOrchestrator.swift in Sources */,
-				3E22D55A030549BF9E302FED /* LandmarkOrchestratorProbe.swift in Sources */,
-				AB44CD34EF56AB44CD34EF02 /* HandObstructionAnalyzer.swift in Sources */,
-				AB44CD34EF56AB44CD34EF04 /* HandObstructionSignalProducer.swift in Sources */,
-				AB22CD34EF56AB22CD34EF02 /* KeypointFilter.swift in Sources */,
-				AB12CD34EF56AB12CD34EF04 /* LandmarkCadenceController.swift in Sources */,
+				19D78658DA40EF15AEB25A47 /* HandObstructionAnalyzer.swift in Sources */,
+				267D78CE6B4A6059C1E1EED0 /* HandObstructionSignalProducer.swift in Sources */,
+				77C852AE358D4939A7D525D6 /* KeypointFilter.swift in Sources */,
+				B84500331F3A2A7FD896C3CE /* LandmarkCadenceController.swift in Sources */,
 				AA31C1D0F537D6862D4D0822 /* LandmarkCoordinates.swift in Sources */,
+				F7D6EB43E75C9E308555532F /* LandmarkOrchestrator.swift in Sources */,
+				27EFA89BE8892B70C89FAF03 /* LandmarkOrchestratorProbe.swift in Sources */,
 				94ACC9045C767F036E8C7849 /* LandmarkProbeStats.swift in Sources */,
-				AB12CD34EF56AB12CD34EF02 /* PresenceGate.swift in Sources */,
-				AB22CD34EF56AB22CD34EF04 /* TemporalSmoother.swift in Sources */,
 				711B6C93656741CFF936E2C9 /* MediaPipeLandmarkProbe.swift in Sources */,
 				49F44C66CDE324EB6C922F42 /* MediaPipeProbeStats.swift in Sources */,
 				0E2808E915A30DC6D8736FCD /* MotionDataSource.swift in Sources */,
@@ -591,6 +612,7 @@
 				F1074965CD86018D140DE864 /* MotionReading.swift in Sources */,
 				B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */,
 				DC49FACCBC72BD4177477871 /* PipelineTelemetryBridge.swift in Sources */,
+				5C0801F08150564C1A68E4EF /* PresenceGate.swift in Sources */,
 				23137DA7AD71ED09E7E7FBB5 /* SceneGate.swift in Sources */,
 				B9C5FA3B65D5FB6022FB2471 /* SceneGateAdapter.swift in Sources */,
 				053364749FA04D2802935346 /* SceneSignature.swift in Sources */,
@@ -598,10 +620,14 @@
 				85592F0D667CFE9386259F20 /* SignalFrameAccumulator.swift in Sources */,
 				8F1BA24A05B1E07FDD8CDDBC /* TelemetryExporter.swift in Sources */,
 				277DFB380A7B72895217D3B4 /* TelemetryFeed.swift in Sources */,
+				16E94C529FDEE20C3E416953 /* TemporalSmoother.swift in Sources */,
 				A07CDCA843E145B949E0010F /* ThermalMonitor.swift in Sources */,
 				A3E530D825160B67C6EE26FB /* TiltMonitor.swift in Sources */,
 				40737DFC7B3A0AC9A8CD0C62 /* TiltProcessor.swift in Sources */,
 				C3E35148E42771AFA728FD26 /* TiltSignal.swift in Sources */,
+				0C1AF54AA69E461CF3918833 /* VLMClient.swift in Sources */,
+				5AC3C9AEBF688508C5EAECA6 /* VLMRequestGate.swift in Sources */,
+				F8D69246C068DF3E16F43468 /* VLMSessionBudget.swift in Sources */,
 				C769A9B463F7F39C86C29B2A /* VisionLandmarkProbe.swift in Sources */,
 				C231236CBCFF65EF441E79E9 /* VoiceCoach.swift in Sources */,
 			);
@@ -613,24 +639,24 @@
 			files = (
 				122410582BA831E16D9384CD /* BatteryTests.swift in Sources */,
 				210AD17F07FD2400314677BA /* BlurProcessorTests.swift in Sources */,
-				AB33CD34EF56AB33CD34EF06 /* BodyPoseAnalyzerTests.swift in Sources */,
-				AB55CD34EF56AB55CD34EF06 /* GazeAnalyzerTests.swift in Sources */,
-				AB77CD34EF56AB77CD34EF04 /* CueEvaluatorBodyTests.swift in Sources */,
-				AB88CD34EF56AB88CD34EF04 /* BodyCueIntegrationTests.swift in Sources */,
-				AB44CD34EF56AB44CD34EF06 /* HandObstructionAnalyzerTests.swift in Sources */,
+				B27187008E6443B731DD1888 /* BodyCueIntegrationTests.swift in Sources */,
+				9923E460A1B2069E8C2F6F4D /* BodyPoseAnalyzerTests.swift in Sources */,
 				94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */,
 				59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */,
 				87601917C713AEDAD040F2CB /* CaptureStateTests.swift in Sources */,
 				5EBBF5F5CA42F355439D67BA /* CueEngineDebounceTests.swift in Sources */,
+				17BB8337ECF269246C990EEF /* CueEvaluatorBodyTests.swift in Sources */,
 				5BF922D11EF68D8A70FCB581 /* CueEvaluatorTests.swift in Sources */,
 				2A5689188E70379D01FD9E28 /* DebugOverlayViewModelTests.swift in Sources */,
 				E8565AAD8B01523B96D39510 /* ExposureProcessorTests.swift in Sources */,
 				A38CDDB52597EB4F93E7CBE1 /* FrameTimerTests.swift in Sources */,
 				E132F8D24D5E9A2B54B0AF1C /* FramingProcessorTests.swift in Sources */,
+				EC76F9F8DB44287F85045BD7 /* GazeAnalyzerTests.swift in Sources */,
 				F00A5DEDCE9B7366FFAC7B17 /* GuidesOverlayTests.swift in Sources */,
+				04934DEAE02D1EF0108E2FF6 /* HandObstructionAnalyzerTests.swift in Sources */,
 				31C2255D61A64E283C0131F0 /* IntegrationLatencyTests.swift in Sources */,
-				AB22CD34EF56AB22CD34EF08 /* KeypointFilterTests.swift in Sources */,
-				AB12CD34EF56AB12CD34EF06 /* LandmarkCadenceTests.swift in Sources */,
+				F54210CA7A2B325AD9A30D15 /* KeypointFilterTests.swift in Sources */,
+				B6407873BF84C5DCDDB23DE3 /* LandmarkCadenceTests.swift in Sources */,
 				8977C2857025E36B4B77A98B /* LandmarkCoordinateTests.swift in Sources */,
 				18D1408B13222EABEC51CAF1 /* LandmarkProbeTests.swift in Sources */,
 				D122B0CD22B836D2137B8A41 /* MotionManagerTests.swift in Sources */,
@@ -639,9 +665,11 @@
 				A4E2AF8E6211A90E18CAA33F /* SceneGateTests.swift in Sources */,
 				E0AEF43926A6E7452D36E8FD /* SignalFrameTests.swift in Sources */,
 				D692DF6D48EECAC60F37D2E1 /* TelemetryExporterTests.swift in Sources */,
-				AB22CD34EF56AB22CD34EF0A /* TemporalSmootherTests.swift in Sources */,
+				E05FFC65CDC48E9709B5A808 /* TemporalSmootherTests.swift in Sources */,
 				D689CCE4E40040BC94376D92 /* ThermalMonitorTests.swift in Sources */,
 				1A0BC04BEC8F942BA1DE86A8 /* TiltProcessorTests.swift in Sources */,
+				0573702B61CE710686C00F04 /* VLMClientTests.swift in Sources */,
+				7DB962588EDE87327D618029 /* VLMRequestGateTests.swift in Sources */,
 				29175BC4389E7DE5C711DEF8 /* VoiceCoachTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
