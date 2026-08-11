@@ -226,6 +226,64 @@ struct VLMOrchestratorTests {
         #expect(client.callCount == 1)
     }
 
+    // MARK: - Test 9: stale-suppression discard when scene changes mid-flight
+
+    /// Regression test for the currentSignatureLock fix.
+    ///
+    /// Before the fix, `StaleSuppressor.evaluate` compared the response-time signature
+    /// against the SAME retained pixel buffer used for encoding — always identical,
+    /// so Rule 2 never fired and stale responses were never discarded.
+    ///
+    /// After the fix, `currentSignatureLock` tracks the live camera scene independently.
+    /// When frame B (materially different) arrives while the VLM Task is suspended,
+    /// `currentSignatureLock` is updated to B's signature. On resume the suppressor
+    /// sees a different signature → discards → `onResponseDiscarded` fires,
+    /// `onAestheticSignal` does NOT fire.
+    @Test("staleSuppressor discards response when scene changes mid-flight")
+    func staleSuppressor_discardsWhenSignatureChanges() async {
+        let suspendingClient = SuspendingVLMClient(text: "Move subject left")
+        // 0s cadence so the cadence gate never interferes.
+        let gate = VLMRequestGate(cadenceSeconds: 0)
+        let signalCount = OSAllocatedUnfairLock<Int>(initialState: 0)
+        let discardCount = OSAllocatedUnfairLock<Int>(initialState: 0)
+
+        let orch = VLMOrchestrator(
+            client: suspendingClient,
+            gate: gate,
+            onResponseDiscarded: { discardCount.withLock { $0 += 1 } }
+        ) { _ in
+            signalCount.withLock { $0 += 1 }
+        }
+
+        let capture = CameraCapture()
+
+        // Frame A (gray=50): gate passes → VLM Task dispatched → client suspends.
+        guard let bufA = makeFilledPixelBuffer(grayValue: 50) else {
+            Issue.record("Failed to create buffer A"); return
+        }
+        orch.cameraCapture(capture, didOutputPixelBuffer: bufA, timestamp: .zero)
+
+        // Yield so the Task starts and suspends inside `analyze`.
+        try? await Task.sleep(nanoseconds: 50_000_000) // 50 ms
+
+        // Frame B (gray=220): updates currentSignatureLock. isBusy blocks VLM path —
+        // that is correct; only the lock needs updating.
+        guard let bufB = makeFilledPixelBuffer(grayValue: 220) else {
+            Issue.record("Failed to create buffer B"); return
+        }
+        orch.cameraCapture(capture, didOutputPixelBuffer: bufB, timestamp: .zero)
+
+        // Unblock the client — response arrives but scene has materially changed.
+        suspendingClient.unblock()
+
+        // Allow the inference Task to complete.
+        try? await Task.sleep(nanoseconds: 300_000_000) // 300 ms
+
+        // Suppressor must have discarded the response.
+        #expect(signalCount.withLock { $0 } == 0, "onAestheticSignal must not fire for a stale response")
+        #expect(discardCount.withLock { $0 } == 1, "onResponseDiscarded must fire exactly once")
+    }
+
     // MARK: - Test 8: onAestheticSignal callback
 
     @Test("valid VLM remark triggers onAestheticSignal callback")

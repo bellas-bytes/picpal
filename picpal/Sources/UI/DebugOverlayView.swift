@@ -49,6 +49,7 @@ struct DebugOverlayView: View {
             debugRow(label: "Thermal",  value: viewModel.thermalState)
             debugRow(label: "Drops",    value: "\(viewModel.dropCount)")
             debugRow(label: "Frame ms", value: String(format: "%.2f",   viewModel.meanFrameMs))
+            debugRow(label: "p95",      value: String(format: "%.1f ms", viewModel.p95FrameMs))
             debugRow(label: "Body",     value: String(format: "%.1f ms", viewModel.bodyPoseMs))
             debugRow(label: "Hand",     value: String(format: "%.1f ms", viewModel.handPoseMs))
             debugRow(label: "Face",     value: String(format: "%.1f ms", viewModel.faceMeshMs))
@@ -60,6 +61,9 @@ struct DebugOverlayView: View {
                 .tint(.green)
             if viewModel.isVLMInFlight {
                 debugRow(label: "VLM", value: "in-flight")
+            }
+            if viewModel.vlmDiscardCount > 0 {
+                debugRow(label: "VLM discards", value: "\(viewModel.vlmDiscardCount)")
             }
             if !viewModel.aestheticRemark.isEmpty {
                 debugRow(label: "VLM remark", value: viewModel.aestheticRemark)

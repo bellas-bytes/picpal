@@ -86,6 +86,14 @@ final class DebugOverlayViewModel: ObservableObject {
     /// (or when the request times out / is suppressed as stale).
     @Published var isVLMInFlight: Bool = false
 
+    /// 95th-percentile frame-processing time in milliseconds (placeholder: 0.0).
+    /// Updated each frame from `TelemetryFeed.onFrameStats`.
+    @Published var p95FrameMs: Double = 0.0
+
+    /// Count of VLM responses discarded by `StaleSuppressor` (placeholder: 0).
+    /// Incremented via `VLMOrchestrator.onResponseDiscarded`.
+    @Published var vlmDiscardCount: Int = 0
+
     // MARK: - Telemetry wiring
 
     /// Creates a `TelemetryFeed` wired to update `framesPerSecond` and `thermalState`.
@@ -122,6 +130,7 @@ final class DebugOverlayViewModel: ObservableObject {
                 Task { @MainActor [weak self] in
                     self?.dropCount = stats.dropCount
                     self?.meanFrameMs = stats.meanMs
+                    self?.p95FrameMs = stats.p95Ms
                 }
             },
             frameTimer: frameTimer,

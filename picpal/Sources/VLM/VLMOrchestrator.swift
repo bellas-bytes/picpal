@@ -46,14 +46,12 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     private let suppressor: StaleSuppressor
     private let onAestheticSignal: @Sendable (AestheticSignal) -> Void
 
-    /// Optional hook called on the camera queue immediately before a VLM request
-    /// is dispatched to `vlmQueue`. Use to set an in-flight indicator in the UI.
+    /// Called before dispatching to `vlmQueue` — use to set an in-flight UI indicator.
     private let onRequestDispatched: (@Sendable () -> Void)?
-
-    /// Optional hook called at every exit from the VLM inference Task — on success,
-    /// stale discard, timeout, network error, and `.nothingToSay`. Use to clear an
-    /// in-flight indicator in the UI regardless of outcome.
+    /// Called at every inference-Task exit (success, discard, timeout, error).
     private let onRequestCompleted: (@Sendable () -> Void)?
+    /// Called when `StaleSuppressor.evaluate` discards a response (scene changed).
+    private let onResponseDiscarded: (@Sendable () -> Void)?
 
     // MARK: - Private serial queue
 
@@ -73,6 +71,10 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
 
     /// Current body-framing hint forwarded to the stale-suppressor.
     private let bodyHintLock = OSAllocatedUnfairLock<BodyHint>(initialState: .goodBody)
+
+    /// Most-recent `SceneSignature` from the camera queue. Updated every frame (pre-gate)
+    /// so suppressor.evaluate sees the live scene, not the stale retained pixel buffer.
+    private let currentSignatureLock = OSAllocatedUnfairLock<SceneSignature?>(initialState: nil)
 
     /// Offline-degradation failure tracking.
     ///
@@ -127,6 +129,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         backoffBaseSeconds: TimeInterval = VLMOrchestrator.backoffBaseSeconds,
         onRequestDispatched: (@Sendable () -> Void)? = nil,
         onRequestCompleted: (@Sendable () -> Void)? = nil,
+        onResponseDiscarded: (@Sendable () -> Void)? = nil,
         onAestheticSignal: @escaping @Sendable (AestheticSignal) -> Void
     ) {
         self.client = client
@@ -135,6 +138,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         self.instanceBackoffBase = backoffBaseSeconds
         self.onRequestDispatched = onRequestDispatched
         self.onRequestCompleted = onRequestCompleted
+        self.onResponseDiscarded = onResponseDiscarded
         self.onAestheticSignal = onAestheticSignal
     }
 
@@ -158,16 +162,19 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         // 1. Forward downstream FIRST — Tier-0 forwarding invariant, non-negotiable.
         downstream?.cameraCapture(capture, didOutputPixelBuffer: pixelBuffer, timestamp: timestamp)
 
-        // 1a. On-device-only toggle — short-circuits before FrameEncoder runs.
-        //     No encoding, no request construction, no network activity.
+        // 1b. Snapshot live scene signature pre-gate so suppressor.evaluate has the
+        //     actual current scene at response time, not the retained pixel buffer.
+        //     Computed outside the @Sendable closure to avoid capturing non-Sendable CVPixelBuffer.
+        let liveSignature = SceneSignature.compute(from: pixelBuffer)
+        currentSignatureLock.withLock { $0 = liveSignature }
+
+        // 1c. On-device-only toggle — short-circuits before FrameEncoder runs.
         guard !VLMSettings.shared.isOnDeviceOnly else { return }
 
-        // 1b. Offline-degradation session disable — repeated failures have
-        //     permanently disabled Tier 2 for this session. Silent, no retry.
+        // 1d. Offline-degradation session disable — silent, no retry.
         guard !failureLock.withLock({ $0.isDisabledForSession }) else { return }
 
-        // 1c. Backoff guard — suppress frames within the exponential backoff window
-        //     that follows each failure. Avoids retry storms while isBusy is clear.
+        // 1e. Backoff guard — suppress frames within the exponential backoff window.
         guard Date() >= failureLock.withLock({ $0.backoffDeadline }) else { return }
 
         // 2. Compute SceneSignature (cheap 16×16 grid walk; safe on the camera queue).
@@ -262,15 +269,18 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
                 // 5d. Parse the plain-text VLM response.
                 let signal = AestheticResponseParser.parse(response.text)
 
-                // 5e. Evaluate staleness against current scene + body state.
-                let currentSig = SceneSignature.compute(from: wrapped.value)
+                // 5e. Evaluate staleness: read live sig from lock, not the stale buffer.
+                let currentSig = currentSignatureLock.withLock { $0 }
                 let currentHint = bodyHintLock.withLock { $0 }
                 guard let valid = suppressor.evaluate(
                     signal: signal,
                     tag: tag,
                     currentSignature: currentSig,
                     currentBodyHint: currentHint
-                ) else { return }
+                ) else {
+                    onResponseDiscarded?()
+                    return
+                }
 
                 // 5f. Emit valid signal upstream.
                 onAestheticSignal(valid)

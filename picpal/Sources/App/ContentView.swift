@@ -157,7 +157,7 @@ struct ContentView: View {
         // Created before LandmarkOrchestrator so vlmOrch can be captured in the body-signal
         // callback to keep StaleSuppressor's body-hint arm updated.
         let vlmOrch = VLMOrchestrator(
-            client: AnthropicVLMClient(),
+            client: AnthropicVLMClient(proxyURL: VLMSettings.shared.proxyURL),
             onRequestDispatched: { [weak debugViewModel] in
                 Task { @MainActor [weak debugViewModel] in
                     debugViewModel?.isVLMInFlight = true
@@ -166,6 +166,11 @@ struct ContentView: View {
             onRequestCompleted: { [weak debugViewModel] in
                 Task { @MainActor [weak debugViewModel] in
                     debugViewModel?.isVLMInFlight = false
+                }
+            },
+            onResponseDiscarded: { [weak debugViewModel] in
+                Task { @MainActor [weak debugViewModel] in
+                    debugViewModel?.vlmDiscardCount += 1
                 }
             },
             onAestheticSignal: { [weak debugViewModel, accum] signal in

@@ -38,6 +38,8 @@ targets:
         CFBundleShortVersionString: "1.0.0"
         NSCameraUsageDescription: "PicPal uses the camera to analyze your photo framing in real time."
         NSMotionUsageDescription: "PicPal uses device motion to detect tilt and orientation for framing guidance."
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait

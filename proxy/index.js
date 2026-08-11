@@ -22,7 +22,7 @@ import multer from 'multer';
 // ── Named constants ────────────────────────────────────────────────────────────
 const PORT                 = 4000;
 const MODEL_ID             = 'claude-sonnet-5';
-const MAX_TOKENS           = 512;
+const MAX_TOKENS           = 64;    // ≤15-word reply ≈ 20 tokens; 64 gives headroom
 const RATE_LIMIT_WINDOW_MS = 60_000;   // 1 minute per rolling window
 const RATE_LIMIT_MAX_CALLS = 20;       // max calls per IP per window
 const HARD_CALL_CEILING    = 200;      // total calls this process lifetime
@@ -89,6 +89,7 @@ app.post('/analyze', upload.single('image'), async (req, res) => {
     const message = await anthropic.messages.create({
       model: MODEL_ID,
       max_tokens: MAX_TOKENS,
+      thinking: { type: 'disabled' },
       messages: [
         {
           role: 'user',

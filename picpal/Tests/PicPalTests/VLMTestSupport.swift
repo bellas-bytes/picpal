@@ -66,6 +66,37 @@ final class AlwaysFailingVLMClient: VLMClient, @unchecked Sendable {
     }
 }
 
+/// `VLMClient` that suspends until `unblock()` is called, then returns a fixed response.
+///
+/// Used to simulate a scene change between VLM request dispatch and response arrival —
+/// the test calls `cameraCapture` with a different buffer between `analyze` suspending
+/// and `unblock()` resuming it, so `currentSignatureLock` reflects the new scene and
+/// `StaleSuppressor.evaluate` discards the stale response.
+final class SuspendingVLMClient: VLMClient, @unchecked Sendable {
+    private let contLock = OSAllocatedUnfairLock<CheckedContinuation<VLMResponse, Never>?>(
+        initialState: nil
+    )
+    private let responseText: String
+
+    init(text: String = "Move subject left") {
+        self.responseText = text
+    }
+
+    /// Resume the suspended `analyze` call and return the fixed response.
+    func unblock() {
+        let cont = contLock.withLock { state -> CheckedContinuation<VLMResponse, Never>? in
+            let c = state; state = nil; return c
+        }
+        cont?.resume(returning: VLMResponse(text: responseText))
+    }
+
+    func analyze(_ request: VLMRequest) async throws(VLMError) -> VLMResponse {
+        await withCheckedContinuation { (cont: CheckedContinuation<VLMResponse, Never>) in
+            contLock.withLock { $0 = cont }
+        }
+    }
+}
+
 // MARK: - Pixel buffer factory
 
 /// Creates a `CVPixelBuffer` filled with a uniform gray value for deterministic testing.
