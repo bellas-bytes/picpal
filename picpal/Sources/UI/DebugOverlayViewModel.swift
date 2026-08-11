@@ -73,6 +73,19 @@ final class DebugOverlayViewModel: ObservableObject {
     /// `nil` when no subject is detected (placeholder: nil).
     @Published var subjectBox: CGRect? = nil
 
+    // MARK: - VLM fields
+
+    /// Active aesthetic remark from the VLM tier (placeholder: "").
+    ///
+    /// Empty string means no active remark (either `.nothingToSay` or no response yet).
+    @Published var aestheticRemark: String = ""
+
+    /// Whether a VLM request is currently in flight (placeholder: false).
+    ///
+    /// Set to `true` when a request is dispatched; cleared when the response arrives
+    /// (or when the request times out / is suppressed as stale).
+    @Published var isVLMInFlight: Bool = false
+
     // MARK: - Telemetry wiring
 
     /// Creates a `TelemetryFeed` wired to update `framesPerSecond` and `thermalState`.

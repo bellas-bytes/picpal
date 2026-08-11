@@ -46,6 +46,10 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     private let suppressor: StaleSuppressor
     private let onAestheticSignal: @Sendable (AestheticSignal) -> Void
 
+    /// Optional hook called on the camera queue immediately before a VLM request
+    /// is dispatched to `vlmQueue`. Use to set an in-flight indicator in the UI.
+    private let onRequestDispatched: (@Sendable () -> Void)?
+
     // MARK: - Private serial queue
 
     private let vlmQueue = DispatchQueue(
@@ -116,12 +120,14 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         gate: VLMRequestGate = VLMRequestGate(),
         suppressor: StaleSuppressor = StaleSuppressor(),
         backoffBaseSeconds: TimeInterval = VLMOrchestrator.backoffBaseSeconds,
+        onRequestDispatched: (@Sendable () -> Void)? = nil,
         onAestheticSignal: @escaping @Sendable (AestheticSignal) -> Void
     ) {
         self.client = client
         self.gateLock = OSAllocatedUnfairLock(initialState: gate)
         self.suppressor = suppressor
         self.instanceBackoffBase = backoffBaseSeconds
+        self.onRequestDispatched = onRequestDispatched
         self.onAestheticSignal = onAestheticSignal
     }
 
@@ -176,23 +182,26 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
             return true
         }) else { return }
 
-        // 5. Dispatch heavy work off the camera queue.
+        // 5. Notify the UI that a request is about to be dispatched.
+        onRequestDispatched?()
+
+        // 5a. Dispatch heavy work off the camera queue.
         let wrapped = SendablePixelBuffer(value: pixelBuffer)
         let capturedBodyHint = bodyHintLock.withLock { $0 }
 
         vlmQueue.async { [weak self] in
             guard let self else { return }
 
-            // 5a. Snapshot the request tag before encoding begins.
+            // 5b. Snapshot the request tag before encoding begins.
             let tag = suppressor.makeTag(signature: signature, bodyHint: capturedBodyHint)
 
-            // 5b. Encode to JPEG (CPU-intensive; runs on vlmQueue).
+            // 5c. Encode to JPEG (CPU-intensive; runs on vlmQueue).
             guard let jpegData = FrameEncoder.encode(pixelBuffer: wrapped.value) else {
                 isBusy.withLock { $0 = false }
                 return
             }
 
-            // 5c–f. Run async inference with hard timeout.
+            // 5d–g. Run async inference with hard timeout.
             Task { [weak self] in
                 guard let self else { return }
                 defer { isBusy.withLock { $0 = false } }

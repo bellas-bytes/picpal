@@ -87,3 +87,74 @@
 - Run a continuous session with a person visible in frame.
 - Monitor the debug overlay for Tier-0 FPS and thermal state.
 - **Expected**: FPS ≥ 25, thermal state stays nominal (no throttle warning).
+
+---
+
+## M3 — Tier 2 VLM aesthetic coaching
+
+> All M3 scenarios require a proxy running at `http://localhost:4000/analyze` unless noted.
+> Simulator builds exercise the wiring but make no network calls (VLM gate fires only
+> on settled scenes — the Simulator motion gate is open immediately, so gate checks run,
+> but the `AnthropicVLMClient` will surface network errors that are safely absorbed by
+> the offline-degradation path).
+
+### Aesthetic cue (basic)
+*(manual — PENDING_DEVICE_RUN)*
+
+1. Start the proxy (`cd proxy && node index.js`).
+2. Launch PicPal on a physical iPhone. Open the debug overlay (tap bug icon).
+3. Point the camera at a well-lit subject and hold steady for ≥ 8 seconds.
+4. **Expected**: debug overlay shows `VLM: in-flight` briefly, then a `VLM remark` row
+   with a short coaching phrase (e.g., "Move the subject to the left third").
+5. If `VLMSettings.isOnDeviceOnly` is false, a spoken cue fires via TTS within ~12 s.
+
+### Stale-suppression
+*(manual — PENDING_DEVICE_RUN)*
+
+1. Hold the camera steady over a subject until a VLM request dispatches (overlay shows
+   `VLM: in-flight`).
+2. Immediately pan away to a completely different scene while the request is in flight.
+3. Repeat ≥ 10 times.
+4. **Expected**: 10/10 — no aesthetic cue fires for the panned-away frame.
+   The stale-suppressor rejects the response because the scene signature changed.
+
+### Offline degradation
+*(manual — PENDING_DEVICE_RUN)*
+
+1. Start a session with proxy running. Confirm at least one VLM cue fires.
+2. Disconnect Wi-Fi / enable Airplane Mode.
+3. Continue shooting for 2–3 minutes.
+4. **Expected**: Tier-0/0.5 cues (tilt, blur, exposure, framing, body) continue
+   uninterrupted. Debug overlay shows no `VLM remark` and no `VLM: in-flight`.
+   No TTS error is spoken. After 3 consecutive failures the session disables Tier 2
+   permanently (no retry storms).
+
+### On-device-only toggle
+*(manual — PENDING_DEVICE_RUN)*
+
+1. Open the Settings sheet (gear icon, bottom-right corner).
+2. Disable "Cloud composition coaching" (toggle off → `isOnDeviceOnly = true`).
+3. Hold the camera steady over a subject for ≥ 30 seconds.
+4. **Expected**: debug overlay shows no `VLM: in-flight` indicator. Proxy logs (server
+   console) receive zero new requests. Tier-0/0.5 cues continue normally.
+5. Re-enable the toggle and confirm VLM requests resume within one cadence cycle.
+
+### Cost check (session budget)
+*(manual — PENDING_DEPLOYMENT)*
+
+1. Start the proxy with request logging enabled.
+2. Run a 5-minute session with a person visible in frame.
+3. After the session, count total proxy calls from the server log.
+4. **Expected**: call count ≤ 50 (default `VLMRequestGate` budget for a session).
+   Actual count depends on novelty rate; 10–20 is typical for a stable scene.
+
+### Thermal and FPS non-regression
+*(manual — PENDING_DEVICE_RUN)*
+
+1. Run two back-to-back 5-minute sessions:
+   - Session A: `isOnDeviceOnly = true` (Tier 2 disabled).
+   - Session B: `isOnDeviceOnly = false` (Tier 2 active, proxy running).
+2. Record FPS and thermal state from the debug overlay for each session.
+3. **Expected**: Tier-0 FPS ≥ 25 in both sessions. Thermal state stays `nominal`
+   or `fair` in both sessions. No statistically significant regression in FPS when
+   Tier 2 is active (VLM runs on a utility queue; camera queue is unblocked).

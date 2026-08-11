@@ -58,6 +58,12 @@ struct DebugOverlayView: View {
             Toggle("Mute voice", isOn: $viewModel.isMuted)
                 .font(.caption)
                 .tint(.green)
+            if viewModel.isVLMInFlight {
+                debugRow(label: "VLM", value: "in-flight")
+            }
+            if !viewModel.aestheticRemark.isEmpty {
+                debugRow(label: "VLM remark", value: viewModel.aestheticRemark)
+            }
         }
         .padding(DebugOverlayLayout.panelInnerPadding)
         .background(

@@ -22,6 +22,7 @@ struct ContentView: View {
     @State private var sceneGate = SceneGate()
     @State private var sceneGateAdapter: SceneGateAdapter?
     @State private var landmarkOrchestrator: LandmarkOrchestrator?
+    @State private var vlmOrchestrator: VLMOrchestrator?
     @State private var cueEngine: CueEngine?
     @State private var accumulator: SignalFrameAccumulator?
     @State private var voiceCoach = VoiceCoach()
@@ -163,9 +164,31 @@ struct ContentView: View {
         }
 
         let feed = debugViewModel.makeTelemetryFeed(downstream: probe)
-        // Wire: orchestrator sits between SceneGateAdapter and the telemetry bridge.
-        orchestrator?.downstream = feed.bridge
-        let adapterDownstream: any CameraFrameDelegate = orchestrator ?? feed.bridge
+
+        // Tier-2: VLMOrchestrator sits between LandmarkOrchestrator and the telemetry bridge.
+        let vlmOrch = VLMOrchestrator(
+            client: AnthropicVLMClient(),
+            onRequestDispatched: { [weak debugViewModel] in
+                Task { @MainActor [weak debugViewModel] in
+                    debugViewModel?.isVLMInFlight = true
+                }
+            },
+            onAestheticSignal: { [weak debugViewModel, accum] signal in
+                accum.update(aesthetic: signal)
+                let remark = signal.hint == .remark ? signal.remark : ""
+                Task { @MainActor [weak debugViewModel] in
+                    debugViewModel?.aestheticRemark = remark
+                    debugViewModel?.isVLMInFlight = false
+                }
+            }
+        )
+        vlmOrch.downstream = feed.bridge
+
+        // Wire: LandmarkOrchestrator → VLMOrchestrator → telemetry bridge.
+        // When orchestrator is nil (Simulator — model files absent), vlmOrch becomes
+        // the direct adapter downstream so Tier-2 wiring stays intact.
+        orchestrator?.downstream = vlmOrch
+        let adapterDownstream: any CameraFrameDelegate = orchestrator ?? vlmOrch
         let adapter = SceneGateAdapter(gate: sceneGate, downstream: adapterDownstream)
         camera.delegate = adapter
         feed.start()
@@ -176,6 +199,7 @@ struct ContentView: View {
         framingMonitor = framingMon
         landmarkProbe = probe
         landmarkOrchestrator = orchestrator
+        vlmOrchestrator = vlmOrch
         telemetryFeed = feed
         sceneGateAdapter = adapter
         cueEngine = engine
