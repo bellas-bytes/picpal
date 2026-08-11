@@ -6,6 +6,12 @@ import SwiftUI
 /// so the accumulator silences naturally before the coach would re-fire the same coaching line.
 private let aestheticRemarkExpirySeconds = CueEngine.defaultMinRepeatIntervalSeconds + 1.0
 
+/// Padding around button icons (used in both debug and settings buttons)
+private let buttonIconPadding: CGFloat = 10
+
+/// Padding from screen edges for control buttons
+private let buttonEdgePadding: CGFloat = 16
+
 // MARK: - AestheticExpiryHandle
 
 /// Holds a cancellable expiry Task so `@Sendable` closures in `wireUp()` can share
@@ -75,10 +81,10 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "list.clipboard")
                             .imageScale(.medium)
-                            .padding(10)
+                            .padding(buttonIconPadding)
                             .background(.ultraThinMaterial, in: Circle())
                     }
-                    .padding([.bottom, .leading], 16)
+                    .padding([.bottom, .leading], buttonEdgePadding)
                     #endif
                     Spacer()
                     Button {
@@ -86,10 +92,10 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "gear")
                             .imageScale(.medium)
-                            .padding(10)
+                            .padding(buttonIconPadding)
                             .background(.ultraThinMaterial, in: Circle())
                     }
-                    .padding([.bottom, .trailing], 16)
+                    .padding([.bottom, .trailing], buttonEdgePadding)
                 }
             }
         }

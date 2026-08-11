@@ -211,3 +211,31 @@ Minor deferred (not blocking merge):
 - `FrameEncoder` allocates fresh `CIContext()` per call (low-frequency call, minor perf)
 - First-run consent before cloud VLM sends frames — SPAWNED as separate task
 - `project.yml` PicPal/ vs picpal/ case sensitivity — pre-existing, breaks CI on Linux
+
+---
+
+# M4 — Tuning & Validation
+
+Plan file: docs/picpal-tickets-m4.md
+Branch: feature/m4-tuning-validation
+Base commit (branch point): fc30d20
+
+Execution order:
+  1. M4-0 (AestheticSignal auto-expiry — active bug fix)
+  2. M4-6 (Validation session kit — static types, no deps)
+  3. M4-5 (Runtime tuning panel + cadence config)
+  4. M4-1 (KPI telemetry: cue event log + settle→cue timer)
+  5. M4-2 (Wire BatteryMonitor + TelemetryExporter)
+  6. M4-3 (First-run consent gate)
+  7. M4-4 (Post-session survey)
+  8. M4-7 (Integration & validation — PENDING_DEVICE_RUN)
+
+- [x] M4-0: AestheticSignal auto-expiry
+- [ ] M4-6: Validation session kit
+- [ ] M4-5: Runtime tuning panel + cadence config
+- [ ] M4-1: KPI telemetry — cue event log + settle→cue timer
+- [ ] M4-2: Wire BatteryMonitor + TelemetryExporter
+- [ ] M4-3: First-run consent gate
+- [ ] M4-4: Post-session survey
+- [ ] M4-7: Integration, deployment & validation ⚠ PENDING_DEVICE_RUN
+Task M4-0: complete (commit b770f4a, review clean; 424 tests passing; accumulator is lock-protected @unchecked Sendable — off-main-actor call is safe)
