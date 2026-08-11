@@ -1,0 +1,5 @@
+# Local environment — never commit real secrets
+.env
+
+# Node modules
+node_modules/

@@ -155,3 +155,34 @@ Task M2-5: complete (318 tests passing)
 - GazeAnalyzer: landmarks 234/454/4 for yaw, defaultYawThreshold=0.15, defaultKeypointConfidenceFloor=0.5
 - GazeSignalProducer: wraps GazeAnalyzer + TemporalSmoother<BodySignal>; empty → nil → noPersonPresent on stable break
 - 12 new Swift Testing tests covering all 8 required scenarios plus 4 bonus boundary/confidence tests
+
+---
+
+# M3 — Tier 2 VLM Aesthetic Coaching
+
+Plan file: docs/picpal-tickets-m3.md
+Branch: feature/m3-vlm-tier
+Base commit (branch point): 111028f
+
+Execution order (per dependency graph):
+  1. M3-0 (⚠ SPIKE — risk-critical, gates client contract)
+  2. M3-2 (independent of M3-0, parallels it logically but serialized here)
+  3. M3-1 (depends on M3-0 wire format)
+  4. M3-4 (depends on M3-0 client contract)
+  5. M3-3 (depends on M3-2)
+  6. M3-5 (depends on M3-1, M3-2, M3-3, M3-4)
+  7. M3-6 (depends on M3-5)
+  8. M3-7 (depends on M3-6)
+
+Minor deferred findings from M2 to watch:
+  - LandmarkOrchestrator.swift 335-line overage addressed by probe extraction (resolved)
+  - project.yml PicPal/ vs picpal/ case sensitivity — will break CI (still open)
+
+- [x] M3-0: VLM proxy service + swappable client abstraction ⚠ SPIKE (DONE_WITH_CONCERNS — proxy + client complete, latency test blocked by missing ANTHROPIC_API_KEY, see task-m3-0-report.md)
+- [ ] M3-2: VLM request gate: settle + novelty + cadence + budget
+- [ ] M3-1: Frame encoder (downscale → JPEG)
+- [ ] M3-4: AestheticSignal + prompt design + response parsing
+- [ ] M3-3: Stale-suppression + response matching
+- [ ] M3-5: VLMOrchestrator + cue-engine wiring at .aesthetic
+- [ ] M3-6: Offline degradation + on-device-only mode + privacy copy
+- [ ] M3-7: Integration, deployment & validation

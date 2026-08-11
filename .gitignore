@@ -14,3 +14,7 @@ DerivedData/
 
 # macOS
 .DS_Store
+
+# Proxy — local secrets (never commit)
+proxy/.env
+proxy/node_modules/
