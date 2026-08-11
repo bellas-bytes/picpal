@@ -180,7 +180,7 @@ Minor deferred findings from M2 to watch:
 
 - [x] M3-0: VLM proxy service + swappable client abstraction ⚠ SPIKE (DONE_WITH_CONCERNS — proxy + client complete, latency test blocked by missing ANTHROPIC_API_KEY, see task-m3-0-report.md)
 - [ ] M3-2: VLM request gate: settle + novelty + cadence + budget
-- [ ] M3-1: Frame encoder (downscale → JPEG)
+- [x] M3-1: Frame encoder (downscale → JPEG) (commit 575e8b3, review clean; 374 tests passing)
 - [ ] M3-4: AestheticSignal + prompt design + response parsing
 - [ ] M3-3: Stale-suppression + response matching
 - [ ] M3-5: VLMOrchestrator + cue-engine wiring at .aesthetic

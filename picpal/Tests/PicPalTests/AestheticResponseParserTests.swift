@@ -98,6 +98,14 @@ struct AestheticResponseParserTests {
         #expect(signal == .nothingToSay)
     }
 
+    // MARK: - Fixture 9a: Malformed JSON response → .nothingToSay
+
+    @Test("Malformed JSON response is rejected")
+    func malformedJsonResponseIsRejected() {
+        let response = #"{"error": "I cannot process this image"}"#
+        #expect(AestheticResponseParser.parse(response) == .nothingToSay)
+    }
+
     // MARK: - Fixture 10: Exactly 15-word remark (boundary) → .remark
 
     @Test("Remark of exactly 15 words is accepted (boundary test)")

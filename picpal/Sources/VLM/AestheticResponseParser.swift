@@ -10,10 +10,11 @@
 /// **Rejection rules (applied in order)**
 /// 1. Trimmed text is empty → `.nothingToSay`
 /// 2. Text equals `NOTHING_TO_SAY` (case-insensitive) → `.nothingToSay`
-/// 3. Word count exceeds `maxRemarkWords` → `.nothingToSay` (not truncated)
-/// 4. Contains multiple sentences (>1 terminal punctuation ending a sentence) → `.nothingToSay`
-/// 5. Contains hedging phrases (see `hedgingPhrases`) → `.nothingToSay`
-/// 6. Otherwise → `AestheticSignal(remark: trimmed, confidence: 1.0, hint: .remark)`
+/// 3. Text starts with `{` or `[` (malformed JSON/structured data) → `.nothingToSay`
+/// 4. Word count exceeds `maxRemarkWords` → `.nothingToSay` (not truncated)
+/// 5. Contains multiple sentences (>1 terminal punctuation ending a sentence) → `.nothingToSay`
+/// 6. Contains hedging phrases (see `hedgingPhrases`) → `.nothingToSay`
+/// 7. Otherwise → `AestheticSignal(remark: trimmed, confidence: remarkedConfidence, hint: .remark)`
 public enum AestheticResponseParser {
 
     // MARK: - Named constants
@@ -25,6 +26,12 @@ public enum AestheticResponseParser {
     /// Mirrors `AestheticPrompt.maxRemarkWords` — defined here as a named constant
     /// so the parser stays self-contained even if the prompt evolves.
     static let maxRemarkWords: Int = AestheticPrompt.maxRemarkWords
+
+    /// Confidence value for successfully parsed remarks.
+    private static let remarkedConfidence: Float = 1.0
+
+    /// Confidence value for rejected remarks.
+    private static let rejectedConfidence: Float = 0.0
 
     /// Phrases that signal model uncertainty or hedging. Any response containing
     /// one of these substrings (case-insensitive) is rejected as `.nothingToSay`.
@@ -59,23 +66,28 @@ public enum AestheticResponseParser {
             return .nothingToSay
         }
 
-        // Rule 3: over-length (reject; never truncate)
+        // Rule 3: malformed JSON / structured data (starts with { or [)
+        if trimmed.first == "{" || trimmed.first == "[" {
+            return .nothingToSay
+        }
+
+        // Rule 4: over-length (reject; never truncate)
         let wordCount = trimmed
-            .components(separatedBy: .whitespaces)
+            .components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
             .count
         guard wordCount <= maxRemarkWords else {
             return .nothingToSay
         }
 
-        // Rule 4: multiple sentences
+        // Rule 5: multiple sentences
         // Count terminal-punctuation characters that end a word boundary
         // (period, exclamation mark, question mark). Two or more → multi-sentence.
         if hasMultipleSentences(trimmed) {
             return .nothingToSay
         }
 
-        // Rule 5: hedging language (case-insensitive substring match)
+        // Rule 6: hedging language (case-insensitive substring match)
         let lowered = trimmed.lowercased()
         for phrase in hedgingPhrases {
             if lowered.contains(phrase) {
@@ -83,15 +95,14 @@ public enum AestheticResponseParser {
             }
         }
 
-        // Rule 6: valid remark
-        return AestheticSignal(remark: trimmed, confidence: 1.0, hint: .remark)
+        // Rule 7: valid remark
+        return AestheticSignal(remark: trimmed, confidence: remarkedConfidence, hint: .remark)
     }
 
     // MARK: - Private helpers
 
     /// Returns `true` when `text` contains more than one sentence-terminating
-    /// punctuation mark (`.`, `!`, `?`) that is not part of an ellipsis or
-    /// abbreviation pattern.
+    /// punctuation mark (`.`, `!`, `?`).
     ///
     /// Strategy: count runs of terminal punctuation rather than individual
     /// characters, so `"..."` or `"!!"` each count as one sentence end.
