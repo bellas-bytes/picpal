@@ -166,11 +166,17 @@ public final class CameraCapture: @unchecked Sendable {
         }
     }
 
-    /// Build a fresh `AVCaptureSession` with the given configuration. Must be called on `sessionQueue`.
+    /// Configure the capture session with the given configuration. Must be called on `sessionQueue`.
+    ///
+    /// Reuses the existing `captureSession` instance (does not replace it) so that any
+    /// `AVCaptureVideoPreviewLayer` already connected to `captureSession` stays wired.
     private func buildSession(configuration: CameraConfiguration) throws {
-        captureSession = AVCaptureSession()
         captureSession.beginConfiguration()
         defer { captureSession.commitConfiguration() }
+
+        // Clear any existing inputs and outputs before rebuilding.
+        for input in captureSession.inputs { captureSession.removeInput(input) }
+        for output in captureSession.outputs { captureSession.removeOutput(output) }
 
         captureSession.sessionPreset = configuration.preset
 

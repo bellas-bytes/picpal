@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 /// Holds the display values shown by `DebugOverlayView`.
@@ -17,6 +18,9 @@ final class DebugOverlayViewModel: ObservableObject {
 
     /// Human-readable exposure level (placeholder: "—").
     @Published var exposureLevel: String = "—"
+
+    /// Framing hint label (placeholder: "—").
+    @Published var framingHint: String = "—"
 
     /// Measured frames per second (placeholder: 0).
     @Published var framesPerSecond: Double = 0
@@ -43,6 +47,26 @@ final class DebugOverlayViewModel: ObservableObject {
 
     /// Rolling mean combined Vision total in milliseconds (placeholder: 0.0).
     @Published var landmarkCombinedMs: Double = 0.0
+
+    /// The active coaching cue selected by the cue engine (placeholder: "—").
+    ///
+    /// Updated after every signal tick. "—" means silence (no active cue).
+    @Published var activeCue: String = "—"
+
+    /// Whether voice output is muted (placeholder: false).
+    ///
+    /// Toggled by the mute button in `DebugOverlayView`. Changes propagate to
+    /// `VoiceCoach.isMuted` via `ContentView`'s `onChange` observer.
+    @Published var isMuted: Bool = false
+
+    // MARK: - Guides overlay fields
+
+    /// Whether the device is currently within the level dead-zone (placeholder: false).
+    @Published var isLevel: Bool = false
+
+    /// Normalized bounding box of the primary subject in Vision coords (origin bottom-left).
+    /// `nil` when no subject is detected (placeholder: nil).
+    @Published var subjectBox: CGRect? = nil
 
     // MARK: - Telemetry wiring
 
