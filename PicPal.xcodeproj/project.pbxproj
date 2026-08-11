@@ -56,6 +56,9 @@
 		A3E530D825160B67C6EE26FB /* TiltMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA6168FE7D6DC8079864214 /* TiltMonitor.swift */; };
 		A4E2AF8E6211A90E18CAA33F /* SceneGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 254932E426C2845F9B9F05EA /* SceneGateTests.swift */; };
 		AA31C1D0F537D6862D4D0822 /* LandmarkCoordinates.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB7648B2D56A3423C4D1687 /* LandmarkCoordinates.swift */; };
+		AB12CD34EF56AB12CD34EF02 /* PresenceGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB12CD34EF01 /* PresenceGate.swift */; };
+		AB12CD34EF56AB12CD34EF04 /* LandmarkCadenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB12CD34EF03 /* LandmarkCadenceController.swift */; };
+		AB12CD34EF56AB12CD34EF06 /* LandmarkCadenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB12CD34EF56AB12CD34EF05 /* LandmarkCadenceTests.swift */; };
 		AB354C403CE12A9E9C550114 /* ExposureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5112611E348867EF918B46 /* ExposureProcessor.swift */; };
 		B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */; };
 		B9C5FA3B65D5FB6022FB2471 /* SceneGateAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEEA89DA97F543B13A634549 /* SceneGateAdapter.swift */; };
@@ -150,6 +153,9 @@
 		A5B9FADA996D75EC6DADF79A /* FrameTimerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameTimerTests.swift; sourceTree = "<group>"; };
 		A93C920A73E0065F412030EB /* BlurMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurMonitor.swift; sourceTree = "<group>"; };
 		AA73CAB72B6E7B9900695EF9 /* VisionLandmarkProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionLandmarkProbe.swift; sourceTree = "<group>"; };
+		AB12CD34EF56AB12CD34EF01 /* PresenceGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceGate.swift; sourceTree = "<group>"; };
+		AB12CD34EF56AB12CD34EF03 /* LandmarkCadenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkCadenceController.swift; sourceTree = "<group>"; };
+		AB12CD34EF56AB12CD34EF05 /* LandmarkCadenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkCadenceTests.swift; sourceTree = "<group>"; };
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
 		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
@@ -259,10 +265,12 @@
 		57D8081C6B522B3F20F9B767 /* Landmarks */ = {
 			isa = PBXGroup;
 			children = (
+				AB12CD34EF56AB12CD34EF03 /* LandmarkCadenceController.swift */,
 				ECB7648B2D56A3423C4D1687 /* LandmarkCoordinates.swift */,
 				CF4D58B615E212399068FE51 /* LandmarkProbeStats.swift */,
 				11B8684DB990341CC549DB3C /* MediaPipeLandmarkProbe.swift */,
 				A3165FBF8E23EAB79116BF4D /* MediaPipeProbeStats.swift */,
+				AB12CD34EF56AB12CD34EF01 /* PresenceGate.swift */,
 				AA73CAB72B6E7B9900695EF9 /* VisionLandmarkProbe.swift */,
 			);
 			path = Landmarks;
@@ -292,6 +300,7 @@
 				D031C255A21D6CFCAFC81950 /* FramingProcessorTests.swift */,
 				2B30150F337B9E19B5F720F0 /* GuidesOverlayTests.swift */,
 				0DF9AC3850B7AC25D1039BF5 /* IntegrationLatencyTests.swift */,
+				AB12CD34EF56AB12CD34EF05 /* LandmarkCadenceTests.swift */,
 				F41A749E3797C46A13C74301 /* LandmarkCoordinateTests.swift */,
 				9C58CC4E053C73E35829D55C /* LandmarkProbeTests.swift */,
 				505300E876373EAE8F30B10B /* MotionManagerTests.swift */,
@@ -503,8 +512,10 @@
 				953A6F489E6EF89C42156803 /* FramingProcessor.swift in Sources */,
 				2E70361870749E68E8C1D350 /* FramingSignal.swift in Sources */,
 				D31ABBD233E52418622F59F0 /* GuidesOverlayView.swift in Sources */,
+				AB12CD34EF56AB12CD34EF04 /* LandmarkCadenceController.swift in Sources */,
 				AA31C1D0F537D6862D4D0822 /* LandmarkCoordinates.swift in Sources */,
 				94ACC9045C767F036E8C7849 /* LandmarkProbeStats.swift in Sources */,
+				AB12CD34EF56AB12CD34EF02 /* PresenceGate.swift in Sources */,
 				711B6C93656741CFF936E2C9 /* MediaPipeLandmarkProbe.swift in Sources */,
 				49F44C66CDE324EB6C922F42 /* MediaPipeProbeStats.swift in Sources */,
 				0E2808E915A30DC6D8736FCD /* MotionDataSource.swift in Sources */,
@@ -548,6 +559,7 @@
 				E132F8D24D5E9A2B54B0AF1C /* FramingProcessorTests.swift in Sources */,
 				F00A5DEDCE9B7366FFAC7B17 /* GuidesOverlayTests.swift in Sources */,
 				31C2255D61A64E283C0131F0 /* IntegrationLatencyTests.swift in Sources */,
+				AB12CD34EF56AB12CD34EF06 /* LandmarkCadenceTests.swift in Sources */,
 				8977C2857025E36B4B77A98B /* LandmarkCoordinateTests.swift in Sources */,
 				18D1408B13222EABEC51CAF1 /* LandmarkProbeTests.swift in Sources */,
 				D122B0CD22B836D2137B8A41 /* MotionManagerTests.swift in Sources */,
