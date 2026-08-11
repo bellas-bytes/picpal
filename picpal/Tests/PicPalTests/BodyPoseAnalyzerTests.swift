@@ -41,8 +41,9 @@ private enum Fixture {
     static let upperBound: Double = idealHeadroom + tolerance                            // 0.15
 
     // Concrete Y positions for headroom tests
-    static let headroomTooClose: Double = lowerBound - 0.02                  // 0.03 → nudgeDown
-    static let headroomTooFar: Double = upperBound + 0.05                    // 0.20 → nudgeUp
+    // UIKit Y: small value = near top. Too small (< lowerBound) → nudgeUp; too large (> upperBound) → nudgeDown.
+    static let headroomTooClose: Double = lowerBound - 0.02                  // 0.03 → nudgeUp
+    static let headroomTooFar: Double = upperBound + 0.05                    // 0.20 → nudgeDown
     static let headroomIdeal: Double = idealHeadroom                         // 0.10 → goodBody
 
     // Concrete Y position for crop tests
@@ -108,7 +109,7 @@ struct BodyPoseAnalyzerTests {
     @Test("Crop signal takes priority over headroom signal")
     func cropDetectionSkipsHeadroomCheck() {
         // A wrist at the top edge → would fire awkwardCrop.
-        // A nose far from the top → would fire nudgeUpHeadroom.
+        // A nose far from the top (y=0.20 > upperBound) → would fire nudgeDownHeadroom.
         // Crop must win.
         var keypoints: [VNHumanBodyPoseObservation.JointName: Keypoint] = [:]
         keypoints[.leftWrist] = Keypoint(
@@ -123,30 +124,32 @@ struct BodyPoseAnalyzerTests {
         #expect(result?.hint == .awkwardCrop)
     }
 
-    // MARK: - 4. Head too close to top → nudgeDownHeadroom
+    // MARK: - 4. Head too close to top → nudgeUpHeadroom
 
-    @Test("Head very close to top edge returns .nudgeDownHeadroom")
-    func headTooCloseToTopReturnsNudgeDownHeadroom() {
+    @Test("Head very close to top edge returns .nudgeUpHeadroom")
+    func headTooCloseToTopReturnsNudgeUpHeadroom() {
         let keypoints = singleKeypoint(
             joint: .nose,
             x: Fixture.safeCenterXY,
-            y: Fixture.headroomTooClose   // 0.03 < lowerBound (0.05)
+            y: Fixture.headroomTooClose   // 0.03 < lowerBound (0.05) → too little headroom → nudgeUp
         )
         let result = analyzer.analyzeKeypoints(keypoints, frameSize: Fixture.unitFrame)
-        #expect(result?.hint == .nudgeDownHeadroom)
+        // UIKit Y is small → head near top edge → move camera up so subject drops in frame.
+        #expect(result?.hint == .nudgeUpHeadroom)
     }
 
-    // MARK: - 5. Head too far from top → nudgeUpHeadroom
+    // MARK: - 5. Head too far from top → nudgeDownHeadroom
 
-    @Test("Head far from top edge returns .nudgeUpHeadroom")
-    func headTooFarFromTopReturnsNudgeUpHeadroom() {
+    @Test("Head far from top edge returns .nudgeDownHeadroom")
+    func headTooFarFromTopReturnsNudgeDownHeadroom() {
         let keypoints = singleKeypoint(
             joint: .nose,
             x: Fixture.safeCenterXY,
-            y: Fixture.headroomTooFar     // 0.20 > upperBound (0.15)
+            y: Fixture.headroomTooFar     // 0.20 > upperBound (0.15) → too much headroom → nudgeDown
         )
         let result = analyzer.analyzeKeypoints(keypoints, frameSize: Fixture.unitFrame)
-        #expect(result?.hint == .nudgeUpHeadroom)
+        // UIKit Y is large → head far from top edge → move camera down.
+        #expect(result?.hint == .nudgeDownHeadroom)
     }
 
     // MARK: - 6. Head in ideal zone → goodBody
@@ -231,10 +234,10 @@ struct BodyPoseAnalyzerTests {
         let keypoints = singleKeypoint(
             joint: .neck,
             x: Fixture.safeCenterXY,
-            y: Fixture.headroomTooFar    // 0.20 → nudgeUp if used as head proxy
+            y: Fixture.headroomTooFar    // 0.20 > upperBound → nudgeDown (too much headroom)
         )
         // Note: neck is also a crop-watch joint, but at y=0.20 it is not near any edge.
         let result = analyzer.analyzeKeypoints(keypoints, frameSize: Fixture.unitFrame)
-        #expect(result?.hint == .nudgeUpHeadroom)
+        #expect(result?.hint == .nudgeDownHeadroom)
     }
 }

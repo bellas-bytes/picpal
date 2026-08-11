@@ -191,11 +191,12 @@ public final class BodyPoseAnalyzer: @unchecked Sendable {
         let upperBound = idealHeadroomFraction + headroomTolerance
 
         if currentHeadroom < lowerBound {
-            // Too close to top — subject needs to move down in frame.
-            return BodySignal(hint: .nudgeDownHeadroom, confidence: head.confidence, dominantRect: nil)
-        } else if currentHeadroom > upperBound {
-            // Too far from top — frame needs to move up (or subject up).
+            // Head near the top edge (small UIKit Y) — too little headroom above.
+            // Ask the photographer to move the camera up so the subject drops in frame.
             return BodySignal(hint: .nudgeUpHeadroom, confidence: head.confidence, dominantRect: nil)
+        } else if currentHeadroom > upperBound {
+            // Too much space above the head — frame needs to move down.
+            return BodySignal(hint: .nudgeDownHeadroom, confidence: head.confidence, dominantRect: nil)
         } else {
             return BodySignal(hint: .goodBody, confidence: head.confidence, dominantRect: nil)
         }

@@ -129,20 +129,51 @@ public final class LandmarkCadenceController: @unchecked Sendable {
         // Gate 3: Presence detection — most expensive; runs VNDetectHumanRectanglesRequest.
         let result = presenceChecker(pixelBuffer)
 
+        // Always record the latest presence result so the orchestrator's reset path
+        // can fire when the subject leaves frame (C1 fix: was only written when present).
+        lock.withLock { $0.lastPresenceResult = result }
+
         guard result.personPresent else {
             return false
         }
 
-        // All gates passed: record approval time and latest presence result.
-        lock.withLock { state in
-            state.lastApprovalTime = now
-            state.lastPresenceResult = result
-        }
+        // Person confirmed — record approval time.
+        lock.withLock { $0.lastApprovalTime = now }
 
         return true
     }
 
-    /// The presence result from the most recent approved frame.
+    // MARK: - Split-gate API (used by LandmarkOrchestrator for I2 fix)
+
+    /// Cheap cadence + settle gate — no Vision work.
+    ///
+    /// Safe to call on the camera delivery queue. The Vision presence check is
+    /// deferred to `probeQueue` via `runPresenceCheck(pixelBuffer:)`.
+    ///
+    /// - Returns: `true` when the cadence interval has elapsed and `isSettled` is `true`.
+    func checkCadence(isSettled: Bool) -> Bool {
+        let elapsed = clock() - lock.withLock { $0.lastApprovalTime }
+        return elapsed >= minInterval && isSettled
+    }
+
+    /// Runs the presence gate, records the result, and updates the approval timestamp.
+    ///
+    /// Call from `probeQueue` only — the Vision request is synchronous.
+    /// Updates `lastApprovalTime` regardless of presence so the 5 fps cap applies
+    /// to all presence checks (not just positive detections).
+    ///
+    /// - Returns: `true` if a person is present in the frame.
+    func runPresenceCheck(pixelBuffer: CVPixelBuffer) -> Bool {
+        let now = clock()
+        let result = presenceChecker(pixelBuffer)
+        lock.withLock { state in
+            state.lastPresenceResult = result   // always record (C1 principle)
+            state.lastApprovalTime = now        // caps presence checks at maxFPS
+        }
+        return result.personPresent
+    }
+
+    /// The presence result from the most recent presence check.
     ///
     /// Downstream M2-3/4/5 signal processors use `dominantRect` to scope
     /// body/hand/face geometry to the subject area.

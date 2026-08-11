@@ -75,8 +75,8 @@
 
 ### Headroom cue
 - Stand in frame with head near the top edge (less than ~5% headroom).
-- **Expected**: spoken "Move the camera down a little".
-- Lower the camera until ~10% headroom → cue clears.
+- **Expected**: spoken "Move the camera up a little".
+- Raise the camera until ~10% headroom → cue clears.
 
 ### Zero-false-cue validation
 - Remove yourself completely from frame (empty scene or point at a wall).

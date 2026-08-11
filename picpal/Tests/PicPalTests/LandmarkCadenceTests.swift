@@ -197,6 +197,45 @@ struct LandmarkCadenceTests {
         #expect(stored.dominantRect == expectedRect)
     }
 
+    // MARK: - Test C1: Presence result transitions to absent when subject leaves frame
+
+    @Test("lastPresenceResult reflects absent result after subject leaves frame (C1 fix)")
+    func lastPresenceResultTransitionsToAbsent() {
+        guard let buf = makeTestPixelBuffer() else {
+            Issue.record("Could not create pixel buffer")
+            return
+        }
+
+        // Adaptive checker: first invocation returns present; subsequent calls return absent.
+        let callIndex = OSAllocatedUnfairLock<Int>(initialState: 0)
+        let adaptiveChecker: @Sendable (CVPixelBuffer) -> PresenceResult = { _ in
+            let index = callIndex.withLock { n -> Int in
+                let current = n; n += 1; return current
+            }
+            return index == 0 ? alwaysPresentResult : .absent
+        }
+
+        let clock = TestClock(CadenceFixture.minLandmarkInterval + 1.0)
+        let controller = LandmarkCadenceController(
+            presenceChecker: adaptiveChecker,
+            clock: { clock.time }
+        )
+
+        // First call: person present — should return true and record a present result.
+        let firstResult = controller.shouldRunLandmarks(pixelBuffer: buf, isSettled: true)
+        #expect(firstResult)
+        #expect(controller.lastPresenceResult.personPresent)
+
+        // Advance clock past one cadence interval so the cadence gate re-opens.
+        clock.advance(by: CadenceFixture.minLandmarkInterval + 0.01)
+
+        // Second call: person now absent — should return false and record an absent result.
+        let secondResult = controller.shouldRunLandmarks(pixelBuffer: buf, isSettled: true)
+        #expect(!secondResult)
+        // C1 fix: lastPresenceResult must now be absent (was stuck true before the fix).
+        #expect(!controller.lastPresenceResult.personPresent)
+    }
+
     // MARK: - Test 6: Injectable clock
 
     @Test("Injectable clock enables deterministic cadence verification")
