@@ -173,7 +173,7 @@ public struct AnthropicVLMClient: VLMClient {
     }
 
     /// Build a minimal `multipart/form-data` body containing the image and prompt fields.
-    private func buildMultipartBody(imageJPEG: Data, prompt: String, boundary: String) -> Data {
+    func buildMultipartBody(imageJPEG: Data, prompt: String, boundary: String) -> Data {
         var body = Data()
         let crlf = "\r\n"
 

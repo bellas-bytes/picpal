@@ -53,6 +53,10 @@ private func makeClient(session: URLSession) -> AnthropicVLMClient {
     )
 }
 
+private func makeClient() -> AnthropicVLMClient {
+    makeClient(session: makeMockSession())
+}
+
 private func sampleRequest() -> VLMRequest {
     // Minimal valid JPEG SOI marker — sufficient for routing tests.
     VLMRequest(imageJPEG: Data([0xFF, 0xD8, 0xFF]), prompt: "Describe the framing.")
@@ -208,17 +212,22 @@ struct VLMClientTests {
         #expect(contentType.hasPrefix("multipart/form-data; boundary=PicPalBoundary"))
     }
 
-    @Test("Request body contains the prompt string")
-    func requestBodyContainsPrompt() async throws {
-        let session = makeMockSession()
-        var capturedBody: Data?
-        MockURLProtocol.handler = { req in
-            capturedBody = req.httpBody
-            return (proxyResponse(status: 200), jsonData(["result": "ok"]))
-        }
-        let request = VLMRequest(imageJPEG: Data([0xFF, 0xD8, 0xFF]), prompt: "Check headroom.")
-        _ = try await makeClient(session: session).analyze(request)
-        let bodyString = String(data: capturedBody ?? Data(), encoding: .utf8) ?? ""
-        #expect(bodyString.contains("Check headroom."))
+    @Test("Multipart body builder encodes prompt and image correctly")
+    func multipartBodyBuilderEncodesFields() {
+        // Test buildMultipartBody directly — URLSession strips httpBody from the
+        // URLRequest seen by URLProtocol, so body-content assertions must bypass URLSession.
+        // Search raw bytes: JPEG magic bytes (0xFF 0xD8 0xFF) are invalid UTF-8,
+        // so we use Data.range(of:) instead of String comparison.
+        let client = makeClient()
+        let imageData = Data([0xFF, 0xD8, 0xFF])
+        let boundary = "TestBoundary"
+        let prompt = "Check headroom."
+        let body = client.buildMultipartBody(imageJPEG: imageData, prompt: prompt, boundary: boundary)
+        #expect(!body.isEmpty)
+        #expect(body.range(of: Data(prompt.utf8)) != nil)
+        #expect(body.range(of: Data("--\(boundary)--".utf8)) != nil)
+        #expect(body.range(of: Data("name=\"image\"".utf8)) != nil)
+        #expect(body.range(of: Data("name=\"prompt\"".utf8)) != nil)
+        #expect(body.range(of: imageData) != nil)
     }
 }
