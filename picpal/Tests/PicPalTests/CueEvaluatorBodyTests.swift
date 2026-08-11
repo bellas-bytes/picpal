@@ -7,7 +7,7 @@ import Testing
 /// Tests for the M2-6 body signal evaluation blocks in `CueEvaluator`.
 ///
 /// Covers the two new evaluation points:
-/// - Block 0.5 — lens obstruction (`.stability` priority, before stability check)
+/// - Block 0.5 — lens obstruction (`.obstruction` priority, before stability check)
 /// - Block 4.5 — body framing (`.body` priority, after composition check)
 struct CueEvaluatorBodyTests {
 
@@ -37,12 +37,12 @@ struct CueEvaluatorBodyTests {
 
     // MARK: - Block 0.5: Lens obstruction
 
-    @Test("lensObstructed body signal → Cue(priority: .stability)")
-    func lensObstructedYieldsStabilityCue() {
+    @Test("lensObstructed body signal → Cue(priority: .obstruction)")
+    func lensObstructedYieldsObstructionCue() {
         let evaluator = CueEvaluator()
         let cue = evaluator.evaluate(frame: bodyFrame(hint: .lensObstructed))
         #expect(cue?.text == CueText.lensObstructed)
-        #expect(cue?.priority == .stability)
+        #expect(cue?.priority == .obstruction)
         #expect(cue?.sourceTier == .tier05)
     }
 
@@ -52,7 +52,7 @@ struct CueEvaluatorBodyTests {
         let cue = evaluator.evaluate(frame: tiltFrameWithBody(hint: .lensObstructed))
         // Tilt is checked at block 1, but lensObstructed is at 0.5 — it goes first.
         #expect(cue?.text == CueText.lensObstructed)
-        #expect(cue?.priority == .stability)
+        #expect(cue?.priority == .obstruction)
     }
 
     // MARK: - Block 4.5: Body framing cues

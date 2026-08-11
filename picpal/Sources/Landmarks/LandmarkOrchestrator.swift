@@ -83,6 +83,12 @@ public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegat
     private let stateLock: OSAllocatedUnfairLock<MergedState>
     private let onBodySignal: @Sendable (BodySignal) -> Void
 
+    // MARK: - Backpressure flag (I1)
+
+    /// Prevents CVPixelBuffer pool exhaustion by dropping frames while inference runs.
+    /// Set to `true` before dispatching to `probeQueue`; cleared in a `defer` block.
+    private let isBusy = OSAllocatedUnfairLock<Bool>(initialState: false)
+
     // MARK: - Monotonic timestamp guard
 
     private let lastTimestampLock: OSAllocatedUnfairLock<Int>
@@ -188,17 +194,22 @@ public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegat
             return next
         }
 
-        // 3. Cadence gate — SceneGateAdapter already guarantees isSettled.
-        if cadenceController.shouldRunLandmarks(pixelBuffer: pixelBuffer, isSettled: true) {
-            let wrapped = SendablePixelBuffer(value: pixelBuffer)
-            probeQueue.async { [weak self] in
-                self?.runInference(pixelBuffer: wrapped.value, timestampMs: timestampMs)
-            }
-        } else if !cadenceController.lastPresenceResult.personPresent {
-            // No person detected: reset all producers so smoothers can fire .noPersonPresent.
-            bodyProducer.process(observation: nil)
-            handProducer.process(keypoints: [])
-            gazeProducer.process(faceLandmarks: [])
+        // 3. Cheap cadence gate (timer + settle only, no Vision) — camera queue safe. (I2)
+        guard cadenceController.checkCadence(isSettled: true) else { return }
+
+        // 4. Drop-if-busy backpressure — prevents CVPixelBuffer pool exhaustion. (I1)
+        guard isBusy.withLock({ busy in
+            guard !busy else { return false }
+            busy = true
+            return true
+        }) else { return }
+
+        let wrapped = SendablePixelBuffer(value: pixelBuffer)
+        probeQueue.async { [weak self] in
+            defer { self?.isBusy.withLock { $0 = false } }
+            guard let self else { return }
+            // Presence check + reset-or-inference all run on probeQueue (I2 + I3 fix).
+            self.probe(pixelBuffer: wrapped.value, timestampMs: timestampMs)
         }
     }
 
@@ -207,6 +218,24 @@ public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegat
         didChangeState state: CameraCapture.CaptureState
     ) {
         downstream?.cameraCapture(capture, didChangeState: state)
+    }
+
+    // MARK: - Probe (runs on probeQueue)
+
+    /// Presence gate + inference-or-reset dispatch.
+    ///
+    /// Moving both the presence check and the producer reset onto `probeQueue`
+    /// keeps AVFoundation frame delivery unblocked (I2) and eliminates the
+    /// camera-queue/probeQueue race on producer state (I3).
+    private func probe(pixelBuffer: CVPixelBuffer, timestampMs: Int) {
+        guard cadenceController.runPresenceCheck(pixelBuffer: pixelBuffer) else {
+            // No person detected: reset producers so smoothers fire .noPersonPresent.
+            bodyProducer.process(observation: nil)
+            handProducer.process(keypoints: [])
+            gazeProducer.process(faceLandmarks: [])
+            return
+        }
+        runInference(pixelBuffer: pixelBuffer, timestampMs: timestampMs)
     }
 
     // MARK: - Inference (runs on probeQueue)
@@ -236,6 +265,9 @@ public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegat
             )
             let keypoints: [Keypoint] = result.landmarks.flatMap { hand in
                 hand.map { lm in
+                    // I4: MediaPipe Tasks does not populate per-landmark visibility/presence;
+                    // detector-level confidence gates (minHandDetectionConfidence etc.) are
+                    // the effective floor. KeypointFilter is still correct for Vision paths.
                     Keypoint(
                         point: LandmarkCoordinates.mediapipePointToUIKit(
                             CGPoint(x: Double(lm.x), y: Double(lm.y))
@@ -258,6 +290,9 @@ public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegat
                 videoFrame: mpImage, timestampInMilliseconds: timestampMs
             )
             let landmarks: [Keypoint] = (result.faceLandmarks.first ?? []).map { lm in
+                // I4: MediaPipe Tasks does not populate per-landmark visibility/presence;
+                // detector-level confidence gates (minFaceDetectionConfidence etc.) are
+                // the effective floor. KeypointFilter is still correct for Vision paths.
                 Keypoint(
                     point: LandmarkCoordinates.mediapipePointToUIKit(
                         CGPoint(x: Double(lm.x), y: Double(lm.y))

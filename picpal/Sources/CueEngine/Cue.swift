@@ -22,10 +22,11 @@ public struct Cue: Sendable, Equatable {
 /// Gaps in the range are intentional — M2 (body/obstruction) and M3 (VLM/aesthetic)
 /// fill in `.body` and `.aesthetic` without touching existing cases.
 public enum CuePriority: Int, Sendable, Comparable, CaseIterable {
+    case obstruction = -1  // lens obstruction — outranks all cues including stability
     case stability   = 0   // tilt + blur — M1
     case exposure    = 1   // M1
     case composition = 2   // framing — M1
-    case body        = 3   // pose/obstruction — reserved for M2
+    case body        = 3   // pose — reserved for M2
     case aesthetic   = 4   // VLM — reserved for M3
 
     public static func < (lhs: CuePriority, rhs: CuePriority) -> Bool {

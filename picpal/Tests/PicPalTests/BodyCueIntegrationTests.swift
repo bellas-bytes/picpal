@@ -64,24 +64,24 @@ struct BodyCueIntegrationTests {
         )
     }
 
-    // MARK: - Test 1: lensObstructed → stability cue
+    // MARK: - Test 1: lensObstructed → obstruction cue
 
-    @Test("lensObstructed body signal → CueEngine emits stability cue with correct text and tier")
-    func lensObstructedEmitsStabilityCue() {
+    @Test("lensObstructed body signal → CueEngine emits obstruction cue with correct text and tier")
+    func lensObstructedEmitsObstructionCue() {
         let engine = CueEngine()
         let body = BodySignal(hint: .lensObstructed, confidence: 0.9, dominantRect: nil)
         let cue = engine.process(frame: makeBodyFrame(body))
         #expect(cue?.text == CueText.lensObstructed)
-        #expect(cue?.priority == .stability)
+        #expect(cue?.priority == .obstruction)
         #expect(cue?.sourceTier == .tier05)
     }
 
     // MARK: - Test 2: lensObstructed bypasses lower-priority cooldown
 
-    /// Verifies that a `.stability` cue (lensObstructed) bypasses an active cooldown
+    /// Verifies that an `.obstruction` cue (lensObstructed) bypasses an active cooldown
     /// triggered by a lower-priority `.composition` cue. This exercises the
     /// `candidate.priority < last.priority` guard in `CueEngine.process(frame:)`.
-    @Test("lensObstructed (stability) bypasses active composition-priority cooldown")
+    @Test("lensObstructed (obstruction) bypasses active composition-priority cooldown")
     func lensObstructedBypassesCompositionCooldown() {
         let clock = BodyTestClock()
         let engine = CueEngine(
@@ -100,9 +100,47 @@ struct BodyCueIntegrationTests {
         let cue2 = engine.process(frame: makeBodyFrame(body))
 
         // Step (c): lensObstructed fires despite the active cooldown —
-        // .stability (0) < .composition (2) triggers the priority bypass.
+        // .obstruction (-1) < .composition (2) triggers the priority bypass.
         #expect(cue2?.text == CueText.lensObstructed)
-        #expect(cue2?.priority == .stability)
+        #expect(cue2?.priority == .obstruction)
+    }
+
+    // MARK: - Test I5: lensObstructed bypasses stability (tilt) cooldown
+
+    /// I5 fix: `.obstruction` (rawValue -1) outranks `.stability` (rawValue 0).
+    /// Before the fix, both used `.stability` so the bypass condition `candidate < last`
+    /// evaluated `0 < 0 = false` and obstruction was suppressed by the tilt cooldown.
+    @Test("lensObstructed (obstruction) bypasses active stability-priority tilt cooldown (I5)")
+    func lensObstructedBypassesTiltCooldown() {
+        let clock = BodyTestClock()
+        let engine = CueEngine(
+            cueCooldownSeconds: 10.0,
+            minRepeatIntervalSeconds: 30.0,
+            clock: { clock.now }
+        )
+
+        // Step (a): prime with a tilt cue — .stability priority (rawValue 0).
+        let tiltFrame = SignalFrame(
+            timestamp: 1.0,
+            tilt: TiltSignal(angleDegrees: 5.0, isLevel: false),
+            blur: BlurSignal(sharpnessScore: 100.0, isBlurry: false),
+            exposure: ExposureSignal(
+                shadowClipFraction: 0.01, highlightClipFraction: 0.01, level: .ok
+            ),
+            framing: FramingSignal(subjectBox: nil, hint: .goodFrame),
+            body: nil
+        )
+        let cue1 = engine.process(frame: tiltFrame)
+        #expect(cue1?.priority == .stability)
+
+        // Step (b): immediately emit lensObstructed — still within cooldown window.
+        clock.advance(by: 0.1)
+        let body = BodySignal(hint: .lensObstructed, confidence: 0.9, dominantRect: nil)
+        let cue2 = engine.process(frame: makeBodyFrame(body))
+
+        // Step (c): .obstruction (-1) < .stability (0) → bypass fires.
+        #expect(cue2?.text == CueText.lensObstructed)
+        #expect(cue2?.priority == .obstruction)
     }
 
     // MARK: - Test 3: awkwardCrop → body cue

@@ -33,9 +33,9 @@ public struct CueEvaluator: Sendable {
     public func evaluate(frame: SignalFrame) -> Cue? {
 
         // 0.5. Lens obstruction — checked before stability so it can bypass any
-        //      lower-priority cooldown. Uses .stability priority (highest urgency).
+        //      lower-priority cooldown. Uses .obstruction priority (outranks stability).
         if let body = frame.body, body.hint == .lensObstructed {
-            return Cue(text: CueText.lensObstructed, priority: .stability, sourceTier: .tier05)
+            return Cue(text: CueText.lensObstructed, priority: .obstruction, sourceTier: .tier05)
         }
 
         // 1. Stability: tilt
