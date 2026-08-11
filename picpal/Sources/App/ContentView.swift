@@ -37,10 +37,15 @@ struct ContentView: View {
     @State private var camera = CameraCapture()
     @StateObject private var debugViewModel = DebugOverlayViewModel()
     @State private var showingVLMSettings = false
+    @State private var showConsentSheet: Bool
     #if DEBUG
     @State private var showSessionKit = false
     @State private var showTuningPanel = false
     #endif
+
+    init() {
+        _showConsentSheet = State(initialValue: !ConsentGate.isConsentGiven())
+    }
 
     // Retained for the lifetime of the view.
     @State private var telemetryFeed: TelemetryFeed?
@@ -112,6 +117,12 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingVLMSettings) {
             vlmSettingsSheet
+        }
+        .fullScreenCover(isPresented: $showConsentSheet) {
+            ConsentSheet { cloudEnabled in
+                ConsentGate.recordConsent(cloudEnabled: cloudEnabled)
+                showConsentSheet = false
+            }
         }
         #if DEBUG
         .sheet(isPresented: $showSessionKit) {
