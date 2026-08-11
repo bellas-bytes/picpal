@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var tiltMonitor: TiltMonitor?
     @State private var sceneGate = SceneGate()
     @State private var sceneGateAdapter: SceneGateAdapter?
+    @State private var landmarkOrchestrator: LandmarkOrchestrator?
     @State private var cueEngine: CueEngine?
     @State private var accumulator: SignalFrameAccumulator?
     @State private var voiceCoach = VoiceCoach()
@@ -103,8 +104,21 @@ struct ContentView: View {
             }
         }
 
+        // Create the landmark orchestrator. If model files are absent (e.g. Simulator),
+        // try? returns nil and the pipeline degrades gracefully to the existing path.
+        let orchestrator = try? LandmarkOrchestrator { [weak debugViewModel, accum] signal in
+            accum.update(body: signal)
+            let label = signal.hint == .goodBody ? "" : String(describing: signal.hint)
+            Task { @MainActor [weak debugViewModel] in
+                debugViewModel?.bodyHint = label
+            }
+        }
+
         let feed = debugViewModel.makeTelemetryFeed(downstream: probe)
-        let adapter = SceneGateAdapter(gate: sceneGate, downstream: feed.bridge)
+        // Wire: orchestrator sits between SceneGateAdapter and the telemetry bridge.
+        orchestrator?.downstream = feed.bridge
+        let adapterDownstream: any CameraFrameDelegate = orchestrator ?? feed.bridge
+        let adapter = SceneGateAdapter(gate: sceneGate, downstream: adapterDownstream)
         camera.delegate = adapter
         feed.start()
         camera.requestPermissionAndStart()
@@ -113,6 +127,7 @@ struct ContentView: View {
         exposureMonitor = exposureMon
         framingMonitor = framingMon
         landmarkProbe = probe
+        landmarkOrchestrator = orchestrator
         telemetryFeed = feed
         sceneGateAdapter = adapter
         cueEngine = engine

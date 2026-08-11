@@ -48,6 +48,11 @@ final class DebugOverlayViewModel: ObservableObject {
     /// Rolling mean combined Vision total in milliseconds (placeholder: 0.0).
     @Published var landmarkCombinedMs: Double = 0.0
 
+    /// Body-framing hint from the M2 signal pipeline (placeholder: "").
+    ///
+    /// Empty string means no active body cue (good body state or no person detected).
+    @Published var bodyHint: String = ""
+
     /// The active coaching cue selected by the cue engine (placeholder: "—").
     ///
     /// Updated after every signal tick. "—" means silence (no active cue).

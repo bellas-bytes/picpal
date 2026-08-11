@@ -49,6 +49,23 @@ public enum CueText {
     /// Coaching cue when the subject is centred and off-centre composition is preferred.
     public static let tooCentered = "Off-center a little for a nicer composition"
 
+    // MARK: - Body / Obstruction (M2)
+
+    /// Lens obstruction — finger cluster over the camera.
+    public static let lensObstructed    = "Move your hand away from the lens"
+
+    /// Awkward crop — a limb or joint is at the frame edge.
+    public static let awkwardCrop       = "Adjust your framing — something's getting cut off"
+
+    /// Gaze away — subject's face is turned from camera.
+    public static let gazeAway          = "Look toward the camera"
+
+    /// Headroom — subject is too close to the top of the frame.
+    public static let nudgeDownHeadroom = "Move the camera down a little"
+
+    /// Headroom — subject has too much space above their head.
+    public static let nudgeUpHeadroom   = "Move the camera up a little"
+
     // MARK: - Good frame
 
     /// Displayed in the debug overlay when no coaching adjustment is needed.

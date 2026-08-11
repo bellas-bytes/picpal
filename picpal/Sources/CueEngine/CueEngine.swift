@@ -32,6 +32,12 @@ public struct CueEvaluator: Sendable {
     /// sign. The evaluator defaults to `.tiltLeft` as a conservative fallback.
     public func evaluate(frame: SignalFrame) -> Cue? {
 
+        // 0.5. Lens obstruction — checked before stability so it can bypass any
+        //      lower-priority cooldown. Uses .stability priority (highest urgency).
+        if let body = frame.body, body.hint == .lensObstructed {
+            return Cue(text: CueText.lensObstructed, priority: .stability, sourceTier: .tier05)
+        }
+
         // 1. Stability: tilt
         if let tilt = frame.tilt, !tilt.isLevel {
             let text = tilt.angleDegrees >= 0 ? CueText.tiltLeft : CueText.tiltRight
@@ -70,6 +76,23 @@ public struct CueEvaluator: Sendable {
                 return Cue(text: CueText.tooCentered, priority: .composition, sourceTier: .tier0)
             case .goodFrame, .noSubject:
                 break
+            }
+        }
+
+        // 4.5. Body framing signals — awkward crop, gaze, and headroom.
+        //      lensObstructed is handled at 0.5 above; goodBody means silence.
+        if let body = frame.body {
+            switch body.hint {
+            case .awkwardCrop:
+                return Cue(text: CueText.awkwardCrop, priority: .body, sourceTier: .tier05)
+            case .gazeAway:
+                return Cue(text: CueText.gazeAway, priority: .body, sourceTier: .tier05)
+            case .nudgeDownHeadroom:
+                return Cue(text: CueText.nudgeDownHeadroom, priority: .body, sourceTier: .tier05)
+            case .nudgeUpHeadroom:
+                return Cue(text: CueText.nudgeUpHeadroom, priority: .body, sourceTier: .tier05)
+            case .lensObstructed, .goodBody:
+                break  // lensObstructed handled above; goodBody = silence
             }
         }
 

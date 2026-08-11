@@ -53,6 +53,7 @@ struct DebugOverlayView: View {
             debugRow(label: "Hand",     value: String(format: "%.1f ms", viewModel.handPoseMs))
             debugRow(label: "Face",     value: String(format: "%.1f ms", viewModel.faceMeshMs))
             debugRow(label: "VisionTotal", value: String(format: "%.1f ms", viewModel.landmarkCombinedMs))
+            debugRow(label: "BodyHint",    value: viewModel.bodyHint.isEmpty ? "—" : viewModel.bodyHint)
             debugRow(label: "Cue",         value: viewModel.activeCue)
             Toggle("Mute voice", isOn: $viewModel.isMuted)
                 .font(.caption)
