@@ -70,6 +70,9 @@
 		AB44CD34EF56AB44CD34EF02 /* HandObstructionAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB44CD34EF56AB44CD34EF01 /* HandObstructionAnalyzer.swift */; };
 		AB44CD34EF56AB44CD34EF04 /* HandObstructionSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB44CD34EF56AB44CD34EF03 /* HandObstructionSignalProducer.swift */; };
 		AB44CD34EF56AB44CD34EF06 /* HandObstructionAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB44CD34EF56AB44CD34EF05 /* HandObstructionAnalyzerTests.swift */; };
+		AB55CD34EF56AB55CD34EF02 /* GazeAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB55CD34EF56AB55CD34EF01 /* GazeAnalyzer.swift */; };
+		AB55CD34EF56AB55CD34EF04 /* GazeSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB55CD34EF56AB55CD34EF03 /* GazeSignalProducer.swift */; };
+		AB55CD34EF56AB55CD34EF06 /* GazeAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */; };
 		AB354C403CE12A9E9C550114 /* ExposureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5112611E348867EF918B46 /* ExposureProcessor.swift */; };
 		B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */; };
 		B9C5FA3B65D5FB6022FB2471 /* SceneGateAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEEA89DA97F543B13A634549 /* SceneGateAdapter.swift */; };
@@ -178,6 +181,9 @@
 		AB44CD34EF56AB44CD34EF01 /* HandObstructionAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionAnalyzer.swift; sourceTree = "<group>"; };
 		AB44CD34EF56AB44CD34EF03 /* HandObstructionSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionSignalProducer.swift; sourceTree = "<group>"; };
 		AB44CD34EF56AB44CD34EF05 /* HandObstructionAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionAnalyzerTests.swift; sourceTree = "<group>"; };
+		AB55CD34EF56AB55CD34EF01 /* GazeAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeAnalyzer.swift; sourceTree = "<group>"; };
+		AB55CD34EF56AB55CD34EF03 /* GazeSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeSignalProducer.swift; sourceTree = "<group>"; };
+		AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeAnalyzerTests.swift; sourceTree = "<group>"; };
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
 		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
@@ -290,6 +296,8 @@
 				AB22CD34EF56AB22CD34EF05 /* BodySignal.swift */,
 				AB33CD34EF56AB33CD34EF01 /* BodyPoseAnalyzer.swift */,
 				AB33CD34EF56AB33CD34EF03 /* BodyPoseSignalProducer.swift */,
+				AB55CD34EF56AB55CD34EF01 /* GazeAnalyzer.swift */,
+				AB55CD34EF56AB55CD34EF03 /* GazeSignalProducer.swift */,
 				AB44CD34EF56AB44CD34EF01 /* HandObstructionAnalyzer.swift */,
 				AB44CD34EF56AB44CD34EF03 /* HandObstructionSignalProducer.swift */,
 				AB22CD34EF56AB22CD34EF01 /* KeypointFilter.swift */,
@@ -320,6 +328,7 @@
 				810DF6F7D37580667E224CC1 /* BlurProcessorTests.swift */,
 				AB33CD34EF56AB33CD34EF05 /* BodyPoseAnalyzerTests.swift */,
 				AF0486A7342920630558BDFB /* CameraCaptureTests.swift */,
+				AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */,
 				AB44CD34EF56AB44CD34EF05 /* HandObstructionAnalyzerTests.swift */,
 				AB22CD34EF56AB22CD34EF07 /* KeypointFilterTests.swift */,
 				8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */,
@@ -548,6 +557,8 @@
 				AB22CD34EF56AB22CD34EF06 /* BodySignal.swift in Sources */,
 				AB33CD34EF56AB33CD34EF02 /* BodyPoseAnalyzer.swift in Sources */,
 				AB33CD34EF56AB33CD34EF04 /* BodyPoseSignalProducer.swift in Sources */,
+				AB55CD34EF56AB55CD34EF02 /* GazeAnalyzer.swift in Sources */,
+				AB55CD34EF56AB55CD34EF04 /* GazeSignalProducer.swift in Sources */,
 				AB44CD34EF56AB44CD34EF02 /* HandObstructionAnalyzer.swift in Sources */,
 				AB44CD34EF56AB44CD34EF04 /* HandObstructionSignalProducer.swift in Sources */,
 				AB22CD34EF56AB22CD34EF02 /* KeypointFilter.swift in Sources */,
@@ -589,6 +600,7 @@
 				122410582BA831E16D9384CD /* BatteryTests.swift in Sources */,
 				210AD17F07FD2400314677BA /* BlurProcessorTests.swift in Sources */,
 				AB33CD34EF56AB33CD34EF06 /* BodyPoseAnalyzerTests.swift in Sources */,
+				AB55CD34EF56AB55CD34EF06 /* GazeAnalyzerTests.swift in Sources */,
 				AB44CD34EF56AB44CD34EF06 /* HandObstructionAnalyzerTests.swift in Sources */,
 				94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */,
 				59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */,

@@ -75,3 +75,44 @@ Fix wave (commit 701c3d7) addressed:
 - M0-3: `maxConcurrentOperationCount = 1` in `MotionManager` is a bare literal rather than a named constant — minor constraint violation.
 - M0-4: Magic literals `1_000_000_000_000_000` and `1_000_000_000_000_000_000` (attosecond conversions) in `FrameTimer.swift` and `PipelineTelemetryBridge.swift` — should be named constants.
 - M0-3: `MotionProcessorTests.swift` line ~131 — `c!` force-unwrap in test code (`settleChangesAtMostOncePerTransition`); safe in practice but will crash test process if assertion above ever fails.
+
+## M2
+
+Task M2-4: complete (commits 29c2457..8d5d7a6, review clean)
+- HandObstructionAnalyzer: ≥3 high-confidence keypoints within 15% of any frame edge → lensObstructed; else goodBody; <3 qualified → nil
+- HandObstructionSignalProducer: wraps analyzer + TemporalSmoother<BodySignal>; empty → nil path → noPersonPresent on stable break
+- 9 new Swift Testing tests; 306 total
+- Minor deferred: unnamed 1.0 in isNearEdge (cf. LandmarkCoordinates.Axis.normalizedMax); redundant let margin = edgeMargin alias
+
+Task M2-0: complete (commits 74ff9b9..0b7b5fb, review clean)
+- SwiftTasksVision 0.10.21 (community SPM wrapper) integrated via project.yml + xcodegen
+- hand_landmarker.task (7.5 MB) + face_landmarker.task (3.6 MB) bundled
+- LandmarkCoordinates.swift: Vision→UIKit + MediaPipe→UIKit helpers, 10 tests
+- MediaPipeLandmarkProbe.swift: full compiling probe (isEnabled: false until M2-1)
+- On-device latency: PENDING_DEVICE_RUN (no iPhone 17 in agent env)
+- Minor deferred: model files as binary blobs (consider Git LFS); SwiftTasksVision 0.10.21 not yet at MediaPipe 1.0.0
+
+263 tests passing.
+Task M2-1: complete (commits 0b7b5fb..11fd510, review clean)
+- PresenceGate: VNDetectHumanRectanglesRequest, confidence threshold, dominant-subject by confidence+area
+- LandmarkCadenceController: 3-gate (cadence≤5fps, settle, presence), injectable clock, OSAllocatedUnfairLock
+- 7 new Swift Testing tests; 269 total
+- Minor deferred: test duplication, inline constants in tests, ControllerConstants enum, lastApprovalTime=0 comment
+Task M2-2: complete (commits 11fd510..7df3e1b, review clean)
+- KeypointFilter: Keypoint struct, confidence floor 0.6, pure stateless
+- TemporalSmoother<T>: OSAllocatedUnfairLock, edge-triggered, update(nil) breaks run, reset()
+- BodySignal/BodyHint: 6 hint cases, noPersonPresent sentinel
+- SignalFrame.body: BodySignal? field added; .empty has body: nil
+- SignalFrameAccumulator.update(body:) + body forwarding in all existing update methods
+- 18 new Swift Testing tests; 287 total
+- Minor deferred: defaultStableFrameCount computed var vs let; accumulator tests in TemporalSmootherTests file
+Task M2-3: complete (commits 7df3e1b..29c2457, review clean)
+- BodyPoseAnalyzer: crop detection (9 joints, cropMargin), headroom (nose/neck proxy), all via LandmarkCoordinates
+- BodyPoseSignalProducer: wraps analyzer + TemporalSmoother<BodySignal>; nil observation → noPersonPresent
+- 10 new Swift Testing tests; 297 total
+- Important fixed: deduplicated .neck in extractKeypoints candidates (Set union)
+- Minor deferred: test 2 negation assertion; injectSignalForTesting test-only method
+Task M2-5: complete (318 tests passing)
+- GazeAnalyzer: landmarks 234/454/4 for yaw, defaultYawThreshold=0.15, defaultKeypointConfidenceFloor=0.5
+- GazeSignalProducer: wraps GazeAnalyzer + TemporalSmoother<BodySignal>; empty → nil → noPersonPresent on stable break
+- 12 new Swift Testing tests covering all 8 required scenarios plus 4 bonus boundary/confidence tests
