@@ -231,11 +231,16 @@ Execution order:
   8. M4-7 (Integration & validation — PENDING_DEVICE_RUN)
 
 - [x] M4-0: AestheticSignal auto-expiry
-- [ ] M4-6: Validation session kit
-- [ ] M4-5: Runtime tuning panel + cadence config
-- [ ] M4-1: KPI telemetry — cue event log + settle→cue timer
-- [ ] M4-2: Wire BatteryMonitor + TelemetryExporter
-- [ ] M4-3: First-run consent gate
+- [x] M4-6: Validation session kit
+- [x] M4-5: Runtime tuning panel + cadence config
+- [x] M4-1: KPI telemetry — cue event log + settle→cue timer
+- [x] M4-2: Wire BatteryMonitor + TelemetryExporter
+- [x] M4-3: First-run consent gate
 - [ ] M4-4: Post-session survey
 - [ ] M4-7: Integration, deployment & validation ⚠ PENDING_DEVICE_RUN
 Task M4-0: complete (commit b770f4a, review clean; 424 tests passing; accumulator is lock-protected @unchecked Sendable — off-main-actor call is safe)
+Task M4-6: complete (commits f0168a0..058a4a0, review clean after fix; 428 tests passing)
+Task M4-5: complete (commit 9ff3e48, review clean; 432 tests passing; note: TuningSettings.aestheticExpirySeconds not wired to ContentView expiry closure — confirmed out-of-scope per brief)
+Task M4-1: complete (commit a724ce6, review clean; 444 tests passing; minor: timing-sensitive SettleEventTimer test, unreachable guard in percentile)
+Task M4-2: complete (commit d4d3149, review clean; 444 tests passing; note: TelemetryFeed does not expose currentStats/thermalEvents — exportSnapshot uses empty placeholders, deferred)
+Task M4-3: complete (commit 587ac36, 453 tests passing; xcodegen regenerated to register new files)
