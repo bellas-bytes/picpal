@@ -5,6 +5,17 @@ options:
     iOS: "17.0"
   createIntermediateGroups: true
 
+# M2-0: MediaPipe Tasks Vision iOS SDK (community SPM wrapper).
+# Official SPM support does not exist as of MediaPipe 1.0.0; Google distributes
+# only via CocoaPods. SwiftTasksVision (paescebu/SwiftTasksVision) bundles the
+# xcframeworks and enables SPM integration. It uses unsafeFlags(["-ObjC"]) to
+# satisfy ObjC runtime requirements — acceptable for app targets (only
+# prohibited as a transitive package dependency).
+packages:
+  SwiftTasksVision:
+    url: https://github.com/paescebu/SwiftTasksVision
+    exactVersion: 0.10.21
+
 targets:
   PicPal:
     type: application
@@ -14,6 +25,9 @@ targets:
       - path: PicPal/Sources
         excludes:
           - "**/.gitkeep"
+    resources:
+      # M2-0: Hand and Face landmarker model bundles for MediaPipe Tasks Vision.
+      - path: PicPal/Resources/Models
     info:
       path: PicPal/Resources/Info.plist
       properties:
@@ -30,6 +44,8 @@ targets:
     dependencies:
       - sdk: Accelerate.framework
       - sdk: Vision.framework
+      - package: SwiftTasksVision
+        product: SwiftTasksVision
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.picpal.app
