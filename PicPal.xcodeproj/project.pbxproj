@@ -74,6 +74,7 @@
 		AB55CD34EF56AB55CD34EF04 /* GazeSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB55CD34EF56AB55CD34EF03 /* GazeSignalProducer.swift */; };
 		AB55CD34EF56AB55CD34EF06 /* GazeAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */; };
 		AB66CD34EF56AB66CD34EF04 /* LandmarkOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB66CD34EF56AB66CD34EF03 /* LandmarkOrchestrator.swift */; };
+		3E22D55A030549BF9E302FED /* LandmarkOrchestratorProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10F42857408495F859441BD /* LandmarkOrchestratorProbe.swift */; };
 		AB77CD34EF56AB77CD34EF04 /* CueEvaluatorBodyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB77CD34EF56AB77CD34EF03 /* CueEvaluatorBodyTests.swift */; };
 		AB88CD34EF56AB88CD34EF04 /* BodyCueIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB88CD34EF56AB88CD34EF03 /* BodyCueIntegrationTests.swift */; };
 		AB354C403CE12A9E9C550114 /* ExposureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5112611E348867EF918B46 /* ExposureProcessor.swift */; };
@@ -188,6 +189,7 @@
 		AB55CD34EF56AB55CD34EF03 /* GazeSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeSignalProducer.swift; sourceTree = "<group>"; };
 		AB55CD34EF56AB55CD34EF05 /* GazeAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GazeAnalyzerTests.swift; sourceTree = "<group>"; };
 		AB66CD34EF56AB66CD34EF03 /* LandmarkOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkOrchestrator.swift; sourceTree = "<group>"; };
+		C10F42857408495F859441BD /* LandmarkOrchestratorProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkOrchestratorProbe.swift; sourceTree = "<group>"; };
 		AB77CD34EF56AB77CD34EF03 /* CueEvaluatorBodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorBodyTests.swift; sourceTree = "<group>"; };
 		AB88CD34EF56AB88CD34EF03 /* BodyCueIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyCueIntegrationTests.swift; sourceTree = "<group>"; };
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
@@ -305,6 +307,7 @@
 				AB55CD34EF56AB55CD34EF01 /* GazeAnalyzer.swift */,
 				AB55CD34EF56AB55CD34EF03 /* GazeSignalProducer.swift */,
 				AB66CD34EF56AB66CD34EF03 /* LandmarkOrchestrator.swift */,
+				C10F42857408495F859441BD /* LandmarkOrchestratorProbe.swift */,
 				AB44CD34EF56AB44CD34EF01 /* HandObstructionAnalyzer.swift */,
 				AB44CD34EF56AB44CD34EF03 /* HandObstructionSignalProducer.swift */,
 				AB22CD34EF56AB22CD34EF01 /* KeypointFilter.swift */,
@@ -569,6 +572,7 @@
 				AB55CD34EF56AB55CD34EF02 /* GazeAnalyzer.swift in Sources */,
 				AB55CD34EF56AB55CD34EF04 /* GazeSignalProducer.swift in Sources */,
 				AB66CD34EF56AB66CD34EF04 /* LandmarkOrchestrator.swift in Sources */,
+				3E22D55A030549BF9E302FED /* LandmarkOrchestratorProbe.swift in Sources */,
 				AB44CD34EF56AB44CD34EF02 /* HandObstructionAnalyzer.swift in Sources */,
 				AB44CD34EF56AB44CD34EF04 /* HandObstructionSignalProducer.swift in Sources */,
 				AB22CD34EF56AB22CD34EF02 /* KeypointFilter.swift in Sources */,
