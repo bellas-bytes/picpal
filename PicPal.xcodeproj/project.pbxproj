@@ -33,6 +33,7 @@
 		2A5689188E70379D01FD9E28 /* DebugOverlayViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */; };
 		2E70361870749E68E8C1D350 /* FramingSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8043A0736551BD4DBA3F3C /* FramingSignal.swift */; };
 		2F18961436F787F0DA8244FF /* VLMOrchestratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C384E5F0209CBC2A50813F3F /* VLMOrchestratorTests.swift */; };
+		AA01BB02CC03DD04EE05FF06 /* VLMTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07BB08CC09DD0AEE0BFF0C /* VLMTestSupport.swift */; };
 		31C2255D61A64E283C0131F0 /* IntegrationLatencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DF9AC3850B7AC25D1039BF5 /* IntegrationLatencyTests.swift */; };
 		348BD7A872A9F747920D0F19 /* BodySignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEDDCB6D79C71B0C38F980F /* BodySignal.swift */; };
 		40737DFC7B3A0AC9A8CD0C62 /* TiltProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BCA7A88868D2B3B568534F /* TiltProcessor.swift */; };
@@ -220,6 +221,7 @@
 		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
 		BAAA820EDBB51ED8951678C8 /* SceneGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGate.swift; sourceTree = "<group>"; };
+		AA07BB08CC09DD0AEE0BFF0C /* VLMTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMTestSupport.swift; sourceTree = "<group>"; };
 		C384E5F0209CBC2A50813F3F /* VLMOrchestratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMOrchestratorTests.swift; sourceTree = "<group>"; };
 		C44FA4CB9FC027A384842A05 /* KeypointFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeypointFilter.swift; sourceTree = "<group>"; };
 		C45F7078BF74C5C1D1E30417 /* CueEvaluatorBodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorBodyTests.swift; sourceTree = "<group>"; };
@@ -408,6 +410,7 @@
 				1243DDAF4DADFD1572EC329D /* ThermalMonitorTests.swift */,
 				8C905A78CCC06CD386CEFD97 /* TiltProcessorTests.swift */,
 				07861590B7571AE61176B61F /* VLMClientTests.swift */,
+				AA07BB08CC09DD0AEE0BFF0C /* VLMTestSupport.swift */,
 				C384E5F0209CBC2A50813F3F /* VLMOrchestratorTests.swift */,
 				14E877476931B692D36C6F26 /* VLMRequestGateTests.swift */,
 				4DF4CD0466690750F3EDC9D4 /* VLMSettingsTests.swift */,
@@ -723,6 +726,7 @@
 				D689CCE4E40040BC94376D92 /* ThermalMonitorTests.swift in Sources */,
 				1A0BC04BEC8F942BA1DE86A8 /* TiltProcessorTests.swift in Sources */,
 				0573702B61CE710686C00F04 /* VLMClientTests.swift in Sources */,
+				AA01BB02CC03DD04EE05FF06 /* VLMTestSupport.swift in Sources */,
 				2F18961436F787F0DA8244FF /* VLMOrchestratorTests.swift in Sources */,
 				7DB962588EDE87327D618029 /* VLMRequestGateTests.swift in Sources */,
 				6ACB6313D1FF1DD5200BC989 /* VLMSettingsTests.swift in Sources */,

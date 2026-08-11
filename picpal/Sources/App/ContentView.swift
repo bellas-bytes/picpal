@@ -153,19 +153,9 @@ struct ContentView: View {
             }
         }
 
-        // Create the landmark orchestrator. If model files are absent (e.g. Simulator),
-        // try? returns nil and the pipeline degrades gracefully to the existing path.
-        let orchestrator = try? LandmarkOrchestrator { [weak debugViewModel, accum] signal in
-            accum.update(body: signal)
-            let label = signal.hint == .goodBody ? "" : String(describing: signal.hint)
-            Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.bodyHint = label
-            }
-        }
-
-        let feed = debugViewModel.makeTelemetryFeed(downstream: probe)
-
         // Tier-2: VLMOrchestrator sits between LandmarkOrchestrator and the telemetry bridge.
+        // Created before LandmarkOrchestrator so vlmOrch can be captured in the body-signal
+        // callback to keep StaleSuppressor's body-hint arm updated.
         let vlmOrch = VLMOrchestrator(
             client: AnthropicVLMClient(),
             onRequestDispatched: { [weak debugViewModel] in
@@ -173,15 +163,32 @@ struct ContentView: View {
                     debugViewModel?.isVLMInFlight = true
                 }
             },
+            onRequestCompleted: { [weak debugViewModel] in
+                Task { @MainActor [weak debugViewModel] in
+                    debugViewModel?.isVLMInFlight = false
+                }
+            },
             onAestheticSignal: { [weak debugViewModel, accum] signal in
                 accum.update(aesthetic: signal)
                 let remark = signal.hint == .remark ? signal.remark : ""
                 Task { @MainActor [weak debugViewModel] in
                     debugViewModel?.aestheticRemark = remark
-                    debugViewModel?.isVLMInFlight = false
                 }
             }
         )
+
+        // Create the landmark orchestrator. If model files are absent (e.g. Simulator),
+        // try? returns nil and the pipeline degrades gracefully to the existing path.
+        let orchestrator = try? LandmarkOrchestrator { [weak debugViewModel, accum, vlmOrch] signal in
+            accum.update(body: signal)
+            vlmOrch.update(bodyHint: signal.hint)
+            let label = signal.hint == .goodBody ? "" : String(describing: signal.hint)
+            Task { @MainActor [weak debugViewModel] in
+                debugViewModel?.bodyHint = label
+            }
+        }
+
+        let feed = debugViewModel.makeTelemetryFeed(downstream: probe)
         vlmOrch.downstream = feed.bridge
 
         // Wire: LandmarkOrchestrator → VLMOrchestrator → telemetry bridge.

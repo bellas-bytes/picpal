@@ -50,6 +50,11 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     /// is dispatched to `vlmQueue`. Use to set an in-flight indicator in the UI.
     private let onRequestDispatched: (@Sendable () -> Void)?
 
+    /// Optional hook called at every exit from the VLM inference Task — on success,
+    /// stale discard, timeout, network error, and `.nothingToSay`. Use to clear an
+    /// in-flight indicator in the UI regardless of outcome.
+    private let onRequestCompleted: (@Sendable () -> Void)?
+
     // MARK: - Private serial queue
 
     private let vlmQueue = DispatchQueue(
@@ -121,6 +126,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         suppressor: StaleSuppressor = StaleSuppressor(),
         backoffBaseSeconds: TimeInterval = VLMOrchestrator.backoffBaseSeconds,
         onRequestDispatched: (@Sendable () -> Void)? = nil,
+        onRequestCompleted: (@Sendable () -> Void)? = nil,
         onAestheticSignal: @escaping @Sendable (AestheticSignal) -> Void
     ) {
         self.client = client
@@ -128,6 +134,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         self.suppressor = suppressor
         self.instanceBackoffBase = backoffBaseSeconds
         self.onRequestDispatched = onRequestDispatched
+        self.onRequestCompleted = onRequestCompleted
         self.onAestheticSignal = onAestheticSignal
     }
 
@@ -205,6 +212,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
             Task { [weak self] in
                 guard let self else { return }
                 defer { isBusy.withLock { $0 = false } }
+                defer { onRequestCompleted?() }
 
                 let request = VLMRequest(imageJPEG: jpegData, prompt: AestheticPrompt.v1)
 

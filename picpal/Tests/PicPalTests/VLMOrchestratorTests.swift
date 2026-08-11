@@ -5,103 +5,6 @@ import Foundation
 import os
 @testable import PicPal
 
-// MARK: - Test helpers
-
-/// Spy `CameraFrameDelegate` that records calls for assertion in tests.
-private final class SpyCameraFrameDelegate: CameraFrameDelegate, @unchecked Sendable {
-    private let countLock = OSAllocatedUnfairLock<Int>(initialState: 0)
-
-    var frameCallCount: Int { countLock.withLock { $0 } }
-
-    nonisolated func cameraCapture(
-        _ capture: CameraCapture,
-        didOutputPixelBuffer pixelBuffer: CVPixelBuffer,
-        timestamp: CMTime
-    ) {
-        countLock.withLock { $0 += 1 }
-    }
-
-    nonisolated func cameraCapture(
-        _ capture: CameraCapture,
-        didChangeState state: CameraCapture.CaptureState
-    ) {}
-}
-
-/// Instant `VLMClient` that returns a fixed response without delay.
-private struct InstantVLMClient: VLMClient {
-    let response: VLMResponse
-
-    init(text: String = "NOTHING_TO_SAY") {
-        response = VLMResponse(text: text)
-    }
-
-    func analyze(_ request: VLMRequest) async throws(VLMError) -> VLMResponse {
-        return response
-    }
-}
-
-/// Counting `VLMClient` that records how many times `analyze` was called.
-private final class CountingVLMClient: VLMClient, @unchecked Sendable {
-    private let lock = OSAllocatedUnfairLock<Int>(initialState: 0)
-
-    var callCount: Int { lock.withLock { $0 } }
-
-    func analyze(_ request: VLMRequest) async throws(VLMError) -> VLMResponse {
-        lock.withLock { $0 += 1 }
-        return VLMResponse(text: "NOTHING_TO_SAY")
-    }
-}
-
-/// `VLMClient` that always throws a network-failure error.
-///
-/// Used to drive the offline-degradation session-disable path.
-private final class AlwaysFailingVLMClient: VLMClient, @unchecked Sendable {
-    private let lock = OSAllocatedUnfairLock<Int>(initialState: 0)
-
-    var callCount: Int { lock.withLock { $0 } }
-
-    func analyze(_ request: VLMRequest) async throws(VLMError) -> VLMResponse {
-        lock.withLock { $0 += 1 }
-        throw VLMError.networkFailure("simulated offline")
-    }
-}
-
-// MARK: - Pixel buffer factory
-
-/// Creates a `CVPixelBuffer` filled with a uniform gray value for deterministic testing.
-///
-/// - Parameters:
-///   - grayValue: Byte value written to every pixel (0–255).
-///   - width: Buffer width in pixels.
-///   - height: Buffer height in pixels.
-/// - Returns: A non-nil pixel buffer on success.
-private func makeFilledPixelBuffer(
-    grayValue: UInt8,
-    width: Int = 64,
-    height: Int = 64
-) -> CVPixelBuffer? {
-    var buf: CVPixelBuffer?
-    let status = CVPixelBufferCreate(
-        kCFAllocatorDefault,
-        width,
-        height,
-        kCVPixelFormatType_32BGRA,
-        nil,
-        &buf
-    )
-    guard status == kCVReturnSuccess, let pixelBuffer = buf else { return nil }
-
-    // Fill every byte so SceneSignature.compute returns a predictable luminance.
-    CVPixelBufferLockBaseAddress(pixelBuffer, [])
-    if let base = CVPixelBufferGetBaseAddress(pixelBuffer) {
-        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
-        memset(base, Int32(grayValue), bytesPerRow * height)
-    }
-    CVPixelBufferUnlockBaseAddress(pixelBuffer, [])
-
-    return pixelBuffer
-}
-
 // MARK: - VLMOrchestratorTests
 
 /// Unit tests for `VLMOrchestrator`.
@@ -347,14 +250,10 @@ struct VLMOrchestratorTests {
         try? await Task.sleep(nanoseconds: 300_000_000) // 300 ms
 
         let received = callbackLock.withLock { $0 }
-        // The stale-suppressor may discard the signal if SceneSignature.compute
-        // can't re-lock the buffer after Task.sleep, so we verify: either 0 or 1
-        // signals received, and if 1, it has the correct remark.
         if let signal = received.first {
             #expect(signal.remark == remarkText)
             #expect(signal.hint == .remark)
         }
-        // If received is empty the stale-suppressor discarded a stale signal — that's valid.
         #expect(received.count == 1)
     }
 }
