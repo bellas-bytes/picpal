@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		387D38279A2244C88494A311 /* AestheticResponseParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7203EE9D9D00456687BFB0CD /* AestheticResponseParser.swift */; };
+		48C10E616F1049988D318683 /* AestheticSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A900AD1F21E4CB785F6FD4C /* AestheticSignal.swift */; };
+		4238F96D49244B908E31C7A7 /* AestheticPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D396817B174E668FEEA3E2 /* AestheticPrompt.swift */; };
+		C63C3F2E25304441BCC3F985 /* AestheticResponseParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7E83CC3C0140DA899841AB /* AestheticResponseParserTests.swift */; };
 		04934DEAE02D1EF0108E2FF6 /* HandObstructionAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE231F2901A4A8023330FA19 /* HandObstructionAnalyzerTests.swift */; };
 		053364749FA04D2802935346 /* SceneSignature.swift in Sources */ = {isa = PBXBuildFile; fileRef = F817A8E225C5B2DE0557CB1C /* SceneSignature.swift */; };
 		0573702B61CE710686C00F04 /* VLMClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07861590B7571AE61176B61F /* VLMClientTests.swift */; };
@@ -124,6 +128,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2A900AD1F21E4CB785F6FD4C /* AestheticSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AestheticSignal.swift; sourceTree = "<group>"; };
+		66D396817B174E668FEEA3E2 /* AestheticPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AestheticPrompt.swift; sourceTree = "<group>"; };
+		7203EE9D9D00456687BFB0CD /* AestheticResponseParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AestheticResponseParser.swift; sourceTree = "<group>"; };
+		DB7E83CC3C0140DA899841AB /* AestheticResponseParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AestheticResponseParserTests.swift; sourceTree = "<group>"; };
 		01A9BDDD5C17F50D0EA3E00E /* BlurProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurProcessor.swift; sourceTree = "<group>"; };
 		0574D8F8FF911716A77E1A02 /* TelemetryFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryFeed.swift; sourceTree = "<group>"; };
 		07861590B7571AE61176B61F /* VLMClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMClientTests.swift; sourceTree = "<group>"; };
@@ -348,6 +356,7 @@
 		8A344B4F4818438BBE241677 /* PicPalTests */ = {
 			isa = PBXGroup;
 			children = (
+				DB7E83CC3C0140DA899841AB /* AestheticResponseParserTests.swift */,
 				82254738EA55D7785F0C0DD1 /* BatteryTests.swift */,
 				810DF6F7D37580667E224CC1 /* BlurProcessorTests.swift */,
 				A8BB80326F864A7A45A98492 /* BodyCueIntegrationTests.swift */,
@@ -408,6 +417,9 @@
 		8FCDD3A26046B7227D26BB66 /* VLM */ = {
 			isa = PBXGroup;
 			children = (
+				2A900AD1F21E4CB785F6FD4C /* AestheticSignal.swift */,
+				66D396817B174E668FEEA3E2 /* AestheticPrompt.swift */,
+				7203EE9D9D00456687BFB0CD /* AestheticResponseParser.swift */,
 				8D3EED331B54DA4510087D26 /* FrameEncoder.swift */,
 				990BF00AA7F4C79C3F7BD3BF /* VLMClient.swift */,
 				C7F3D0F915EEDDA0517E6EA9 /* VLMRequestGate.swift */,
@@ -571,6 +583,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				48C10E616F1049988D318683 /* AestheticSignal.swift in Sources */,
+				4238F96D49244B908E31C7A7 /* AestheticPrompt.swift in Sources */,
+				387D38279A2244C88494A311 /* AestheticResponseParser.swift in Sources */,
 				BAD8540EDF6688B97240395A /* BatteryMonitor.swift in Sources */,
 				F08F7587EB726EBFE4852C90 /* BlurMonitor.swift in Sources */,
 				763D884B07941BF62813672D /* BlurProcessor.swift in Sources */,
@@ -644,6 +659,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C63C3F2E25304441BCC3F985 /* AestheticResponseParserTests.swift in Sources */,
 				122410582BA831E16D9384CD /* BatteryTests.swift in Sources */,
 				210AD17F07FD2400314677BA /* BlurProcessorTests.swift in Sources */,
 				B27187008E6443B731DD1888 /* BodyCueIntegrationTests.swift in Sources */,
