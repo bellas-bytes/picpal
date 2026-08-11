@@ -255,7 +255,8 @@ struct VLMOrchestratorTests {
     func consecutiveFailures_disablesTier2ForSession() async {
         let client = AlwaysFailingVLMClient()
         let gate = VLMRequestGate(cadenceSeconds: 0)
-        let orch = VLMOrchestrator(client: client, gate: gate) { _ in }
+        // backoffBaseSeconds: 0 so failures accumulate without waiting for backoff windows.
+        let orch = VLMOrchestrator(client: client, gate: gate, backoffBaseSeconds: 0) { _ in }
         let capture = CameraCapture()
 
         // Send VLMOrchestrator.maxConsecutiveFailures novel frames, each with a
@@ -285,7 +286,44 @@ struct VLMOrchestratorTests {
         #expect(client.callCount == VLMOrchestrator.maxConsecutiveFailures)
     }
 
-    // MARK: - Test 7: onAestheticSignal callback
+    // MARK: - Test 7: backoff deadline prevents immediate retry after one failure
+
+    /// Verifies that a single VLM failure sets a backoff deadline that blocks the
+    /// very next frame from reaching the client — even after `isBusy` has cleared.
+    @Test("backoff deadline prevents immediate retry after a single failure")
+    func backoffDeadline_preventsImmediateRetryAfterFailure() async {
+        let client = AlwaysFailingVLMClient()
+        let gate = VLMRequestGate(cadenceSeconds: 0)
+        // Use the default 2s backoff so the window is well beyond the 200 ms sleep below.
+        let orch = VLMOrchestrator(client: client, gate: gate) { _ in }
+        let capture = CameraCapture()
+
+        // Frame 1: novel scene → gate passes, isBusy set, async Task fires and fails,
+        // setting backoffDeadline ≈ now + 2s.
+        guard let buf1 = makeFilledPixelBuffer(grayValue: 0) else {
+            Issue.record("Failed to create first test pixel buffer")
+            return
+        }
+        orch.cameraCapture(capture, didOutputPixelBuffer: buf1, timestamp: .zero)
+
+        // Wait for the async Task to complete and isBusy to clear — but stay well
+        // within the 2s backoff window so the deadline has not yet expired.
+        try? await Task.sleep(nanoseconds: 200_000_000) // 200 ms
+
+        // Frame 2: different scene → novelty gate passes, isBusy is false,
+        // but the backoff guard (1c) must suppress it before FrameEncoder runs.
+        guard let buf2 = makeFilledPixelBuffer(grayValue: 200) else {
+            Issue.record("Failed to create second test pixel buffer")
+            return
+        }
+        orch.cameraCapture(capture, didOutputPixelBuffer: buf2, timestamp: .zero)
+        try? await Task.sleep(nanoseconds: 200_000_000) // 200 ms
+
+        // Only one VLM call must have been made — backoff prevented the second.
+        #expect(client.callCount == 1)
+    }
+
+    // MARK: - Test 8: onAestheticSignal callback
 
     @Test("valid VLM remark triggers onAestheticSignal callback")
     func validRemarkTriggersCallback() async {

@@ -79,13 +79,28 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     private struct FailureState {
         var consecutiveFailures: Int = 0
         var isDisabledForSession: Bool = false
+        /// Absolute deadline before which new Tier-2 requests are suppressed.
+        /// Set to `Date.distantPast` initially and on every successful round-trip.
+        var backoffDeadline: Date = Date.distantPast
     }
 
-    // MARK: - Named constant
+    // MARK: - Named constants
 
     /// Number of consecutive VLM failures that permanently disables Tier 2
     /// for the remainder of the session. Kept internal so tests can reference it.
     static let maxConsecutiveFailures: Int = 3
+
+    /// Base delay (seconds) for exponential backoff after each VLM failure.
+    /// Produces 2s → 4s → 8s windows before the third failure disables the session.
+    /// Public so it is usable as the default argument of the public `init`
+    /// and referenceable from test code.
+    public static let backoffBaseSeconds: TimeInterval = 2.0
+
+    // MARK: - Per-instance backoff base (injectable for testing)
+
+    /// Backoff base used by this instance. Defaults to `VLMOrchestratorConstants.backoffBaseSeconds`
+    /// (2 s). Tests may inject a near-zero value to avoid long sleeps.
+    private let instanceBackoffBase: TimeInterval
 
     // MARK: - Init
 
@@ -100,11 +115,13 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         client: any VLMClient,
         gate: VLMRequestGate = VLMRequestGate(),
         suppressor: StaleSuppressor = StaleSuppressor(),
+        backoffBaseSeconds: TimeInterval = VLMOrchestrator.backoffBaseSeconds,
         onAestheticSignal: @escaping @Sendable (AestheticSignal) -> Void
     ) {
         self.client = client
         self.gateLock = OSAllocatedUnfairLock(initialState: gate)
         self.suppressor = suppressor
+        self.instanceBackoffBase = backoffBaseSeconds
         self.onAestheticSignal = onAestheticSignal
     }
 
@@ -135,6 +152,10 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         // 1b. Offline-degradation session disable — repeated failures have
         //     permanently disabled Tier 2 for this session. Silent, no retry.
         guard !failureLock.withLock({ $0.isDisabledForSession }) else { return }
+
+        // 1c. Backoff guard — suppress frames within the exponential backoff window
+        //     that follows each failure. Avoids retry storms while isBusy is clear.
+        guard Date() >= failureLock.withLock({ $0.backoffDeadline }) else { return }
 
         // 2. Compute SceneSignature (cheap 16×16 grid walk; safe on the camera queue).
         guard let signature = SceneSignature.compute(from: pixelBuffer) else { return }
@@ -183,14 +204,25 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
                 let inferenceTask = Task<VLMResponse?, Never> {
                     do {
                         let r = try await self.client.analyze(request)
-                        // Success — reset consecutive failure counter.
-                        self.failureLock.withLock { $0.consecutiveFailures = 0 }
+                        // Success — reset consecutive failure counter and backoff deadline.
+                        self.failureLock.withLock { state in
+                            state.consecutiveFailures = 0
+                            state.backoffDeadline = Date.distantPast
+                        }
                         return r
                     } catch {
                         // Any VLMError (network, HTTP, rate-limited, cancelled):
-                        // increment failure counter; disable session at threshold.
+                        // increment failure counter; set exponential backoff deadline;
+                        // disable session permanently at threshold.
                         self.failureLock.withLock { state in
                             state.consecutiveFailures += 1
+                            let exponent = min(
+                                Double(state.consecutiveFailures - 1),
+                                Double(Self.maxConsecutiveFailures - 1)
+                            )
+                            state.backoffDeadline = Date().addingTimeInterval(
+                                self.instanceBackoffBase * pow(2.0, exponent)
+                            )
                             if state.consecutiveFailures >= Self.maxConsecutiveFailures {
                                 state.isDisabledForSession = true
                             }

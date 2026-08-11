@@ -16,16 +16,12 @@ import Foundation
 /// through the shared `UserDefaults` key.
 struct VLMSettingsTests {
 
-    // MARK: - Storage key (mirrors VLMSettings internal constant)
-
-    private static let key = "com.picpal.vlm.onDeviceOnly"
-
     // MARK: - Test 1: default value
 
     @Test("isOnDeviceOnly defaults to false when key is absent")
     func defaultsToFalse() {
         // Remove the key so UserDefaults returns the zero-value (false).
-        UserDefaults.standard.removeObject(forKey: Self.key)
+        UserDefaults.standard.removeObject(forKey: VLMSettings.onDeviceOnlyKey)
         #expect(VLMSettings.shared.isOnDeviceOnly == false)
     }
 
@@ -34,7 +30,7 @@ struct VLMSettingsTests {
     @Test("setting isOnDeviceOnly = true is readable back as true")
     func setTruePersists() {
         VLMSettings.shared.isOnDeviceOnly = true
-        defer { UserDefaults.standard.removeObject(forKey: Self.key) }
+        defer { UserDefaults.standard.removeObject(forKey: VLMSettings.onDeviceOnlyKey) }
         #expect(VLMSettings.shared.isOnDeviceOnly == true)
     }
 
@@ -44,7 +40,7 @@ struct VLMSettingsTests {
     func setFalsePersists() {
         VLMSettings.shared.isOnDeviceOnly = true   // set to true first
         VLMSettings.shared.isOnDeviceOnly = false  // then explicitly false
-        defer { UserDefaults.standard.removeObject(forKey: Self.key) }
+        defer { UserDefaults.standard.removeObject(forKey: VLMSettings.onDeviceOnlyKey) }
         #expect(VLMSettings.shared.isOnDeviceOnly == false)
     }
 

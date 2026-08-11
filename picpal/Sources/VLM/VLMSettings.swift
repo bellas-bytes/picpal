@@ -20,7 +20,7 @@ public final class VLMSettings: @unchecked Sendable {
 
     // MARK: - Storage key
 
-    private static let onDeviceOnlyKey = "com.picpal.vlm.onDeviceOnly"
+    internal static let onDeviceOnlyKey = "com.picpal.vlm.onDeviceOnly"
 
     // MARK: - Toggle
 
