@@ -64,6 +64,9 @@
 		AB22CD34EF56AB22CD34EF06 /* BodySignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CD34EF56AB22CD34EF05 /* BodySignal.swift */; };
 		AB22CD34EF56AB22CD34EF08 /* KeypointFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CD34EF56AB22CD34EF07 /* KeypointFilterTests.swift */; };
 		AB22CD34EF56AB22CD34EF0A /* TemporalSmootherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB22CD34EF56AB22CD34EF09 /* TemporalSmootherTests.swift */; };
+		AB33CD34EF56AB33CD34EF02 /* BodyPoseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB33CD34EF56AB33CD34EF01 /* BodyPoseAnalyzer.swift */; };
+		AB33CD34EF56AB33CD34EF04 /* BodyPoseSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB33CD34EF56AB33CD34EF03 /* BodyPoseSignalProducer.swift */; };
+		AB33CD34EF56AB33CD34EF06 /* BodyPoseAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB33CD34EF56AB33CD34EF05 /* BodyPoseAnalyzerTests.swift */; };
 		AB354C403CE12A9E9C550114 /* ExposureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5112611E348867EF918B46 /* ExposureProcessor.swift */; };
 		B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */; };
 		B9C5FA3B65D5FB6022FB2471 /* SceneGateAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEEA89DA97F543B13A634549 /* SceneGateAdapter.swift */; };
@@ -166,6 +169,9 @@
 		AB22CD34EF56AB22CD34EF05 /* BodySignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodySignal.swift; sourceTree = "<group>"; };
 		AB22CD34EF56AB22CD34EF07 /* KeypointFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeypointFilterTests.swift; sourceTree = "<group>"; };
 		AB22CD34EF56AB22CD34EF09 /* TemporalSmootherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporalSmootherTests.swift; sourceTree = "<group>"; };
+		AB33CD34EF56AB33CD34EF01 /* BodyPoseAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseAnalyzer.swift; sourceTree = "<group>"; };
+		AB33CD34EF56AB33CD34EF03 /* BodyPoseSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseSignalProducer.swift; sourceTree = "<group>"; };
+		AB33CD34EF56AB33CD34EF05 /* BodyPoseAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseAnalyzerTests.swift; sourceTree = "<group>"; };
 		AF0486A7342920630558BDFB /* CameraCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureTests.swift; sourceTree = "<group>"; };
 		B2859E1E1893DA1F4332CB18 /* MotionDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataSource.swift; sourceTree = "<group>"; };
 		B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PicPalApp.swift; sourceTree = "<group>"; };
@@ -276,6 +282,8 @@
 			isa = PBXGroup;
 			children = (
 				AB22CD34EF56AB22CD34EF05 /* BodySignal.swift */,
+				AB33CD34EF56AB33CD34EF01 /* BodyPoseAnalyzer.swift */,
+				AB33CD34EF56AB33CD34EF03 /* BodyPoseSignalProducer.swift */,
 				AB22CD34EF56AB22CD34EF01 /* KeypointFilter.swift */,
 				AB12CD34EF56AB12CD34EF03 /* LandmarkCadenceController.swift */,
 				ECB7648B2D56A3423C4D1687 /* LandmarkCoordinates.swift */,
@@ -302,6 +310,7 @@
 			children = (
 				82254738EA55D7785F0C0DD1 /* BatteryTests.swift */,
 				810DF6F7D37580667E224CC1 /* BlurProcessorTests.swift */,
+				AB33CD34EF56AB33CD34EF05 /* BodyPoseAnalyzerTests.swift */,
 				AF0486A7342920630558BDFB /* CameraCaptureTests.swift */,
 				AB22CD34EF56AB22CD34EF07 /* KeypointFilterTests.swift */,
 				8BD493FCE54187ED0D8C8863 /* CameraConfigurationTests.swift */,
@@ -528,6 +537,8 @@
 				2E70361870749E68E8C1D350 /* FramingSignal.swift in Sources */,
 				D31ABBD233E52418622F59F0 /* GuidesOverlayView.swift in Sources */,
 				AB22CD34EF56AB22CD34EF06 /* BodySignal.swift in Sources */,
+				AB33CD34EF56AB33CD34EF02 /* BodyPoseAnalyzer.swift in Sources */,
+				AB33CD34EF56AB33CD34EF04 /* BodyPoseSignalProducer.swift in Sources */,
 				AB22CD34EF56AB22CD34EF02 /* KeypointFilter.swift in Sources */,
 				AB12CD34EF56AB12CD34EF04 /* LandmarkCadenceController.swift in Sources */,
 				AA31C1D0F537D6862D4D0822 /* LandmarkCoordinates.swift in Sources */,
@@ -566,6 +577,7 @@
 			files = (
 				122410582BA831E16D9384CD /* BatteryTests.swift in Sources */,
 				210AD17F07FD2400314677BA /* BlurProcessorTests.swift in Sources */,
+				AB33CD34EF56AB33CD34EF06 /* BodyPoseAnalyzerTests.swift in Sources */,
 				94C11E27BA7AD0CE64950D4E /* CameraCaptureTests.swift in Sources */,
 				59775D75C2ADAC4AFC6EE403 /* CameraConfigurationTests.swift in Sources */,
 				87601917C713AEDAD040F2CB /* CaptureStateTests.swift in Sources */,
