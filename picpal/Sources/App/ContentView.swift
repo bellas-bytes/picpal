@@ -38,6 +38,8 @@ struct ContentView: View {
     @StateObject private var debugViewModel = DebugOverlayViewModel()
     @State private var showingVLMSettings = false
     @State private var showConsentSheet: Bool
+    @State private var showSurvey: Bool = false
+    @State private var surveyShownThisSession: Bool = false
     #if DEBUG
     @State private var showSessionKit = false
     @State private var showTuningPanel = false
@@ -124,6 +126,16 @@ struct ContentView: View {
                 showConsentSheet = false
             }
         }
+        .sheet(isPresented: $showSurvey) {
+            PostSessionSurveySheet { response in
+                showSurvey = false
+                if let response {
+                    PostSessionSurvey.record(response: response)
+                    exportSnapshot(surveyResponse: response)
+                }
+                // Skip: no record, no export (the background export already fired)
+            }
+        }
         #if DEBUG
         .sheet(isPresented: $showSessionKit) {
             SessionTaskOverlay(tasks: SessionTaskScript.m4Tasks) {
@@ -141,6 +153,12 @@ struct ContentView: View {
             switch newPhase {
             case .background:
                 exportSnapshot(surveyResponse: nil)
+                // Set flag so survey appears on next foreground; shown at most once per lifecycle.
+                if !surveyShownThisSession &&
+                   (cueLogger?.events().count ?? 0) >= PostSessionSurvey.sessionCueThreshold {
+                    showSurvey = true
+                    surveyShownThisSession = true
+                }
             case .active:
                 batteryMonitor.startSession()
             default:

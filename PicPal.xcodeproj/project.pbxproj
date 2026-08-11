@@ -26,6 +26,7 @@
 		1A0BC04BEC8F942BA1DE86A8 /* TiltProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C905A78CCC06CD386CEFD97 /* TiltProcessorTests.swift */; };
 		1CDEEA8EBE25B9B0E43C2B58 /* SignalFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B840731120BD2389BAB6940 /* SignalFrame.swift */; };
 		1D4FED6ED507315E9B8C929B /* FrameTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6F403C544AFB8CFB048AEC2 /* FrameTimer.swift */; };
+		1E5187BAC8C3D97A2EB37034 /* PostSessionSurveyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4772C7BD9DDA59EB352CC7D9 /* PostSessionSurveyTests.swift */; };
 		210AD17F07FD2400314677BA /* BlurProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810DF6F7D37580667E224CC1 /* BlurProcessorTests.swift */; };
 		23137DA7AD71ED09E7E7FBB5 /* SceneGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAAA820EDBB51ED8951678C8 /* SceneGate.swift */; };
 		2473C819DAEA58180F0A415F /* VLMPrivacyDisclosure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147749BBACA3332439D78FB5 /* VLMPrivacyDisclosure.swift */; };
@@ -33,12 +34,14 @@
 		267D78CE6B4A6059C1E1EED0 /* HandObstructionSignalProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72EE64DF8B252B7164C1EC26 /* HandObstructionSignalProducer.swift */; };
 		277DFB380A7B72895217D3B4 /* TelemetryFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0574D8F8FF911716A77E1A02 /* TelemetryFeed.swift */; };
 		27EFA89BE8892B70C89FAF03 /* LandmarkOrchestratorProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C300CF4F081672847862B4A /* LandmarkOrchestratorProbe.swift */; };
+		28F4DB4445BD9B862052F619 /* PostSessionSurveySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72AA5559FEC64F653C118B34 /* PostSessionSurveySheet.swift */; };
 		29175BC4389E7DE5C711DEF8 /* VoiceCoachTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 680BF112ACB21BC3D65C1732 /* VoiceCoachTests.swift */; };
 		29ED535768FA95BC8D0D998C /* MotionManager+Internal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95EE88A21316305B4A989D9 /* MotionManager+Internal.swift */; };
 		2A5689188E70379D01FD9E28 /* DebugOverlayViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */; };
 		2BA946175D6C7BDB920E9FD8 /* TuningPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DF037888D1A52577D05501 /* TuningPanel.swift */; };
 		2E70361870749E68E8C1D350 /* FramingSignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8043A0736551BD4DBA3F3C /* FramingSignal.swift */; };
 		2F18961436F787F0DA8244FF /* VLMOrchestratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C384E5F0209CBC2A50813F3F /* VLMOrchestratorTests.swift */; };
+		30D36CBCF0562F9C31FB96C2 /* PostSessionSurvey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46707AA5A2CFA2E197263E30 /* PostSessionSurvey.swift */; };
 		31C2255D61A64E283C0131F0 /* IntegrationLatencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DF9AC3850B7AC25D1039BF5 /* IntegrationLatencyTests.swift */; };
 		348BD7A872A9F747920D0F19 /* BodySignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEDDCB6D79C71B0C38F980F /* BodySignal.swift */; };
 		40737DFC7B3A0AC9A8CD0C62 /* TiltProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BCA7A88868D2B3B568534F /* TiltProcessor.swift */; };
@@ -187,6 +190,8 @@
 		3D7C9EDA01B1B08F63888B51 /* CameraFrameDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraFrameDelegate.swift; sourceTree = "<group>"; };
 		3F5112611E348867EF918B46 /* ExposureProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureProcessor.swift; sourceTree = "<group>"; };
 		459607E42B0E1E0A16742317 /* StaleSuppressorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaleSuppressorTests.swift; sourceTree = "<group>"; };
+		46707AA5A2CFA2E197263E30 /* PostSessionSurvey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostSessionSurvey.swift; sourceTree = "<group>"; };
+		4772C7BD9DDA59EB352CC7D9 /* PostSessionSurveyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostSessionSurveyTests.swift; sourceTree = "<group>"; };
 		4778C501A42ABF4B6FDF83F4 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		49DF037888D1A52577D05501 /* TuningPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TuningPanel.swift; sourceTree = "<group>"; };
 		4ADFEDF55650357403AF8A8E /* ExposureSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureSignal.swift; sourceTree = "<group>"; };
@@ -211,6 +216,7 @@
 		6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineTelemetryBridgeTests.swift; sourceTree = "<group>"; };
 		7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlayViewModelTests.swift; sourceTree = "<group>"; };
 		720604A796CC49B74EFF6A98 /* AestheticResponseParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AestheticResponseParser.swift; sourceTree = "<group>"; };
+		72AA5559FEC64F653C118B34 /* PostSessionSurveySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostSessionSurveySheet.swift; sourceTree = "<group>"; };
 		72EE64DF8B252B7164C1EC26 /* HandObstructionSignalProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionSignalProducer.swift; sourceTree = "<group>"; };
 		7789276B1ABFC03AA51DB676 /* TiltSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltSignal.swift; sourceTree = "<group>"; };
 		79E414EDD94905EDE99ACE1C /* CaptureStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureStateTests.swift; sourceTree = "<group>"; };
@@ -369,6 +375,7 @@
 				F06BD9107917BB51D6EA4C3B /* ConsentGate.swift */,
 				576EAE74AC58442D1D45B548 /* ContentView.swift */,
 				B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */,
+				46707AA5A2CFA2E197263E30 /* PostSessionSurvey.swift */,
 				FBFEC25A7C4F3152BB6901AD /* SessionTask.swift */,
 				9B29AB9CABF230EA8CC30C6F /* TuningSettings.swift */,
 			);
@@ -442,6 +449,7 @@
 				505300E876373EAE8F30B10B /* MotionManagerTests.swift */,
 				555FAB8C66A68F763C5EC202 /* MotionProcessorTests.swift */,
 				6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */,
+				4772C7BD9DDA59EB352CC7D9 /* PostSessionSurveyTests.swift */,
 				254932E426C2845F9B9F05EA /* SceneGateTests.swift */,
 				03A2BBE40E747D179967FEB8 /* SessionTaskTests.swift */,
 				60F48D677A6D04E89986A343 /* SettleEventTimerTests.swift */,
@@ -566,6 +574,7 @@
 				5F6FBDC73456CC10ED0DD44B /* DebugOverlayView.swift */,
 				392889F7712A93E12BF45BC0 /* DebugOverlayViewModel.swift */,
 				3C2D3687B141011C3E81A1F9 /* GuidesOverlayView.swift */,
+				72AA5559FEC64F653C118B34 /* PostSessionSurveySheet.swift */,
 				F4730B49FD58A54FF8E75C7F /* SessionTaskOverlay.swift */,
 				49DF037888D1A52577D05501 /* TuningPanel.swift */,
 			);
@@ -717,6 +726,8 @@
 				F1074965CD86018D140DE864 /* MotionReading.swift in Sources */,
 				B742B226D37CA3468C42197C /* PicPalApp.swift in Sources */,
 				DC49FACCBC72BD4177477871 /* PipelineTelemetryBridge.swift in Sources */,
+				30D36CBCF0562F9C31FB96C2 /* PostSessionSurvey.swift in Sources */,
+				28F4DB4445BD9B862052F619 /* PostSessionSurveySheet.swift in Sources */,
 				5C0801F08150564C1A68E4EF /* PresenceGate.swift in Sources */,
 				23137DA7AD71ED09E7E7FBB5 /* SceneGate.swift in Sources */,
 				B9C5FA3B65D5FB6022FB2471 /* SceneGateAdapter.swift in Sources */,
@@ -782,6 +793,7 @@
 				D122B0CD22B836D2137B8A41 /* MotionManagerTests.swift in Sources */,
 				520F8AA439C4593A02B46EA8 /* MotionProcessorTests.swift in Sources */,
 				DF8F8FC2081231F7C9BEEEC1 /* PipelineTelemetryBridgeTests.swift in Sources */,
+				1E5187BAC8C3D97A2EB37034 /* PostSessionSurveyTests.swift in Sources */,
 				A4E2AF8E6211A90E18CAA33F /* SceneGateTests.swift in Sources */,
 				A13F6C4C63FEAEE2122DE454 /* SessionTaskTests.swift in Sources */,
 				A515D4F0953F1CEE7736DBF1 /* SettleEventTimerTests.swift in Sources */,
