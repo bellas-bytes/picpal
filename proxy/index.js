@@ -67,7 +67,7 @@ app.post('/analyze', upload.single('image'), async (req, res) => {
     // Hard call ceiling — enforced server-side, independent of client-side gate
     if (totalCalls >= HARD_CALL_CEILING) {
       return res
-        .status(429)
+        .status(503)
         .json({ error: 'Hard call ceiling reached. Restart the proxy to reset.' });
     }
 
