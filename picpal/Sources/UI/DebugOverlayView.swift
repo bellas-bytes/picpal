@@ -21,6 +21,9 @@ struct DebugOverlayView: View {
                 .onTapGesture { isVisible.toggle() }
                 #if DEBUG
                 .onLongPressGesture { onLongPress?() }
+                .onTapGesture(count: 3) {
+                    viewModel.onExportTelemetry?()
+                }
                 #endif
 
             if isVisible {

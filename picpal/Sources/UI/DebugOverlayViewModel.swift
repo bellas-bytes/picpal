@@ -94,6 +94,13 @@ final class DebugOverlayViewModel: ObservableObject {
     /// Incremented via `VLMOrchestrator.onResponseDiscarded`.
     @Published var vlmDiscardCount: Int = 0
 
+    // MARK: - Export callback
+
+    /// Called when the user triggers an on-demand telemetry export (e.g. triple-tap in debug).
+    ///
+    /// Not `@Published` — this is a callback, not state.
+    var onExportTelemetry: (() -> Void)?
+
     // MARK: - Telemetry wiring
 
     /// Creates a `TelemetryFeed` wired to update `framesPerSecond` and `thermalState`.

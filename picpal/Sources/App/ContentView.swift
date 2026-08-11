@@ -59,6 +59,10 @@ struct ContentView: View {
     @State private var voiceCoach = VoiceCoach()
     @State private var cueLogger: CueLogger?
     @State private var settleEventTimer: SettleEventTimer?
+    @State private var batteryMonitor = BatteryMonitor()
+    @State private var telemetryExporter: TelemetryExporter?
+
+    @Environment(\.scenePhase) private var scenePhase
     /// Pending aesthetic-remark expiry Task wrapped in a class so `@Sendable` closures
     /// can cancel and reschedule it through a shared reference.
     @State private var aestheticExpiryTask = AestheticExpiryHandle()
@@ -122,6 +126,16 @@ struct ContentView: View {
         }
         #endif
         .onAppear(perform: wireUp)
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .background:
+                exportSnapshot(surveyResponse: nil)
+            case .active:
+                batteryMonitor.startSession()
+            default:
+                break
+            }
+        }
         .onChange(of: debugViewModel.isMuted) { _, muted in
             voiceCoach.isMuted = muted
         }
@@ -152,6 +166,28 @@ struct ContentView: View {
         }
         .padding()
         .presentationDetents([.medium, .large])
+    }
+
+    // MARK: - Telemetry export
+
+    /// Builds a `TelemetrySnapshot` from current session state and writes it to disk.
+    ///
+    /// `TelemetryFeed` does not expose `currentStats` or `thermalEvents` as public
+    /// properties — placeholders (`FrameTimerStatistics.empty` and `[]`) are used
+    /// until those are surfaced. See task-m4-2-report.md for the follow-up note.
+    @MainActor
+    private func exportSnapshot(surveyResponse: Int?) {
+        let report = cueLogger?.makeSummary()
+        let batteryReport = batteryMonitor.endSession()
+        let snapshot = TelemetrySnapshot(
+            frameStats: FrameTimerStatistics.empty,
+            thermalEvents: [],
+            batteryReport: batteryReport,
+            cueTelemetry: report,
+            surveyResponse: surveyResponse
+        )
+        try? telemetryExporter?.export(snapshot: snapshot)
+        batteryMonitor.startSession()   // restart immediately for next foreground session
     }
 
     // MARK: - Composition root
@@ -334,6 +370,33 @@ struct ContentView: View {
         accumulator = accum
         cueLogger = logger
         settleEventTimer = settleTimer
+
+        batteryMonitor.startSession()
+        telemetryExporter = try? TelemetryExporter.inDocuments()
+
+        #if DEBUG
+        // ContentView is a struct — [weak self] is not valid.
+        // Capture the class instances (BatteryMonitor, CueLogger) and the struct value
+        // (TelemetryExporter?) directly; they're stable after wireUp() completes.
+        let battery = batteryMonitor
+        let exporterValue = telemetryExporter
+        let cueLog = logger
+        debugViewModel.onExportTelemetry = {
+            Task { @MainActor in
+                let report = cueLog.makeSummary()
+                let batteryReport = battery.endSession()
+                let snapshot = TelemetrySnapshot(
+                    frameStats: FrameTimerStatistics.empty,
+                    thermalEvents: [],
+                    batteryReport: batteryReport,
+                    cueTelemetry: report,
+                    surveyResponse: nil
+                )
+                try? exporterValue?.export(snapshot: snapshot)
+                battery.startSession()
+            }
+        }
+        #endif
 
         let monitor = TiltMonitor(onSettleChange: { [sceneGate] settled in
             sceneGate.update(isSettled: settled)

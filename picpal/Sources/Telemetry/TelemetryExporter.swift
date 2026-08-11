@@ -8,15 +8,23 @@ public struct TelemetrySnapshot: Sendable, Encodable {
     public let thermalEvents: [ThermalEvent]
     /// Battery drain report, `nil` if battery monitoring was not started.
     public let batteryReport: BatteryReport?
+    /// Cue KPI summary for the session, `nil` if the cue logger was not active.
+    public let cueTelemetry: CueTelemetryReport?
+    /// Post-session Likert rating (1–5), `nil` until M4-4 survey is implemented.
+    public let surveyResponse: Int?
 
     public init(
         frameStats: FrameTimerStatistics,
         thermalEvents: [ThermalEvent],
-        batteryReport: BatteryReport? = nil
+        batteryReport: BatteryReport? = nil,
+        cueTelemetry: CueTelemetryReport? = nil,
+        surveyResponse: Int? = nil
     ) {
         self.frameStats = frameStats
         self.thermalEvents = thermalEvents
         self.batteryReport = batteryReport
+        self.cueTelemetry = cueTelemetry
+        self.surveyResponse = surveyResponse
     }
 }
 
