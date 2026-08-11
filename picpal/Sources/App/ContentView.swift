@@ -9,6 +9,7 @@ struct ContentView: View {
 
     @State private var camera = CameraCapture()
     @StateObject private var debugViewModel = DebugOverlayViewModel()
+    @State private var showingVLMSettings = false
 
     // Retained for the lifetime of the view.
     @State private var telemetryFeed: TelemetryFeed?
@@ -34,11 +35,58 @@ struct ContentView: View {
                 .ignoresSafeArea()
 
             DebugOverlayView(viewModel: debugViewModel)
+
+            // Settings button — bottom-right corner, unobtrusive.
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button {
+                        showingVLMSettings = true
+                    } label: {
+                        Image(systemName: "gear")
+                            .imageScale(.medium)
+                            .padding(10)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .padding([.bottom, .trailing], 16)
+                }
+            }
+        }
+        .sheet(isPresented: $showingVLMSettings) {
+            vlmSettingsSheet
         }
         .onAppear(perform: wireUp)
         .onChange(of: debugViewModel.isMuted) { _, muted in
             voiceCoach.isMuted = muted
         }
+    }
+
+    // MARK: - VLM Settings Sheet
+
+    /// Inline settings sheet — no separate view file (kept minimal per M3-6 brief).
+    @ViewBuilder
+    private var vlmSettingsSheet: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Privacy & Cloud Coaching")
+                .font(.headline)
+
+            Toggle(
+                "Cloud composition coaching",
+                isOn: Binding(
+                    get: { !VLMSettings.shared.isOnDeviceOnly },
+                    set: { VLMSettings.shared.isOnDeviceOnly = !$0 }
+                )
+            )
+
+            Text(VLMPrivacyDisclosure.text)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+        }
+        .padding()
+        .presentationDetents([.medium, .large])
     }
 
     // MARK: - Composition root

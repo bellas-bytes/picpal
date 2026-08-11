@@ -52,6 +52,20 @@ private final class CountingVLMClient: VLMClient, @unchecked Sendable {
     }
 }
 
+/// `VLMClient` that always throws a network-failure error.
+///
+/// Used to drive the offline-degradation session-disable path.
+private final class AlwaysFailingVLMClient: VLMClient, @unchecked Sendable {
+    private let lock = OSAllocatedUnfairLock<Int>(initialState: 0)
+
+    var callCount: Int { lock.withLock { $0 } }
+
+    func analyze(_ request: VLMRequest) async throws(VLMError) -> VLMResponse {
+        lock.withLock { $0 += 1 }
+        throw VLMError.networkFailure("simulated offline")
+    }
+}
+
 // MARK: - Pixel buffer factory
 
 /// Creates a `CVPixelBuffer` filled with a uniform gray value for deterministic testing.
@@ -206,7 +220,72 @@ struct VLMOrchestratorTests {
         #expect(spy.frameCallCount == 0)
     }
 
-    // MARK: - Test 5: onAestheticSignal callback
+    // MARK: - Test 5: on-device-only toggle short-circuits before FrameEncoder
+
+    /// Verifies that enabling the on-device-only toggle prevents FrameEncoder and the
+    /// VLM client from being invoked.  Verified indirectly: zero client calls means
+    /// no JPEG was encoded (encoding is the last step before the client call).
+    @Test("on-device-only toggle short-circuits before FrameEncoder runs")
+    func onDeviceOnlyToggle_shortCircuitsBeforeEncoding() async {
+        VLMSettings.shared.isOnDeviceOnly = true
+        defer { VLMSettings.shared.isOnDeviceOnly = false }
+
+        let client = CountingVLMClient()
+        let gate = VLMRequestGate(cadenceSeconds: 0)
+        let orch = VLMOrchestrator(client: client, gate: gate) { _ in }
+
+        guard let buf = makeFilledPixelBuffer(grayValue: 128) else {
+            Issue.record("Failed to create test pixel buffer")
+            return
+        }
+        orch.cameraCapture(CameraCapture(), didOutputPixelBuffer: buf, timestamp: .zero)
+
+        // Allow enough time for any async work that might have slipped through.
+        try? await Task.sleep(nanoseconds: 200_000_000) // 200 ms
+
+        // Zero VLM calls → FrameEncoder was never reached (toggle returned early).
+        #expect(client.callCount == 0)
+    }
+
+    // MARK: - Test 6: consecutive failures disable Tier 2 for the session
+
+    /// Verifies that after `VLMOrchestrator.maxConsecutiveFailures` failures the
+    /// orchestrator silently stops dispatching further Tier-2 requests.
+    @Test("consecutive failures disable Tier 2 for the remainder of the session")
+    func consecutiveFailures_disablesTier2ForSession() async {
+        let client = AlwaysFailingVLMClient()
+        let gate = VLMRequestGate(cadenceSeconds: 0)
+        let orch = VLMOrchestrator(client: client, gate: gate) { _ in }
+        let capture = CameraCapture()
+
+        // Send VLMOrchestrator.maxConsecutiveFailures novel frames, each with a
+        // distinctly different luminance so the novelty gate never blocks them.
+        for i in 0..<VLMOrchestrator.maxConsecutiveFailures {
+            guard let buf = makeFilledPixelBuffer(grayValue: UInt8(i * 50)) else {
+                Issue.record("Failed to create pixel buffer \(i)")
+                return
+            }
+            orch.cameraCapture(capture, didOutputPixelBuffer: buf, timestamp: .zero)
+            // Wait for the async Task to complete and isBusy to clear before the next frame.
+            try? await Task.sleep(nanoseconds: 200_000_000) // 200 ms
+        }
+
+        // All maxConsecutiveFailures calls were attempted and failed.
+        #expect(client.callCount == VLMOrchestrator.maxConsecutiveFailures)
+
+        // Now send one more novel frame — session should be disabled, no new call.
+        guard let extraBuf = makeFilledPixelBuffer(grayValue: 200) else {
+            Issue.record("Failed to create extra pixel buffer")
+            return
+        }
+        orch.cameraCapture(capture, didOutputPixelBuffer: extraBuf, timestamp: .zero)
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Call count must remain exactly maxConsecutiveFailures.
+        #expect(client.callCount == VLMOrchestrator.maxConsecutiveFailures)
+    }
+
+    // MARK: - Test 7: onAestheticSignal callback
 
     @Test("valid VLM remark triggers onAestheticSignal callback")
     func validRemarkTriggersCallback() async {

@@ -65,6 +65,28 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     /// Current body-framing hint forwarded to the stale-suppressor.
     private let bodyHintLock = OSAllocatedUnfairLock<BodyHint>(initialState: .goodBody)
 
+    /// Offline-degradation failure tracking.
+    ///
+    /// `consecutiveFailures` resets on every successful VLM round-trip.
+    /// Once `isDisabledForSession` becomes `true` it is permanent — Tier 2
+    /// is silently suppressed for the rest of the session without retry storms.
+    private let failureLock = OSAllocatedUnfairLock<FailureState>(
+        initialState: FailureState()
+    )
+
+    // MARK: - Failure tracking state
+
+    private struct FailureState {
+        var consecutiveFailures: Int = 0
+        var isDisabledForSession: Bool = false
+    }
+
+    // MARK: - Named constant
+
+    /// Number of consecutive VLM failures that permanently disables Tier 2
+    /// for the remainder of the session. Kept internal so tests can reference it.
+    static let maxConsecutiveFailures: Int = 3
+
     // MARK: - Init
 
     /// Creates a `VLMOrchestrator`.
@@ -105,6 +127,14 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     ) {
         // 1. Forward downstream FIRST — Tier-0 forwarding invariant, non-negotiable.
         downstream?.cameraCapture(capture, didOutputPixelBuffer: pixelBuffer, timestamp: timestamp)
+
+        // 1a. On-device-only toggle — short-circuits before FrameEncoder runs.
+        //     No encoding, no request construction, no network activity.
+        guard !VLMSettings.shared.isOnDeviceOnly else { return }
+
+        // 1b. Offline-degradation session disable — repeated failures have
+        //     permanently disabled Tier 2 for this session. Silent, no retry.
+        guard !failureLock.withLock({ $0.isDisabledForSession }) else { return }
 
         // 2. Compute SceneSignature (cheap 16×16 grid walk; safe on the camera queue).
         guard let signature = SceneSignature.compute(from: pixelBuffer) else { return }
@@ -149,8 +179,24 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
                 let request = VLMRequest(imageJPEG: jpegData, prompt: AestheticPrompt.v1)
 
                 // Inner task: actual network call — cancelled on timeout.
+                // Tracks success/failure for offline-degradation accounting.
                 let inferenceTask = Task<VLMResponse?, Never> {
-                    return try? await self.client.analyze(request)
+                    do {
+                        let r = try await self.client.analyze(request)
+                        // Success — reset consecutive failure counter.
+                        self.failureLock.withLock { $0.consecutiveFailures = 0 }
+                        return r
+                    } catch {
+                        // Any VLMError (network, HTTP, rate-limited, cancelled):
+                        // increment failure counter; disable session at threshold.
+                        self.failureLock.withLock { state in
+                            state.consecutiveFailures += 1
+                            if state.consecutiveFailures >= Self.maxConsecutiveFailures {
+                                state.isDisabledForSession = true
+                            }
+                        }
+                        return nil
+                    }
                 }
 
                 // Timeout task: cancels inference after requestTimeoutSeconds.
