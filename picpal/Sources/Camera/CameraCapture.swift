@@ -48,6 +48,9 @@ public final class CameraCapture: @unchecked Sendable {
 
     private let stateLock = OSAllocatedUnfairLock<CaptureState>(initialState: .idle)
     private let configLock: OSAllocatedUnfairLock<CameraConfiguration>
+    // Set synchronously before enqueueing stop work; checked by startSession before
+    // calling captureSession.startRunning(), so stop() during .starting aborts cleanly.
+    private let cancellationRequested = OSAllocatedUnfairLock<Bool>(initialState: false)
 
     // Delegate is a weak reference inside a class wrapper so the lock can store it.
     private let delegateBox = DelegateBox()
@@ -134,14 +137,21 @@ public final class CameraCapture: @unchecked Sendable {
 
     /// Stop the active capture session and return to `.idle`.
     ///
-    /// A no-op if the session is not in `.running` state.
+    /// Safe to call during `.starting` — sets a cancellation flag that `startSession`
+    /// checks before calling `captureSession.startRunning()`.
     public func stop() {
+        cancellationRequested.withLock { $0 = true }
         sessionQueue.async { [weak self] in
             guard let self else { return }
-            guard stateLock.withLock({ $0 }) == .running else { return }
-            setStateAndNotify(.stopping)
-            captureSession.stopRunning()
-            setStateAndNotify(.idle)
+            defer { cancellationRequested.withLock { $0 = false } }
+            switch stateLock.withLock({ $0 }) {
+            case .running:
+                setStateAndNotify(.stopping)
+                captureSession.stopRunning()
+                setStateAndNotify(.idle)
+            default:
+                break  // .starting: startSession's abort path already set state to .idle
+            }
         }
     }
 
@@ -158,6 +168,12 @@ public final class CameraCapture: @unchecked Sendable {
                 try buildSession(configuration: config)
             } catch {
                 setStateAndNotify(.error(error.localizedDescription))
+                return
+            }
+
+            // Abort if stop() was called while the session was being built.
+            guard !cancellationRequested.withLock({ $0 }) else {
+                setStateAndNotify(.idle)
                 return
             }
 

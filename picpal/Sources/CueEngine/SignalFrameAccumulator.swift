@@ -26,16 +26,23 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
 
     private let lock: OSAllocatedUnfairLock<SignalFrame>
     private let onFrame: @Sendable (SignalFrame) -> Void
+    private let clock: @Sendable () -> TimeInterval
 
     // MARK: - Init
 
     /// Creates a `SignalFrameAccumulator`.
     ///
-    /// - Parameter onFrame: Called on the calling thread after every signal update
-    ///   with the latest merged `SignalFrame`. Process cues and dispatch UI updates
-    ///   inside this closure.
-    public init(onFrame: @escaping @Sendable (SignalFrame) -> Void) {
-        lock = OSAllocatedUnfairLock(initialState: .empty)
+    /// - Parameters:
+    ///   - clock: Returns the current timestamp. Defaults to `Date().timeIntervalSince1970`.
+    ///     Injectable for deterministic testing.
+    ///   - onFrame: Called on the calling thread after every signal update with the latest
+    ///     merged `SignalFrame`. Process cues and dispatch UI updates inside this closure.
+    public init(
+        clock: @escaping @Sendable () -> TimeInterval = { Date().timeIntervalSince1970 },
+        onFrame: @escaping @Sendable (SignalFrame) -> Void
+    ) {
+        self.lock = OSAllocatedUnfairLock(initialState: .empty)
+        self.clock = clock
         self.onFrame = onFrame
     }
 
@@ -45,7 +52,7 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
     public func update(tilt: TiltSignal) {
         let frame = lock.withLock { current in
             let updated = SignalFrame(
-                timestamp: Date().timeIntervalSince1970,
+                timestamp: clock(),
                 tilt: tilt,
                 blur: current.blur,
                 exposure: current.exposure,
@@ -61,7 +68,7 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
     public func update(blur: BlurSignal) {
         let frame = lock.withLock { current in
             let updated = SignalFrame(
-                timestamp: Date().timeIntervalSince1970,
+                timestamp: clock(),
                 tilt: current.tilt,
                 blur: blur,
                 exposure: current.exposure,
@@ -77,7 +84,7 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
     public func update(exposure: ExposureSignal) {
         let frame = lock.withLock { current in
             let updated = SignalFrame(
-                timestamp: Date().timeIntervalSince1970,
+                timestamp: clock(),
                 tilt: current.tilt,
                 blur: current.blur,
                 exposure: exposure,
@@ -93,7 +100,7 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
     public func update(framing: FramingSignal) {
         let frame = lock.withLock { current in
             let updated = SignalFrame(
-                timestamp: Date().timeIntervalSince1970,
+                timestamp: clock(),
                 tilt: current.tilt,
                 blur: current.blur,
                 exposure: current.exposure,

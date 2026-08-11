@@ -43,6 +43,11 @@ public final class SceneGate: @unchecked Sendable {
         // Step 1: Check settle gate (read isSettled from lock)
         let isSettled = lock.withLock { $0.isSettled }
         if settleRequired && !isSettled { return false }
+        // TOCTOU: if update(isSettled: false) arrives between Step 1 and the second
+        // lock section below, one frame may slip through while the device is unsettled.
+        // This is deliberate — holding the lock across the (potentially slow) signature
+        // computation in Step 2 would cause contention on the motion-delegate thread.
+        // The worst-case consequence is one extra analysis call, which is acceptable.
 
         // Step 2: Compute signature outside the lock (may be slow)
         guard let signature = SceneSignature.compute(from: pixelBuffer) else {
