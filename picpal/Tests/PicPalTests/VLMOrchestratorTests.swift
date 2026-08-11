@@ -238,6 +238,6 @@ struct VLMOrchestratorTests {
             #expect(signal.hint == .remark)
         }
         // If received is empty the stale-suppressor discarded a stale signal — that's valid.
-        #expect(received.count <= 1)
+        #expect(received.count == 1)
     }
 }
