@@ -236,7 +236,7 @@ Execution order:
 - [x] M4-1: KPI telemetry — cue event log + settle→cue timer
 - [x] M4-2: Wire BatteryMonitor + TelemetryExporter
 - [x] M4-3: First-run consent gate
-- [ ] M4-4: Post-session survey
+- [x] M4-4: Post-session survey
 - [ ] M4-7: Integration, deployment & validation ⚠ PENDING_DEVICE_RUN
 Task M4-0: complete (commit b770f4a, review clean; 424 tests passing; accumulator is lock-protected @unchecked Sendable — off-main-actor call is safe)
 Task M4-6: complete (commits f0168a0..058a4a0, review clean after fix; 428 tests passing)
@@ -244,3 +244,20 @@ Task M4-5: complete (commit 9ff3e48, review clean; 432 tests passing; note: Tuni
 Task M4-1: complete (commit a724ce6, review clean; 444 tests passing; minor: timing-sensitive SettleEventTimer test, unreachable guard in percentile)
 Task M4-2: complete (commit d4d3149, review clean; 444 tests passing; note: TelemetryFeed does not expose currentStats/thermalEvents — exportSnapshot uses empty placeholders, deferred)
 Task M4-3: complete (commit 587ac36, 453 tests passing; xcodegen regenerated to register new files)
+Task M4-3: complete (commits 587ac36..dbdf70c, review clean; 453 tests passing)
+Task M4-4: complete (commit f478466, review clean; 460 tests passing)
+
+## M4 Final whole-branch review fix wave (commit 70f2009)
+
+**Status: MERGE-READY** — all Critical and Important findings fixed and verified.
+
+Fix wave (commit 70f2009) addressed:
+- CRITICAL: VLMSettings.isOnDeviceOnly defaults to true when key absent — no cloud frames before consent
+- CRITICAL: NSAllowsArbitraryLoads replaced with NSAllowsLocalNetworking in project.yml + Info.plist
+- IMPORTANT: settleEventTimer?.reset() added in .background scenePhase handler
+- IMPORTANT: Triple-tap gesture order fixed in DebugOverlayView (count:3 before count:1)
+- IMPORTANT: Dead "Remark expiry" stepper removed from TuningPanel and TuningSettings
+- IMPORTANT: @Suite(.serialized) added to TuningSettingsTests, ConsentGateTests, PostSessionSurveyTests, VLMSettingsTests, VLMOrchestratorTests
+- IMPORTANT: ContentView.swift split (452→172 lines); wireUp + exportSnapshot + scenePhase handler moved to ContentView+Session.swift (304 lines)
+
+460 tests passing.
