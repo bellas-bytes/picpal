@@ -35,6 +35,7 @@ extension ContentView {
         switch newPhase {
         case .background:
             settleEventTimer?.reset()   // prevent stale timestamp from prior foreground session
+            vlmOrchestrator?.invalidateCache()
             exportSnapshot(surveyResponse: nil)
             // Set flag so survey appears on next foreground; shown at most once per lifecycle.
             if !surveyShownThisSession &&
@@ -60,12 +61,15 @@ extension ContentView {
     func exportSnapshot(surveyResponse: Int?) {
         let report = cueLogger?.makeSummary()
         let batteryReport = batteryMonitor.endSession()
+        let stats = vlmOrchestrator?.sessionStats
         let snapshot = TelemetrySnapshot(
             frameStats: FrameTimerStatistics.empty,
             thermalEvents: [],
             batteryReport: batteryReport,
             cueTelemetry: report,
-            surveyResponse: surveyResponse
+            surveyResponse: surveyResponse,
+            vlmCacheHits: stats?.cacheHits,
+            vlmCacheMisses: stats?.cacheMisses
         )
         try? telemetryExporter?.export(snapshot: snapshot)
         batteryMonitor.startSession()   // restart immediately for next foreground session

@@ -13,6 +13,12 @@ private enum TuningRanges {
     static let cadenceMin: Double = 2.0
     static let cadenceMax: Double = 30.0
     static let cadenceStep: Double = 1.0
+    static let cacheTTLMin: Double = 5.0
+    static let cacheTTLMax: Double = 120.0
+    static let cacheTTLStep: Double = 5.0
+    static let cacheMaxEntriesMin: Double = 5.0
+    static let cacheMaxEntriesMax: Double = 100.0
+    static let cacheMaxEntriesStep: Double = 5.0
 }
 
 // MARK: - TuningPanel
@@ -23,6 +29,8 @@ struct TuningPanel: View {
     @State private var cueCooldown: Double = TuningSettings.shared.cueCooldownSeconds
     @State private var minRepeat: Double = TuningSettings.shared.minRepeatIntervalSeconds
     @State private var vlmCadence: Double = TuningSettings.shared.vlmCadenceSeconds
+    @State private var cacheTTL: Double = TuningSettings.shared.vlmCacheTTLSeconds
+    @State private var cacheMaxEntries: Double = Double(TuningSettings.shared.vlmCacheMaxEntries)
 
     var body: some View {
         NavigationStack {
@@ -59,6 +67,26 @@ struct TuningPanel: View {
                     .onChange(of: vlmCadence) { _, newValue in
                         TuningSettings.shared.vlmCadenceSeconds = newValue
                     }
+
+                    Stepper(
+                        "Cache TTL: \(String(format: "%.0f", cacheTTL))s",
+                        value: $cacheTTL,
+                        in: TuningRanges.cacheTTLMin...TuningRanges.cacheTTLMax,
+                        step: TuningRanges.cacheTTLStep
+                    )
+                    .onChange(of: cacheTTL) { _, newValue in
+                        TuningSettings.shared.vlmCacheTTLSeconds = newValue
+                    }
+
+                    Stepper(
+                        "Max entries: \(Int(cacheMaxEntries))",
+                        value: $cacheMaxEntries,
+                        in: TuningRanges.cacheMaxEntriesMin...TuningRanges.cacheMaxEntriesMax,
+                        step: TuningRanges.cacheMaxEntriesStep
+                    )
+                    .onChange(of: cacheMaxEntries) { _, newValue in
+                        TuningSettings.shared.vlmCacheMaxEntries = Int(newValue)
+                    }
                 }
 
                 Section {
@@ -67,6 +95,8 @@ struct TuningPanel: View {
                         cueCooldown = TuningSettings.shared.cueCooldownSeconds
                         minRepeat = TuningSettings.shared.minRepeatIntervalSeconds
                         vlmCadence = TuningSettings.shared.vlmCadenceSeconds
+                        cacheTTL = TuningSettings.shared.vlmCacheTTLSeconds
+                        cacheMaxEntries = Double(TuningSettings.shared.vlmCacheMaxEntries)
                     }
                     .foregroundStyle(.red)
                 }

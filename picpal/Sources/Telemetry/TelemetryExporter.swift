@@ -12,19 +12,27 @@ public struct TelemetrySnapshot: Sendable, Encodable {
     public let cueTelemetry: CueTelemetryReport?
     /// Post-session Likert rating (1–5), `nil` until M4-4 survey is implemented.
     public let surveyResponse: Int?
+    /// Total VLM cache hits for the session. `nil` if the cache was not wired.
+    public let vlmCacheHits: Int?
+    /// Total VLM cache misses for the session. `nil` if the cache was not wired.
+    public let vlmCacheMisses: Int?
 
     public init(
         frameStats: FrameTimerStatistics,
         thermalEvents: [ThermalEvent],
         batteryReport: BatteryReport? = nil,
         cueTelemetry: CueTelemetryReport? = nil,
-        surveyResponse: Int? = nil
+        surveyResponse: Int? = nil,
+        vlmCacheHits: Int? = nil,
+        vlmCacheMisses: Int? = nil
     ) {
         self.frameStats = frameStats
         self.thermalEvents = thermalEvents
         self.batteryReport = batteryReport
         self.cueTelemetry = cueTelemetry
         self.surveyResponse = surveyResponse
+        self.vlmCacheHits = vlmCacheHits
+        self.vlmCacheMisses = vlmCacheMisses
     }
 }
 

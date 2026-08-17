@@ -9,14 +9,6 @@ private struct SendablePixelBuffer: @unchecked Sendable {
     let value: CVPixelBuffer
 }
 
-// MARK: - Constants
-
-private enum VLMOrchestratorConstants {
-    static let queueLabel             = "com.picpal.vlm.orchestrator"
-    /// Hard upper-bound on a single VLM round-trip. Timed-out requests never produce a cue.
-    static let requestTimeoutSeconds: TimeInterval = 10.0
-}
-
 // MARK: - VLMOrchestrator
 
 /// Tier-2 VLM orchestrator. Sits after `LandmarkOrchestrator` in the pipeline.
@@ -44,6 +36,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
 
     private let client: any VLMClient
     private let suppressor: StaleSuppressor
+    private let responseCache: VLMResponseCache
     private let onAestheticSignal: @Sendable (AestheticSignal) -> Void
 
     /// Called before dispatching to `vlmQueue` — use to set an in-flight UI indicator.
@@ -77,23 +70,17 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     private let currentSignatureLock = OSAllocatedUnfairLock<SceneSignature?>(initialState: nil)
 
     /// Offline-degradation failure tracking.
-    ///
-    /// `consecutiveFailures` resets on every successful VLM round-trip.
-    /// Once `isDisabledForSession` becomes `true` it is permanent — Tier 2
-    /// is silently suppressed for the rest of the session without retry storms.
-    private let failureLock = OSAllocatedUnfairLock<FailureState>(
-        initialState: FailureState()
+    private let failureLock = OSAllocatedUnfairLock<VLMFailureState>(
+        initialState: VLMFailureState()
     )
 
-    // MARK: - Failure tracking state
+    /// Per-session VLM cache hit/miss counters.
+    private let statsLock = OSAllocatedUnfairLock<VLMSessionStats>(
+        initialState: VLMSessionStats()
+    )
 
-    private struct FailureState {
-        var consecutiveFailures: Int = 0
-        var isDisabledForSession: Bool = false
-        /// Absolute deadline before which new Tier-2 requests are suppressed.
-        /// Set to `Date.distantPast` initially and on every successful round-trip.
-        var backoffDeadline: Date = Date.distantPast
-    }
+    /// Placeholder for future reference-image mode. When non-nil, cache is bypassed.
+    private let referenceImageLock = OSAllocatedUnfairLock<Data?>(initialState: nil)
 
     // MARK: - Named constants
 
@@ -103,14 +90,11 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
 
     /// Base delay (seconds) for exponential backoff after each VLM failure.
     /// Produces 2s → 4s → 8s windows before the third failure disables the session.
-    /// Public so it is usable as the default argument of the public `init`
-    /// and referenceable from test code.
     public static let backoffBaseSeconds: TimeInterval = 2.0
 
     // MARK: - Per-instance backoff base (injectable for testing)
 
-    /// Backoff base used by this instance. Defaults to `VLMOrchestratorConstants.backoffBaseSeconds`
-    /// (2 s). Tests may inject a near-zero value to avoid long sleeps.
+    /// Backoff base used by this instance. Tests may inject a near-zero value.
     private let instanceBackoffBase: TimeInterval
 
     // MARK: - Init
@@ -121,11 +105,13 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     ///   - client: VLM back-end (default: `AnthropicVLMClient` targeting the local proxy).
     ///   - gate: Four-gate request authoriser. Defaults to a fresh `VLMRequestGate`.
     ///   - suppressor: Stale-response filter. Defaults to a fresh `StaleSuppressor`.
+    ///   - responseCache: In-session LRU cache. Defaults to a fresh `VLMResponseCache`.
     ///   - onAestheticSignal: Called on any thread when a valid `AestheticSignal` arrives.
-    public init(
+    init(
         client: any VLMClient,
         gate: VLMRequestGate = VLMRequestGate(),
         suppressor: StaleSuppressor = StaleSuppressor(),
+        responseCache: VLMResponseCache = VLMResponseCache(),
         backoffBaseSeconds: TimeInterval = VLMOrchestrator.backoffBaseSeconds,
         onRequestDispatched: (@Sendable () -> Void)? = nil,
         onRequestCompleted: (@Sendable () -> Void)? = nil,
@@ -135,6 +121,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         self.client = client
         self.gateLock = OSAllocatedUnfairLock(initialState: gate)
         self.suppressor = suppressor
+        self.responseCache = responseCache
         self.instanceBackoffBase = backoffBaseSeconds
         self.onRequestDispatched = onRequestDispatched
         self.onRequestCompleted = onRequestCompleted
@@ -145,12 +132,22 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     // MARK: - Public API
 
     /// Update the body hint used by the stale-suppressor for response matching.
-    ///
-    /// Call whenever `BodySignal.hint` changes so that in-flight responses can be
-    /// correctly invalidated when body context shifts mid-flight.
     public func update(bodyHint: BodyHint) {
         bodyHintLock.withLock { $0 = bodyHint }
     }
+
+    /// Current VLM session statistics (cache hits, misses). Safe to read from any thread.
+    var sessionStats: VLMSessionStats { statsLock.withLock { $0 } }
+
+    /// Reference image data for future reference-mode support.
+    /// When non-nil, the response cache is bypassed so every frame hits the VLM.
+    var referenceImage: Data? {
+        get { referenceImageLock.withLock { $0 } }
+        set { referenceImageLock.withLock { $0 = newValue } }
+    }
+
+    /// Invalidate all cached VLM responses. Call on app background or session end.
+    func invalidateCache() { responseCache.invalidate() }
 
     // MARK: - CameraFrameDelegate
 
@@ -181,12 +178,19 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         guard let signature = SceneSignature.compute(from: pixelBuffer) else { return }
 
         // 3. Gate check (cadence + novelty + settle + budget).
-        //    `isSettled: true` — VLMOrchestrator sits downstream of SceneGateAdapter
-        //    which already filters on scene settle.
+        //    `isSettled: true` — VLMOrchestrator sits downstream of SceneGateAdapter.
         let authorized = gateLock.withLock { gate in
             gate.shouldRequest(signature: signature, isSettled: true)
         }
         guard authorized else { return }
+
+        // 3a. Cache lookup — skipped when reference image is active.
+        if referenceImageLock.withLock({ $0 == nil }),
+           let cached = responseCache.lookup(for: signature) {
+            onAestheticSignal(cached)
+            statsLock.withLock { $0.recordCacheHit() }
+            return
+        }
 
         // 4. Drop-if-busy — prevents pool exhaustion and concurrent requests.
         //    `isBusy` is set synchronously here; cleared by the inference Task.
@@ -235,8 +239,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
                         }
                         return r
                     } catch {
-                        // Any VLMError (network, HTTP, rate-limited, cancelled):
-                        // increment failure counter; set exponential backoff deadline;
+                        // Any VLMError: increment failure counter; set exponential backoff;
                         // disable session permanently at threshold.
                         self.failureLock.withLock { state in
                             state.consecutiveFailures += 1
@@ -282,8 +285,10 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
                     return
                 }
 
-                // 5f. Emit valid signal upstream.
+                // 5f. Emit valid signal, cache the response, record the miss.
                 onAestheticSignal(valid)
+                responseCache.store(valid, for: signature)
+                statsLock.withLock { $0.recordCacheMiss() }
             }
         }
     }

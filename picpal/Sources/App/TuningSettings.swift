@@ -11,6 +11,8 @@ final class TuningSettings: @unchecked Sendable {
         static let cueCooldown       = "com.picpal.tuning.cueCooldown"
         static let minRepeatInterval = "com.picpal.tuning.minRepeatInterval"
         static let vlmCadence        = "com.picpal.tuning.vlmCadence"
+        static let vlmCacheTTL       = "com.picpal.tuning.vlmCacheTTL"
+        static let vlmCacheMaxEntries = "com.picpal.tuning.vlmCacheMaxEntries"
     }
 
     var cueCooldownSeconds: Double {
@@ -25,9 +27,21 @@ final class TuningSettings: @unchecked Sendable {
         get { stored(Keys.vlmCadence, default: VLMRequestGate.defaultCadenceSeconds) }
         set { UserDefaults.standard.set(newValue, forKey: Keys.vlmCadence) }
     }
+    var vlmCacheTTLSeconds: Double {
+        get { stored(Keys.vlmCacheTTL, default: VLMResponseCache.defaultTTLSeconds) }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.vlmCacheTTL) }
+    }
+    var vlmCacheMaxEntries: Int {
+        get {
+            let v = UserDefaults.standard.integer(forKey: Keys.vlmCacheMaxEntries)
+            return v > 0 ? v : VLMResponseCache.defaultMaxEntries
+        }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.vlmCacheMaxEntries) }
+    }
 
     func resetToDefaults() {
-        [Keys.cueCooldown, Keys.minRepeatInterval, Keys.vlmCadence]
+        [Keys.cueCooldown, Keys.minRepeatInterval, Keys.vlmCadence,
+         Keys.vlmCacheTTL, Keys.vlmCacheMaxEntries]
             .forEach { UserDefaults.standard.removeObject(forKey: $0) }
     }
 
