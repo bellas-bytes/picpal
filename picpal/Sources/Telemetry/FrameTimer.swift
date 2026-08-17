@@ -29,6 +29,9 @@ public struct FrameTimerStatistics: Sendable, Equatable, Encodable {
 
     /// A baseline zero-value statistic used before any samples are recorded.
     public static let zero = FrameTimerStatistics(meanMs: 0, p95Ms: 0, maxMs: 0, dropCount: 0)
+
+    /// Alias for `zero`; used as a placeholder when no live stats are available.
+    public static let empty = FrameTimerStatistics(meanMs: 0, p95Ms: 0, maxMs: 0, dropCount: 0)
 }
 
 /// Measures per-frame processing time and tracks budget violations.

@@ -211,3 +211,53 @@ Minor deferred (not blocking merge):
 - `FrameEncoder` allocates fresh `CIContext()` per call (low-frequency call, minor perf)
 - First-run consent before cloud VLM sends frames — SPAWNED as separate task
 - `project.yml` PicPal/ vs picpal/ case sensitivity — pre-existing, breaks CI on Linux
+
+---
+
+# M4 — Tuning & Validation
+
+Plan file: docs/picpal-tickets-m4.md
+Branch: feature/m4-tuning-validation
+Base commit (branch point): fc30d20
+
+Execution order:
+  1. M4-0 (AestheticSignal auto-expiry — active bug fix)
+  2. M4-6 (Validation session kit — static types, no deps)
+  3. M4-5 (Runtime tuning panel + cadence config)
+  4. M4-1 (KPI telemetry: cue event log + settle→cue timer)
+  5. M4-2 (Wire BatteryMonitor + TelemetryExporter)
+  6. M4-3 (First-run consent gate)
+  7. M4-4 (Post-session survey)
+  8. M4-7 (Integration & validation — PENDING_DEVICE_RUN)
+
+- [x] M4-0: AestheticSignal auto-expiry
+- [x] M4-6: Validation session kit
+- [x] M4-5: Runtime tuning panel + cadence config
+- [x] M4-1: KPI telemetry — cue event log + settle→cue timer
+- [x] M4-2: Wire BatteryMonitor + TelemetryExporter
+- [x] M4-3: First-run consent gate
+- [x] M4-4: Post-session survey
+- [ ] M4-7: Integration, deployment & validation ⚠ PENDING_DEVICE_RUN
+Task M4-0: complete (commit b770f4a, review clean; 424 tests passing; accumulator is lock-protected @unchecked Sendable — off-main-actor call is safe)
+Task M4-6: complete (commits f0168a0..058a4a0, review clean after fix; 428 tests passing)
+Task M4-5: complete (commit 9ff3e48, review clean; 432 tests passing; note: TuningSettings.aestheticExpirySeconds not wired to ContentView expiry closure — confirmed out-of-scope per brief)
+Task M4-1: complete (commit a724ce6, review clean; 444 tests passing; minor: timing-sensitive SettleEventTimer test, unreachable guard in percentile)
+Task M4-2: complete (commit d4d3149, review clean; 444 tests passing; note: TelemetryFeed does not expose currentStats/thermalEvents — exportSnapshot uses empty placeholders, deferred)
+Task M4-3: complete (commit 587ac36, 453 tests passing; xcodegen regenerated to register new files)
+Task M4-3: complete (commits 587ac36..dbdf70c, review clean; 453 tests passing)
+Task M4-4: complete (commit f478466, review clean; 460 tests passing)
+
+## M4 Final whole-branch review fix wave (commit 70f2009)
+
+**Status: MERGE-READY** — all Critical and Important findings fixed and verified.
+
+Fix wave (commit 70f2009) addressed:
+- CRITICAL: VLMSettings.isOnDeviceOnly defaults to true when key absent — no cloud frames before consent
+- CRITICAL: NSAllowsArbitraryLoads replaced with NSAllowsLocalNetworking in project.yml + Info.plist
+- IMPORTANT: settleEventTimer?.reset() added in .background scenePhase handler
+- IMPORTANT: Triple-tap gesture order fixed in DebugOverlayView (count:3 before count:1)
+- IMPORTANT: Dead "Remark expiry" stepper removed from TuningPanel and TuningSettings
+- IMPORTANT: @Suite(.serialized) added to TuningSettingsTests, ConsentGateTests, PostSessionSurveyTests, VLMSettingsTests, VLMOrchestratorTests
+- IMPORTANT: ContentView.swift split (452→172 lines); wireUp + exportSnapshot + scenePhase handler moved to ContentView+Session.swift (304 lines)
+
+460 tests passing.

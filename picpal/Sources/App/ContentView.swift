@@ -1,31 +1,64 @@
 import SwiftUI
 
+// MARK: - Private constants
+
+/// Padding around button icons (used in both debug and settings buttons)
+private let buttonIconPadding: CGFloat = 10
+
+/// Padding from screen edges for control buttons
+private let buttonEdgePadding: CGFloat = 16
+
+// MARK: - ContentView
+
 /// Root view — full-screen camera preview with a toggleable debug overlay.
 ///
 /// Owns the camera, telemetry feed, and landmark probe for the lifetime of the scene.
 /// The landmark probe is wired as the downstream delegate in `TelemetryFeed` so every
 /// settled camera frame flows through Vision body-pose, hand-pose, and face-mesh requests.
+///
+/// Session lifecycle (scene-phase handling, telemetry export, composition root) lives in
+/// `ContentView+Session.swift` to keep this file under the 300-line limit.
 struct ContentView: View {
 
-    @State private var camera = CameraCapture()
-    @StateObject private var debugViewModel = DebugOverlayViewModel()
+    @State var camera = CameraCapture()
+    @StateObject var debugViewModel = DebugOverlayViewModel()
     @State private var showingVLMSettings = false
+    @State private var showConsentSheet: Bool
+    @State var showSurvey: Bool = false
+    @State var surveyShownThisSession: Bool = false
+    #if DEBUG
+    @State private var showSessionKit = false
+    @State private var showTuningPanel = false
+    #endif
+
+    init() {
+        _showConsentSheet = State(initialValue: !ConsentGate.isConsentGiven())
+    }
 
     // Retained for the lifetime of the view.
-    @State private var telemetryFeed: TelemetryFeed?
-    @State private var landmarkProbe: VisionLandmarkProbe?
-    @State private var blurMonitor: BlurMonitor?
-    @State private var exposureMonitor: ExposureMonitor?
-    @State private var framingMonitor: FramingMonitor?
-    @State private var motionManager = MotionManager()
-    @State private var tiltMonitor: TiltMonitor?
-    @State private var sceneGate = SceneGate()
-    @State private var sceneGateAdapter: SceneGateAdapter?
-    @State private var landmarkOrchestrator: LandmarkOrchestrator?
-    @State private var vlmOrchestrator: VLMOrchestrator?
-    @State private var cueEngine: CueEngine?
-    @State private var accumulator: SignalFrameAccumulator?
-    @State private var voiceCoach = VoiceCoach()
+    @State var telemetryFeed: TelemetryFeed?
+    @State var landmarkProbe: VisionLandmarkProbe?
+    @State var blurMonitor: BlurMonitor?
+    @State var exposureMonitor: ExposureMonitor?
+    @State var framingMonitor: FramingMonitor?
+    @State var motionManager = MotionManager()
+    @State var tiltMonitor: TiltMonitor?
+    @State var sceneGate = SceneGate()
+    @State var sceneGateAdapter: SceneGateAdapter?
+    @State var landmarkOrchestrator: LandmarkOrchestrator?
+    @State var vlmOrchestrator: VLMOrchestrator?
+    @State var cueEngine: CueEngine?
+    @State var accumulator: SignalFrameAccumulator?
+    @State var voiceCoach = VoiceCoach()
+    @State var cueLogger: CueLogger?
+    @State var settleEventTimer: SettleEventTimer?
+    @State var batteryMonitor = BatteryMonitor()
+    @State var telemetryExporter: TelemetryExporter?
+
+    @Environment(\.scenePhase) private var scenePhase
+    /// Pending aesthetic-remark expiry Task wrapped in a class so `@Sendable` closures
+    /// can cancel and reschedule it through a shared reference.
+    @State var aestheticExpiryTask = AestheticExpiryHandle()
 
     var body: some View {
         ZStack {
@@ -35,29 +68,76 @@ struct ContentView: View {
             GuidesOverlayView(viewModel: debugViewModel)
                 .ignoresSafeArea()
 
+            #if DEBUG
+            DebugOverlayView(viewModel: debugViewModel, onLongPress: { showTuningPanel = true })
+            #else
             DebugOverlayView(viewModel: debugViewModel)
+            #endif
 
             // Settings button — bottom-right corner, unobtrusive.
             VStack {
                 Spacer()
                 HStack {
+                    #if DEBUG
+                    // Session kit button — bottom-left corner, debug only.
+                    Button {
+                        showSessionKit = true
+                    } label: {
+                        Image(systemName: "list.clipboard")
+                            .imageScale(.medium)
+                            .padding(buttonIconPadding)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .padding([.bottom, .leading], buttonEdgePadding)
+                    #endif
                     Spacer()
                     Button {
                         showingVLMSettings = true
                     } label: {
                         Image(systemName: "gear")
                             .imageScale(.medium)
-                            .padding(10)
+                            .padding(buttonIconPadding)
                             .background(.ultraThinMaterial, in: Circle())
                     }
-                    .padding([.bottom, .trailing], 16)
+                    .padding([.bottom, .trailing], buttonEdgePadding)
                 }
             }
         }
         .sheet(isPresented: $showingVLMSettings) {
             vlmSettingsSheet
         }
+        .fullScreenCover(isPresented: $showConsentSheet) {
+            ConsentSheet { cloudEnabled in
+                ConsentGate.recordConsent(cloudEnabled: cloudEnabled)
+                showConsentSheet = false
+            }
+        }
+        .sheet(isPresented: $showSurvey) {
+            PostSessionSurveySheet { response in
+                showSurvey = false
+                if let response {
+                    PostSessionSurvey.record(response: response)
+                    exportSnapshot(surveyResponse: response)
+                }
+                // Skip: no record, no export (the background export already fired)
+            }
+        }
+        #if DEBUG
+        .sheet(isPresented: $showSessionKit) {
+            SessionTaskOverlay(tasks: SessionTaskScript.m4Tasks) {
+                showSessionKit = false
+            }
+            .presentationDetents([.large])
+        }
+        .sheet(isPresented: $showTuningPanel) {
+            TuningPanel()
+                .presentationDetents([.medium, .large])
+        }
+        #endif
         .onAppear(perform: wireUp)
+        .onChange(of: scenePhase) { _, newPhase in
+            handleScenePhaseChange(to: newPhase)
+        }
         .onChange(of: debugViewModel.isMuted) { _, muted in
             voiceCoach.isMuted = muted
         }
@@ -88,152 +168,5 @@ struct ContentView: View {
         }
         .padding()
         .presentationDetents([.medium, .large])
-    }
-
-    // MARK: - Composition root
-
-    @MainActor
-    private func wireUp() {
-        guard telemetryFeed == nil else { return }  // idempotent
-
-        // Create the cue engine and signal accumulator.
-        // The accumulator merges individual signals into a complete SignalFrame and
-        // passes it to the engine on every update. Results are dispatched to @MainActor.
-        let engine = CueEngine()
-        let coach = voiceCoach  // capture strong local reference (no retain cycle)
-        let accum = SignalFrameAccumulator { [weak debugViewModel] frame in
-            let cue = engine.process(frame: frame)
-            if let cue {
-                coach.speak(cue)
-            }
-            let cueText = cue?.text ?? "—"
-            Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.activeCue = cueText
-            }
-        }
-
-        let framingMon = FramingMonitor { [weak debugViewModel, accum] signal in
-            accum.update(framing: signal)
-            let label = signal.hint.rawValue
-            let box = signal.subjectBox
-            Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.framingHint = label
-                debugViewModel?.subjectBox = box
-            }
-        }
-
-        let exposureMon = ExposureMonitor(downstream: framingMon) { [weak debugViewModel, accum] signal in
-            accum.update(exposure: signal)
-            let label: String
-            switch signal.level {
-            case .ok:           label = "ok"
-            case .underexposed: label = "under"
-            case .overexposed:  label = "over"
-            }
-            Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.exposureLevel = label
-            }
-        }
-
-        let blurMon = BlurMonitor(downstream: exposureMon) { [weak debugViewModel, accum] signal in
-            accum.update(blur: signal)
-            Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.blurScore = signal.sharpnessScore
-            }
-        }
-
-        // Landmark probe is disabled by default — body/hand/face Vision runs every frame
-        // and wastes thermal budget when nothing yet consumes landmark results (M2+).
-        let probe = VisionLandmarkProbe(isEnabled: false, downstream: blurMon) { [weak debugViewModel] stats in
-            Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.bodyPoseMs         = stats.bodyPoseMs
-                debugViewModel?.handPoseMs         = stats.handPoseMs
-                debugViewModel?.faceMeshMs         = stats.faceMeshMs
-                debugViewModel?.landmarkCombinedMs = stats.combinedMs
-            }
-        }
-
-        // Tier-2: VLMOrchestrator sits between LandmarkOrchestrator and the telemetry bridge.
-        // Created before LandmarkOrchestrator so vlmOrch can be captured in the body-signal
-        // callback to keep StaleSuppressor's body-hint arm updated.
-        let vlmOrch = VLMOrchestrator(
-            client: AnthropicVLMClient(proxyURL: VLMSettings.shared.proxyURL),
-            onRequestDispatched: { [weak debugViewModel] in
-                Task { @MainActor [weak debugViewModel] in
-                    debugViewModel?.isVLMInFlight = true
-                }
-            },
-            onRequestCompleted: { [weak debugViewModel] in
-                Task { @MainActor [weak debugViewModel] in
-                    debugViewModel?.isVLMInFlight = false
-                }
-            },
-            onResponseDiscarded: { [weak debugViewModel] in
-                Task { @MainActor [weak debugViewModel] in
-                    debugViewModel?.vlmDiscardCount += 1
-                }
-            },
-            onAestheticSignal: { [weak debugViewModel, accum] signal in
-                accum.update(aesthetic: signal)
-                let remark = signal.hint == .remark ? signal.remark : ""
-                Task { @MainActor [weak debugViewModel] in
-                    debugViewModel?.aestheticRemark = remark
-                }
-            }
-        )
-
-        // Create the landmark orchestrator. If model files are absent (e.g. Simulator),
-        // try? returns nil and the pipeline degrades gracefully to the existing path.
-        let orchestrator = try? LandmarkOrchestrator { [weak debugViewModel, accum, vlmOrch] signal in
-            accum.update(body: signal)
-            vlmOrch.update(bodyHint: signal.hint)
-            let label = signal.hint == .goodBody ? "" : String(describing: signal.hint)
-            Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.bodyHint = label
-            }
-        }
-
-        let feed = debugViewModel.makeTelemetryFeed(downstream: probe)
-        vlmOrch.downstream = feed.bridge
-
-        // Wire: LandmarkOrchestrator → VLMOrchestrator → telemetry bridge.
-        // When orchestrator is nil (Simulator — model files absent), vlmOrch becomes
-        // the direct adapter downstream so Tier-2 wiring stays intact.
-        orchestrator?.downstream = vlmOrch
-        let adapterDownstream: any CameraFrameDelegate = orchestrator ?? vlmOrch
-        let adapter = SceneGateAdapter(gate: sceneGate, downstream: adapterDownstream)
-        camera.delegate = adapter
-        feed.start()
-        camera.requestPermissionAndStart()
-
-        blurMonitor = blurMon
-        exposureMonitor = exposureMon
-        framingMonitor = framingMon
-        landmarkProbe = probe
-        landmarkOrchestrator = orchestrator
-        vlmOrchestrator = vlmOrch
-        telemetryFeed = feed
-        sceneGateAdapter = adapter
-        cueEngine = engine
-        accumulator = accum
-
-        let monitor = TiltMonitor(onSettleChange: { [sceneGate] settled in
-            sceneGate.update(isSettled: settled)
-        }) { [weak debugViewModel, accum] signal in
-            accum.update(tilt: signal)
-            Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.tiltDegrees = signal.angleDegrees
-                debugViewModel?.isLevel = signal.isLevel
-            }
-        }
-        motionManager.delegate = monitor
-        motionManager.start()
-        // On Simulator (and any device where motion is unavailable), MotionManager.start()
-        // returns early without ever firing didChangeSettled.  Open the gate immediately so
-        // frames reach the analysis pipeline.
-        if !motionManager.isDeviceMotionAvailable {
-            sceneGate.update(isSettled: true)
-        }
-        tiltMonitor = monitor
     }
 }

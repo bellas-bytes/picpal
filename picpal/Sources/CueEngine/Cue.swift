@@ -37,7 +37,7 @@ public enum CuePriority: Int, Sendable, Comparable, CaseIterable {
 // MARK: - CueSourceTier
 
 /// Identifies which analysis tier produced a cue.
-public enum CueSourceTier: String, Sendable, Equatable {
+public enum CueSourceTier: String, Sendable, Equatable, Encodable {
     case tier0   // on-device CV (M1)
     case tier05  // Vision landmarks (M2)
     case tier2   // cloud VLM (M3)

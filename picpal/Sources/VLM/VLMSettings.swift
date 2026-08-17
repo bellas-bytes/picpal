@@ -37,9 +37,15 @@ public final class VLMSettings: @unchecked Sendable {
     /// re-enables cloud coaching on the next eligible frame.
     ///
     /// Persisted across launches via `UserDefaults.standard`.
-    /// Defaults to `false` (cloud coaching enabled) when never set.
+    /// Defaults to `true` (on-device only) when never explicitly set, so no
+    /// frames reach the cloud before the user has seen and accepted the consent sheet.
     public var isOnDeviceOnly: Bool {
-        get { UserDefaults.standard.bool(forKey: Self.onDeviceOnlyKey) }
+        get {
+            // Default to true (on-device only) when never explicitly set,
+            // so no frames reach the cloud before the user consents.
+            guard UserDefaults.standard.object(forKey: Self.onDeviceOnlyKey) != nil else { return true }
+            return UserDefaults.standard.bool(forKey: Self.onDeviceOnlyKey)
+        }
         set { UserDefaults.standard.set(newValue, forKey: Self.onDeviceOnlyKey) }
     }
 
