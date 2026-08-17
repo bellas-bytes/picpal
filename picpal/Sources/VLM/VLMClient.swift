@@ -5,17 +5,34 @@ import Foundation
 /// Immutable snapshot of one VLM analysis request.
 ///
 /// JPEG bytes are sent to the proxy; they never reach the Anthropic API directly.
-/// The `prompt` drives the aesthetic analysis on the server side.
+/// The `prompt` drives the analysis on the server side.
+///
+/// When `referenceImageJPEG` is non-nil the proxy receives two images:
+/// the reference shot first, then the live frame.  The reference image is
+/// never persisted to disk or logged by the proxy — it exists only in-flight.
 public struct VLMRequest: Sendable {
 
-    /// Compressed JPEG frame at the target analysis resolution.
+    /// Compressed live-frame JPEG at the target analysis resolution.
     public let imageJPEG: Data
+
+    /// Optional reference-photo JPEG for two-image reference-mode coaching.
+    /// `nil` for standard (single-image) VLM calls.
+    public let referenceImageJPEG: Data?
 
     /// Plain-text prompt forwarded verbatim to the model.
     public let prompt: String
 
+    /// Standard single-image initialiser (existing callers unchanged).
     public init(imageJPEG: Data, prompt: String) {
         self.imageJPEG = imageJPEG
+        self.referenceImageJPEG = nil
+        self.prompt = prompt
+    }
+
+    /// Two-image initialiser for reference-mode VLM calls.
+    public init(imageJPEG: Data, referenceImageJPEG: Data?, prompt: String) {
+        self.imageJPEG = imageJPEG
+        self.referenceImageJPEG = referenceImageJPEG
         self.prompt = prompt
     }
 }
@@ -118,6 +135,7 @@ public struct AnthropicVLMClient: VLMClient {
         let boundary = "\(Self.boundaryPrefix)\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
         let body = buildMultipartBody(
             imageJPEG: request.imageJPEG,
+            referenceImageJPEG: request.referenceImageJPEG,
             prompt: request.prompt,
             boundary: boundary
         )
@@ -172,8 +190,18 @@ public struct AnthropicVLMClient: VLMClient {
         }
     }
 
-    /// Build a minimal `multipart/form-data` body containing the image and prompt fields.
-    func buildMultipartBody(imageJPEG: Data, prompt: String, boundary: String) -> Data {
+    /// Build a `multipart/form-data` body containing the image, optional reference image,
+    /// and prompt fields.
+    ///
+    /// When `referenceImageJPEG` is non-nil it is included as a separate part named
+    /// `"reference"` before the live `"image"` part, so the proxy / model sees the
+    /// reference shot first.  The reference data is not logged or persisted by the proxy.
+    func buildMultipartBody(
+        imageJPEG: Data,
+        referenceImageJPEG: Data? = nil,
+        prompt: String,
+        boundary: String
+    ) -> Data {
         var body = Data()
         let crlf = "\r\n"
 
@@ -181,20 +209,29 @@ public struct AnthropicVLMClient: VLMClient {
             body.append(Data(string.utf8))
         }
 
-        // Image part
+        // Optional reference image part (sent first so the model sees it before the live frame).
+        if let refData = referenceImageJPEG {
+            append("--\(boundary)\(crlf)")
+            append("Content-Disposition: form-data; name=\"reference\"; filename=\"reference.jpg\"\(crlf)")
+            append("Content-Type: image/jpeg\(crlf)\(crlf)")
+            body.append(refData)
+            append(crlf)
+        }
+
+        // Live frame image part.
         append("--\(boundary)\(crlf)")
         append("Content-Disposition: form-data; name=\"image\"; filename=\"frame.jpg\"\(crlf)")
         append("Content-Type: image/jpeg\(crlf)\(crlf)")
         body.append(imageJPEG)
         append(crlf)
 
-        // Prompt part
+        // Prompt part.
         append("--\(boundary)\(crlf)")
         append("Content-Disposition: form-data; name=\"prompt\"\(crlf)\(crlf)")
         append(prompt)
         append(crlf)
 
-        // End boundary
+        // End boundary.
         append("--\(boundary)--\(crlf)")
         return body
     }

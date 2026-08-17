@@ -2,6 +2,7 @@ import Testing
 import CoreVideo
 import CoreMedia
 import Foundation
+import UIKit
 import os
 @testable import PicPal
 
@@ -97,7 +98,13 @@ struct VLMOrchestratorCacheTests {
         let capture = CameraCapture()
 
         // Enable reference mode before any frames fire.
-        orch.referenceImage = Data([0xFF, 0xD8, 0xFF]) // placeholder JPEG header
+        // Use a small synthetic UIImage — system images aren't guaranteed in test env.
+        let refRenderer = UIGraphicsImageRenderer(size: CGSize(width: 64, height: 64))
+        let refImage = refRenderer.image { ctx in
+            UIColor.red.setFill(); ctx.fill(CGRect(x: 0, y: 0, width: 64, height: 64))
+        }
+        orch.referenceImage = refImage
+        orch.referenceModeConsented = true // consent required for client calls
 
         // Frame A: gate passes → reference mode active → cache skipped → VLM called.
         guard let bufA = makeFilledPixelBuffer(grayValue: 80) else {

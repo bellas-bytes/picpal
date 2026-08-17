@@ -73,4 +73,57 @@ public enum FrameEncoder {
 
         return jpegData
     }
+
+    // MARK: - Two-image overload (reference mode)
+
+    /// Encodes a live frame alongside a reference image for VLM comparison.
+    ///
+    /// Both images are downscaled so their longest edge is ≤ `maxDimension` and
+    /// JPEG-compressed at `jpegQuality`.  Returns `nil` if either encode step fails.
+    ///
+    /// - Parameters:
+    ///   - pixelBuffer: Live camera frame.
+    ///   - referenceImage: Reference photo selected by the user.
+    /// - Returns: A named tuple `(liveData:referenceData:)`, or `nil` on failure.
+    ///
+    /// **No I/O**: Neither image is written to disk.  The returned `Data` values
+    /// exist only in memory and are transmitted inside the VLM request body.
+    public static func encode(
+        pixelBuffer: CVPixelBuffer,
+        referenceImage: UIImage
+    ) -> (liveData: Data, referenceData: Data)? {
+        guard let liveData = encode(pixelBuffer: pixelBuffer) else { return nil }
+        guard let referenceData = encodeUIImage(referenceImage) else { return nil }
+        return (liveData: liveData, referenceData: referenceData)
+    }
+
+    // MARK: - Private helpers
+
+    /// Downscales `image` so its longest edge is ≤ `maxDimension`, then JPEG-compresses it.
+    private static func encodeUIImage(_ image: UIImage) -> Data? {
+        let size = image.size
+        guard size.width > 0, size.height > 0 else { return nil }
+
+        let maxExtent = max(size.width, size.height)
+        let scaleFactor = min(1.0, CGFloat(maxDimension) / maxExtent)
+
+        let targetSize: CGSize
+        if scaleFactor < 1.0 {
+            targetSize = CGSize(
+                width: (size.width * scaleFactor).rounded(),
+                height: (size.height * scaleFactor).rounded()
+            )
+        } else {
+            targetSize = size
+        }
+
+        // Force scale = 1.0 so Retina display factors don't inflate pixel dimensions.
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0
+        let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+        let scaled = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+        return scaled.jpegData(compressionQuality: jpegQuality)
+    }
 }
