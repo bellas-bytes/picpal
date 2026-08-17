@@ -261,3 +261,61 @@ Fix wave (commit 70f2009) addressed:
 - IMPORTANT: ContentView.swift split (452→172 lines); wireUp + exportSnapshot + scenePhase handler moved to ContentView+Session.swift (304 lines)
 
 460 tests passing.
+
+---
+
+# M5 — Scene-Descriptor Caching
+
+Plan file: docs/picpal-tickets-m5.md
+Branch: feature/m5-caching
+Base commit (branch point): a8323638a1d56b4fcbe76d77cfb93555e25bc9f4
+
+Task M5-0: complete (commit 04d9173, review clean; 471 tests passing)
+- VLMResponseCache: final class @unchecked Sendable, OSAllocatedUnfairLock<[Entry]>, injectable clock
+- defaultMaxEntries=20, defaultTTLSeconds=30.0 (named constants)
+- lookup uses isMateriallyDifferent + TTL; store deduplicates before insert, evicts tail
+- 11 VLMResponseCacheTests covering all acceptance criteria + concurrency
+Minor deferred: dead `import os.log` at VLMResponseCache.swift:2; namedConstants test asserts > 0 rather than == exact values
+
+Task M5-1: complete (commits 759398f..c054df9, review clean after fix; tests passing)
+- VLMResponseCache injected into VLMOrchestrator; cache consulted after gate, before FrameEncoder.encode
+- Bypassed when referenceImage != nil (referenceImageLock guard)
+- VLMSessionStats: cacheHits/cacheMisses counters, OSAllocatedUnfairLock protected
+- VLMSessionStats.swift + VLMOrchestratorConstants extracted to keep orchestrator under 300 lines
+- TelemetrySnapshot gains vlmCacheHits: Int? + vlmCacheMisses: Int? (backward-compatible)
+- TuningSettings: vlmCacheTTLSeconds + vlmCacheMaxEntries under #if DEBUG; keys follow com.picpal.tuning.* convention; removed by resetToDefaults()
+- TuningPanel: "Cache TTL" + "Max entries" steppers in VLM section
+- ContentView+Session: invalidateCache() in .background handler alongside settleEventTimer?.reset()
+- Fix: InstantVLMClient gains callCount; cacheHitWithRemark_bypassesClient asserts callCount == 2
+Minor deferred: VLMOrchestratorConstants visibility widened to internal unnecessarily (was private); cosmetic, no correctness impact
+
+## M5 Final whole-branch review fix wave (commit 4904a93)
+
+**Status: MERGE-READY** — all Important findings fixed and verified. 475 tests passing.
+
+Fix wave (commit 4904a93) addressed:
+- IMPORTANT: TuningSettings cache params now wired in wireUp() via #if DEBUG block — vlmCacheTTLSeconds + vlmCacheMaxEntries passed to VLMResponseCache(maxEntries:ttlSeconds:) before orchestrator init
+- IMPORTANT: recordCacheMiss() moved to step 3b (after cache miss, before isBusy) so hits+misses = total gate passes; removed from step-5f success path
+- IMPORTANT: VLMOrchestrator.init access level drop (public→internal) documented with Swift 6 constraint comment
+
+Minor deferred (surface at M6 review):
+- VLMResponseCache.swift:2 dead `import os.log`
+- VLMResponseCacheTests.swift: namedConstants test asserts > 0 rather than == 20 / == 30.0
+- VLMSessionStats.swift: VLMOrchestratorConstants and VLMFailureState have internal visibility (was private) — encapsulation regression
+- VLMSessionStats.swift: misleading filename (contains 3 unrelated types)
+- ContentView+Session.swift debug onExportTelemetry closure omits cache stats (debug-only, low impact)
+
+---
+
+# M5.5 — Reference Photo Mode
+
+Plan file: docs/picpal-tickets-m5-5.md
+Branch: feature/m5.5-reference-photo
+Base commit (branch point): 4904a93485a891b9d738ae39ce3140451c021669
+
+Task M5.5-0: complete (commits 04bed33..01b1d40, review clean after fix; 506 tests passing)
+- ReferencePose: Sendable struct, [String: CGPoint] bodyKeypoints, no Vision import, explicit memberwise init
+- PoseDelta: five offset/delta fields, defaultMatchThreshold=0.08, defaultScaleMatchThreshold=0.15, defaultFaceYawThreshold=0.15 (private), isWithinThreshold using all three, nil faceYawDelta → matched
+- 35 tests across PoseDeltaTests (23) + ReferencePoseTests (12)
+- Fix: hollow #expect(true) replaced with Task.detached Sendable runtime check; force-unwraps → try #require()
+Minor deferred: defaultFaceYawThreshold is private (defaultMatchThreshold/defaultScaleMatchThreshold are public) — minor visibility inconsistency

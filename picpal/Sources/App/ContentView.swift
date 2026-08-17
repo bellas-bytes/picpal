@@ -23,6 +23,7 @@ struct ContentView: View {
     @State var camera = CameraCapture()
     @StateObject var debugViewModel = DebugOverlayViewModel()
     @State private var showingVLMSettings = false
+    @State private var showReferencePicker: Bool = false
     @State private var showConsentSheet: Bool
     @State var showSurvey: Bool = false
     @State var surveyShownThisSession: Bool = false
@@ -120,6 +121,13 @@ struct ContentView: View {
                     exportSnapshot(surveyResponse: response)
                 }
                 // Skip: no record, no export (the background export already fired)
+            }
+        }
+        // M5.5-1: Reference picker sheet. Session creation and pose extraction
+        // are wired in M5.5-5; this sheet is intentionally minimal for now.
+        .sheet(isPresented: $showReferencePicker) {
+            ReferencePhotoPicker { _ in
+                showReferencePicker = false
             }
         }
         #if DEBUG
