@@ -37,8 +37,12 @@ final class ReferenceSession: ObservableObject {
     let image: UIImage
 
     /// The extracted pose, set on completion of `extractPose()`. Nil if extraction is
-    /// pending, failed, or returned no body.
+    /// pending or failed.
     @Published private(set) var pose: ReferencePose?
+
+    /// The last extraction error, or `nil` when extraction is pending, has not been run,
+    /// or completed successfully.
+    @Published private(set) var extractionError: ReferenceSessionError?
 
     /// True while Vision inference is running; false otherwise.
     @Published private(set) var isExtracting: Bool = false
@@ -48,9 +52,9 @@ final class ReferenceSession: ObservableObject {
     /// Closure that performs the actual Vision inference.
     ///
     /// Production code uses the default `ReferenceSession.runVision(on:)` implementation.
-    /// Tests inject a fast mock that returns a fixed `ReferencePose?` without spawning
-    /// Vision requests.
-    private let visionExtractor: @Sendable (UIImage) -> ReferencePose?
+    /// Tests inject a fast mock that returns a fixed `ReferencePose` (or throws a
+    /// `ReferenceSessionError`) without spawning Vision requests.
+    private let visionExtractor: @Sendable (UIImage) throws -> ReferencePose
 
     // MARK: - Init
 
@@ -62,7 +66,7 @@ final class ReferenceSession: ObservableObject {
     ///     Defaults to `ReferenceSession.runVision(on:)`.
     init(
         image: UIImage,
-        visionExtractor: @escaping @Sendable (UIImage) -> ReferencePose? = ReferenceSession.runVision(on:)
+        visionExtractor: @escaping @Sendable (UIImage) throws -> ReferencePose = ReferenceSession.runVision(on:)
     ) {
         self.image = image
         self.visionExtractor = visionExtractor
@@ -73,42 +77,54 @@ final class ReferenceSession: ObservableObject {
     /// Runs Vision body-pose and face analysis on a detached background queue.
     ///
     /// Sets `isExtracting` to `true` for the duration of inference and `false` on
-    /// completion (success or failure). Sets `pose` to the extracted `ReferencePose`, or
-    /// `nil` if no human body was detected.
+    /// completion (success or failure). On success, sets `pose` to the extracted
+    /// `ReferencePose` and clears `extractionError`. On failure, sets `pose` to `nil`
+    /// and stores the `ReferenceSessionError` in `extractionError`.
     func extractPose() async {
         isExtracting = true
+        extractionError = nil
         defer { isExtracting = false }
         // Capture values from the main actor before crossing the isolation boundary.
         let capturedImage = image
         let extractor = visionExtractor
-        pose = await Task.detached(priority: .userInitiated) {
-            extractor(capturedImage)
-        }.value
+        do {
+            pose = try await Task.detached(priority: .userInitiated) {
+                try extractor(capturedImage)
+            }.value
+        } catch let error as ReferenceSessionError {
+            pose = nil
+            extractionError = error
+        } catch {
+            pose = nil
+        }
     }
 
     // MARK: - Vision inference (nonisolated static — runs off main actor)
 
     /// Performs `VNDetectHumanBodyPoseRequest` and optionally `VNDetectFaceLandmarksRequest`
-    /// on the given image. Returns a fully-populated `ReferencePose`, or `nil` if no body
-    /// pose was detected.
+    /// on the given image. Returns a fully-populated `ReferencePose` on success.
+    ///
+    /// - Throws: `ReferenceSessionError.imageConversionFailed` when the `UIImage` has no
+    ///   backing `CGImage`. Throws `ReferenceSessionError.noPoseDetected` when Vision finds
+    ///   no human body or yields no confident keypoints. Other Vision errors propagate as-is.
     ///
     /// Declared `static` to prevent inadvertent capture of `self` inside the detached task.
     /// No Vision types leak into the returned `ReferencePose` — joint names are stored as
     /// their `rawValue` `String`s.
-    nonisolated private static func runVision(on image: UIImage) -> ReferencePose? {
-        guard let cgImage = image.cgImage else { return nil }
+    nonisolated private static func runVision(on image: UIImage) throws -> ReferencePose {
+        guard let cgImage = image.cgImage else {
+            throw ReferenceSessionError.imageConversionFailed
+        }
 
         // MARK: Body pose (required)
 
         let bodyRequest = VNDetectHumanBodyPoseRequest()
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-        do {
-            try handler.perform([bodyRequest])
-        } catch {
-            return nil
-        }
+        try handler.perform([bodyRequest])
 
-        guard let bodyObservation = bodyRequest.results?.first else { return nil }
+        guard let bodyObservation = bodyRequest.results?.first else {
+            throw ReferenceSessionError.noPoseDetected
+        }
 
         // Map joint names to normalized CGPoints, filtering below confidence threshold.
         //
@@ -116,19 +132,13 @@ final class ReferenceSession: ObservableObject {
         // RawValue is VNRecognizedPointKey (not String). VNRecognizedPointKey in turn
         // has a String rawValue. Two hops are needed to reach the plain String key:
         //   JointName → .rawValue → VNRecognizedPointKey → .rawValue → String
-        let keypoints: [String: CGPoint]
-        do {
-            let allPoints = try bodyObservation.recognizedPoints(
-                VNHumanBodyPoseObservation.JointsGroupName.all
-            )
-            keypoints = allPoints.reduce(into: [String: CGPoint]()) { dict, kv in
-                if kv.value.confidence > keypointConfidenceThreshold {
-                    dict[kv.key.rawValue.rawValue] = CGPoint(x: kv.value.x, y: kv.value.y)
-                }
+        let allPoints = try bodyObservation.recognizedPoints(
+            VNHumanBodyPoseObservation.JointsGroupName.all
+        )
+        let keypoints: [String: CGPoint] = allPoints.reduce(into: [:]) { dict, kv in
+            if kv.value.confidence > keypointConfidenceThreshold {
+                dict[kv.key.rawValue.rawValue] = CGPoint(x: kv.value.x, y: kv.value.y)
             }
-        } catch {
-            // Fall back: return nil when keypoints cannot be extracted.
-            return nil
         }
 
         // Derive body bounding box from keypoints (more reliable than observation.boundingBox
@@ -140,7 +150,7 @@ final class ReferenceSession: ObservableObject {
             let minX = xValues.min(), let maxX = xValues.max(),
             let minY = yValues.min(), let maxY = yValues.max()
         else {
-            return nil
+            throw ReferenceSessionError.noPoseDetected
         }
         let bodyBox = CGRect(
             x: minX,

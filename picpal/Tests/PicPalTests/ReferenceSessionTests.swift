@@ -2,6 +2,7 @@ import Testing
 import UIKit
 import CoreGraphics
 import Combine
+import os
 @testable import PicPal
 
 // MARK: - ReferenceSessionTests
@@ -56,20 +57,20 @@ struct ReferenceSessionTests {
 
     @Test("isExtracting is false at init")
     func isExtractingFalseAtInit() {
-        let session = ReferenceSession(image: makeBlankImage()) { _ in nil }
+        let session = ReferenceSession(image: makeBlankImage()) { _ in throw ReferenceSessionError.noPoseDetected }
         #expect(!session.isExtracting)
     }
 
     @Test("pose is nil at init")
     func poseNilAtInit() {
-        let session = ReferenceSession(image: makeBlankImage()) { _ in nil }
+        let session = ReferenceSession(image: makeBlankImage()) { _ in throw ReferenceSessionError.noPoseDetected }
         #expect(session.pose == nil)
     }
 
     @Test("image is stored unchanged after init")
     func imageStoredUnchanged() {
         let image = makeBlankImage()
-        let session = ReferenceSession(image: image) { _ in nil }
+        let session = ReferenceSession(image: image) { _ in throw ReferenceSessionError.noPoseDetected }
         // UIImage identity: verify same instance was retained.
         #expect(session.image === image)
     }
@@ -101,18 +102,19 @@ struct ReferenceSessionTests {
 
     // MARK: - No body detected
 
-    @Test("pose is nil after extractPose when mock returns nil (no body)")
+    @Test("pose is nil after extractPose when mock throws noPoseDetected")
     func poseNilWhenNoPoseDetected() async {
-        let session = ReferenceSession(image: makeBlankImage()) { _ in nil }
+        let session = ReferenceSession(image: makeBlankImage()) { _ in throw ReferenceSessionError.noPoseDetected }
 
         await session.extractPose()
 
         #expect(session.pose == nil)
+        #expect(session.extractionError == .noPoseDetected)
     }
 
     @Test("isExtracting is false after extraction with no body detected")
     func isExtractingFalseAfterNoBodyDetected() async {
-        let session = ReferenceSession(image: makeBlankImage()) { _ in nil }
+        let session = ReferenceSession(image: makeBlankImage()) { _ in throw ReferenceSessionError.noPoseDetected }
 
         await session.extractPose()
 
@@ -135,7 +137,7 @@ struct ReferenceSessionTests {
         let session = ReferenceSession(image: makeBlankImage()) { _ in
             // Brief blocking pause so the main actor can observe isExtracting == true.
             Thread.sleep(forTimeInterval: 0.05)
-            return nil
+            throw ReferenceSessionError.noPoseDetected
         }
 
         cancellable = session.$isExtracting.sink { value in
@@ -168,16 +170,31 @@ struct ReferenceSessionTests {
 
     @Test("second extractPose overwrites pose with nil when mock returns nil")
     func secondExtractionOverwritesPoseWithNil() async {
-        // First extraction: returns a pose.
         let mockPose = makeMockPose()
-        let session = ReferenceSession(image: makeBlankImage()) { _ in mockPose }
+        // OSAllocatedUnfairLock is Sendable and safe to capture in a @Sendable closure.
+        // It flips a flag after the first call so the same session's extractor returns
+        // a pose on the first extraction and throws on the second.
+        let hasReturnedOnce = OSAllocatedUnfairLock(initialState: false)
+
+        let session = ReferenceSession(image: makeBlankImage()) { _ in
+            let alreadyReturned = hasReturnedOnce.withLock { state -> Bool in
+                defer { state = true }
+                return state
+            }
+            if alreadyReturned {
+                throw ReferenceSessionError.noPoseDetected
+            }
+            return mockPose
+        }
+
+        // First call on this session: extractor returns a valid pose.
         await session.extractPose()
         #expect(session.pose != nil)
 
-        // Second extraction: different session with nil extractor to confirm nil assignment.
-        let session2 = ReferenceSession(image: makeBlankImage()) { _ in nil }
-        await session2.extractPose()
-        #expect(session2.pose == nil)
-        #expect(!session2.isExtracting)
+        // Second call on the same session: extractor throws, pose is overwritten with nil.
+        await session.extractPose()
+        #expect(session.pose == nil)
+        #expect(session.extractionError == .noPoseDetected)
+        #expect(!session.isExtracting)
     }
 }
