@@ -107,6 +107,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     ///   - suppressor: Stale-response filter. Defaults to a fresh `StaleSuppressor`.
     ///   - responseCache: In-session LRU cache. Defaults to a fresh `VLMResponseCache`.
     ///   - onAestheticSignal: Called on any thread when a valid `AestheticSignal` arrives.
+    // Internal: VLMResponseCache default parameter prevents public init under Swift 6 access rules.
     init(
         client: any VLMClient,
         gate: VLMRequestGate = VLMRequestGate(),
@@ -191,6 +192,10 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
             statsLock.withLock { $0.recordCacheHit() }
             return
         }
+
+        // 3b. Cache miss — counted here so all gate-passing frames are accounted for,
+        //     regardless of whether the request is later dropped (busy, error, suppressed).
+        statsLock.withLock { $0.recordCacheMiss() }
 
         // 4. Drop-if-busy — prevents pool exhaustion and concurrent requests.
         //    `isBusy` is set synchronously here; cleared by the inference Task.
@@ -285,10 +290,9 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
                     return
                 }
 
-                // 5f. Emit valid signal, cache the response, record the miss.
+                // 5f. Emit valid signal and cache the response.
                 onAestheticSignal(valid)
                 responseCache.store(valid, for: signature)
-                statsLock.withLock { $0.recordCacheMiss() }
             }
         }
     }

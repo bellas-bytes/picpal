@@ -168,9 +168,18 @@ extension ContentView {
         #else
         let vlmGate = VLMRequestGate()
         #endif
+        #if DEBUG
+        let vlmCache = VLMResponseCache(
+            maxEntries: TuningSettings.shared.vlmCacheMaxEntries,
+            ttlSeconds: TuningSettings.shared.vlmCacheTTLSeconds
+        )
+        #else
+        let vlmCache = VLMResponseCache()
+        #endif
         let vlmOrch = VLMOrchestrator(
             client: AnthropicVLMClient(proxyURL: VLMSettings.shared.proxyURL),
             gate: vlmGate,
+            responseCache: vlmCache,
             onRequestDispatched: { [weak debugViewModel, expiryHandle] in
                 // Cancel any pending expiry: the incoming response will set a fresh one.
                 Task { @MainActor [weak debugViewModel, expiryHandle] in
