@@ -329,3 +329,17 @@ Task M5.5-1: complete (commits 5aa27ec..997e086, review clean after fix; 516 tes
 - 10 ReferenceSessionTests covering state transitions, error paths, overwrite behavior, Combine transitions, 500ms bound
 - Fix: error enum wired (was dead code); overwrite test rewritten using same session + OSAllocatedUnfairLock<Bool> mock
 Minor deferred: comment on injectable closure has wrong type annotation; non-ReferenceSessionError silently discarded (no logging)
+
+Task M5.5-3: complete (commit f0d5004, review clean; 8 ReferenceOverlayViewTests passing)
+- ReferenceOverlayView: SwiftUI struct, ghost Image(uiImage:) scaled to fit, opacity/tint driven by isMatched
+- Layout enum: defaultOpacity=0.30, matchOpacity=0.15, matchTint=Color.green.opacity(0.35), xmarkSymbol, swipeToDismissMinDist
+- ProgressView centered when isExtracting; animated easeInOut(duration:0.4) on match transition
+- X button (xmark.circle.fill) top-trailing + swipe-down DragGesture both call onDismiss()
+- Minor deferred: currentOpacity is internal (not private) for testability — not annotated; swipe gesture on Image only (not full overlay); matchTintOverlay uses Color.clear when not matched
+
+Task M5.5-2: complete (commits b6a4db6..1d8c500, review clean after fix; 21 ReferenceCoachTests passing)
+- ReferenceCoach: stateless struct, cue(from:isNewMatch:) -> Cue?, CueText enum for all strings
+- Priority: face yaw > scale > horizontal > vertical > headroom; CuePriority.body (.tier05)
+- isWithinThreshold && isNewMatch → match-confirmation cue; isWithinThreshold && !isNewMatch → nil
+- Fix: dead ternary on face yaw branch removed (both branches were identical); test file trimmed 378→297 lines
+Minor deferred: explicit public init() {} is unnecessary (auto-synthesized); faceYawThreshold duplicated from PoseDelta (commented)
