@@ -28,14 +28,18 @@ final class SpyCameraFrameDelegate: CameraFrameDelegate, @unchecked Sendable {
 }
 
 /// Instant `VLMClient` that returns a fixed response without delay.
-struct InstantVLMClient: VLMClient {
+final class InstantVLMClient: VLMClient, @unchecked Sendable {
+    private let lock = OSAllocatedUnfairLock<Int>(initialState: 0)
     let response: VLMResponse
+
+    var callCount: Int { lock.withLock { $0 } }
 
     init(text: String = "NOTHING_TO_SAY") {
         response = VLMResponse(text: text)
     }
 
     func analyze(_ request: VLMRequest) async throws(VLMError) -> VLMResponse {
+        lock.withLock { $0 += 1 }
         return response
     }
 }

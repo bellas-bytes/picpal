@@ -30,67 +30,7 @@ struct VLMOrchestratorCacheTests {
         UserDefaults.standard.removeObject(forKey: VLMSettings.onDeviceOnlyKey)
     }
 
-    // MARK: - Test 1: cache hit short-circuits VLM client
-
-    /// Scenario: frame A fires → VLM called → response cached.
-    ///           frame B fires (different scene) → VLM called (cache miss, B ≠ A).
-    ///           frame A fires again → gate passes (A novel vs B) → cache hits → VLM NOT called.
-    ///
-    /// Uses `InstantVLMClient` returning a valid remark so the StaleSuppressor lets it through
-    /// (nothingToSay signals are discarded by the suppressor and therefore never cached).
-    @Test("cache hit on returning scene skips VLM client call")
-    func cacheHit_shortCircuitsClient() async {
-        enableCloudVLM()
-        defer { resetVLMSettings() }
-
-        let client = CountingVLMClient()
-        // 0s cadence so gate never blocks on timing; novelty still gates identical scenes.
-        let gate = VLMRequestGate(cadenceSeconds: 0)
-        let signalLock = OSAllocatedUnfairLock<Int>(initialState: 0)
-
-        let orch = VLMOrchestrator(client: client, gate: gate) { _ in
-            signalLock.withLock { $0 += 1 }
-        }
-        let capture = CameraCapture()
-
-        // Frame A (dark gray=50): novel → gate passes → VLM fires → signal emitted & cached.
-        guard let bufA = makeFilledPixelBuffer(grayValue: 50) else {
-            Issue.record("Failed to create buffer A"); return
-        }
-        orch.cameraCapture(capture, didOutputPixelBuffer: bufA, timestamp: .zero)
-        try? await Task.sleep(nanoseconds: 300_000_000) // 300 ms for Task to complete
-
-        // CountingVLMClient returns "NOTHING_TO_SAY" which the suppressor discards.
-        // So signalCount may be 0 after frame A — but client.callCount is 1.
-        let clientCallsAfterA = client.callCount
-        #expect(clientCallsAfterA == 1, "frame A should invoke VLM client exactly once")
-
-        // Frame B (bright gray=200): materially different → gate passes (novel vs A) → VLM fires.
-        guard let bufB = makeFilledPixelBuffer(grayValue: 200) else {
-            Issue.record("Failed to create buffer B"); return
-        }
-        orch.cameraCapture(capture, didOutputPixelBuffer: bufB, timestamp: .zero)
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        #expect(client.callCount == 2, "frame B should invoke VLM client")
-
-        // Frame A again (gray=50): novel vs B → gate passes.
-        // Cache returns the previously stored result for signature_A → client NOT called.
-        // Note: CountingVLMClient stores nil signals (nothingToSay discarded), so the cache
-        // may not have a stored hit here. We test that the architecture is correct:
-        // if a valid signal had been cached, this frame would serve from cache.
-        // For a stronger assertion, use a remark-returning client (see Test 1b below).
-        orch.cameraCapture(capture, didOutputPixelBuffer: bufA, timestamp: .zero)
-        try? await Task.sleep(nanoseconds: 300_000_000)
-
-        // The cache-hit path only fires when a valid cached signal exists.
-        // CountingVLMClient returns NOTHING_TO_SAY → suppressor discards → nothing cached.
-        // So the third frame proceeds to the VLM client (cache miss, no entry).
-        // This test verifies structural correctness; the remark-client test below
-        // verifies the actual bypass.
-        _ = client.callCount  // no assertion here — client-call count depends on caching
-    }
-
-    // MARK: - Test 1b: cache hit with remark-returning client
+    // MARK: - Test 1: cache hit with remark-returning client
 
     /// Uses `InstantVLMClient` with a valid remark text to prime the cache,
     /// then verifies that the third frame (returning to scene A) is served from
@@ -136,8 +76,8 @@ struct VLMOrchestratorCacheTests {
 
         let signalAfter = signalLock.withLock { $0 }
         #expect(signalAfter == clientCallsBefore + 1, "cache hit should emit signal without VLM call")
-        // VLM client still has same callCount as after frame B (no new network call).
-        // The InstantVLMClient has no callCount; we verify via sessionStats instead.
+        // VLM client must NOT have been called for the third frame (cache hit).
+        #expect(client.callCount == 2, "cache hit on returning scene must not increment callCount")
         let stats = orch.sessionStats
         #expect(stats.cacheHits >= 1, "at least one cache hit should be recorded")
     }
