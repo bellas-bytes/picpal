@@ -177,8 +177,10 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
             return
         }
 
-        // 3c. Cache miss counter.
-        statsLock.withLock { $0.recordCacheMiss() }
+        // 3c. Cache miss counter — only for non-reference-mode frames.
+        if capturedRefImage == nil {
+            statsLock.withLock { $0.recordCacheMiss() }
+        }
 
         // 4. Drop-if-busy.
         guard isBusy.withLock({ busy in
@@ -196,111 +198,13 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
 
         vlmQueue.async { [weak self] in
             guard let self else { return }
-
-            let tag = suppressor.makeTag(signature: signature, bodyHint: capturedBodyHint)
-
-            // Determine encode path: reference mode or standard.
-            let encodedLive: Data
-            let encodedReference: Data?
-            let prompt: String
-            let isReferenceMode: Bool
-
-            if let refImg = capturedRefImage {
-                // Reference mode: check consent BEFORE FrameEncoder runs.
-                guard capturedConsented else {
-                    isBusy.withLock { $0 = false }
-                    return
-                }
-                guard let pair = FrameEncoder.encode(
-                    pixelBuffer: wrapped.value, referenceImage: refImg.value
-                ) else {
-                    isBusy.withLock { $0 = false }
-                    return
-                }
-                encodedLive = pair.liveData
-                encodedReference = pair.referenceData
-                prompt = VLMPrompt.referenceMode
-                isReferenceMode = true
-            } else {
-                guard let jpegData = FrameEncoder.encode(pixelBuffer: wrapped.value) else {
-                    isBusy.withLock { $0 = false }
-                    return
-                }
-                encodedLive = jpegData
-                encodedReference = nil
-                prompt = AestheticPrompt.v1
-                isReferenceMode = false
-            }
-
-            // 5b-g. Unified async inference Task.
-            Task { [weak self] in
-                guard let self else { return }
-                defer { isBusy.withLock { $0 = false } }
-                defer { onRequestCompleted?() }
-
-                let request = VLMRequest(
-                    imageJPEG: encodedLive,
-                    referenceImageJPEG: encodedReference,
-                    prompt: prompt
-                )
-
-                let inferenceTask = Task<VLMResponse?, Never> {
-                    do {
-                        let r = try await self.client.analyze(request)
-                        self.failureLock.withLock { state in
-                            state.consecutiveFailures = 0
-                            state.backoffDeadline = Date.distantPast
-                        }
-                        return r
-                    } catch {
-                        self.failureLock.withLock { state in
-                            state.consecutiveFailures += 1
-                            let exponent = min(
-                                Double(state.consecutiveFailures - 1),
-                                Double(Self.maxConsecutiveFailures - 1)
-                            )
-                            state.backoffDeadline = Date().addingTimeInterval(
-                                self.instanceBackoffBase * pow(2.0, exponent)
-                            )
-                            if state.consecutiveFailures >= Self.maxConsecutiveFailures {
-                                state.isDisabledForSession = true
-                            }
-                        }
-                        return nil
-                    }
-                }
-
-                let timeoutNs = UInt64(
-                    VLMOrchestratorConstants.requestTimeoutSeconds * 1_000_000_000
-                )
-                let timeoutTask = Task {
-                    try? await Task.sleep(nanoseconds: timeoutNs)
-                    inferenceTask.cancel()
-                }
-                defer { timeoutTask.cancel() }
-
-                guard let response = await inferenceTask.value else { return }
-
-                let signal = AestheticResponseParser.parse(response.text)
-
-                let currentSig = currentSignatureLock.withLock { $0 }
-                let currentHint = bodyHintLock.withLock { $0 }
-                guard let valid = suppressor.evaluate(
-                    signal: signal,
-                    tag: tag,
-                    currentSignature: currentSig,
-                    currentBodyHint: currentHint
-                ) else {
-                    onResponseDiscarded?()
-                    return
-                }
-
-                onAestheticSignal(valid)
-                // Cache the response only when not in reference mode.
-                if !isReferenceMode {
-                    responseCache.store(valid, for: signature)
-                }
-            }
+            dispatchInference(
+                pixelBuffer: wrapped,
+                signature: signature,
+                capturedRefImage: capturedRefImage,
+                capturedConsented: capturedConsented,
+                capturedBodyHint: capturedBodyHint
+            )
         }
     }
 
@@ -309,5 +213,120 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         didChangeState state: CameraCapture.CaptureState
     ) {
         downstream?.cameraCapture(capture, didChangeState: state)
+    }
+
+    // MARK: - Private inference dispatch
+
+    private func dispatchInference(
+        pixelBuffer: SendablePixelBuffer,
+        signature: SceneSignature,
+        capturedRefImage: SendableUIImage?,
+        capturedConsented: Bool,
+        capturedBodyHint: BodyHint
+    ) {
+        let tag = suppressor.makeTag(signature: signature, bodyHint: capturedBodyHint)
+
+        // Determine encode path: reference mode or standard.
+        let encodedLive: Data
+        let encodedReference: Data?
+        let prompt: String
+        let isReferenceMode: Bool
+
+        if let refImg = capturedRefImage {
+            // Reference mode: check consent BEFORE FrameEncoder runs.
+            guard capturedConsented else {
+                isBusy.withLock { $0 = false }
+                return
+            }
+            guard let pair = FrameEncoder.encode(
+                pixelBuffer: pixelBuffer.value, referenceImage: refImg.value
+            ) else {
+                isBusy.withLock { $0 = false }
+                return
+            }
+            encodedLive = pair.liveData
+            encodedReference = pair.referenceData
+            prompt = VLMPrompt.referenceMode
+            isReferenceMode = true
+        } else {
+            guard let jpegData = FrameEncoder.encode(pixelBuffer: pixelBuffer.value) else {
+                isBusy.withLock { $0 = false }
+                return
+            }
+            encodedLive = jpegData
+            encodedReference = nil
+            prompt = AestheticPrompt.v1
+            isReferenceMode = false
+        }
+
+        // 5b-g. Unified async inference Task.
+        Task { [weak self] in
+            guard let self else { return }
+            defer { isBusy.withLock { $0 = false } }
+            defer { onRequestCompleted?() }
+
+            let request = VLMRequest(
+                imageJPEG: encodedLive,
+                referenceImageJPEG: encodedReference,
+                prompt: prompt
+            )
+
+            let inferenceTask = Task<VLMResponse?, Never> {
+                do {
+                    let r = try await self.client.analyze(request)
+                    self.failureLock.withLock { state in
+                        state.consecutiveFailures = 0
+                        state.backoffDeadline = Date.distantPast
+                    }
+                    return r
+                } catch {
+                    self.failureLock.withLock { state in
+                        state.consecutiveFailures += 1
+                        let exponent = min(
+                            Double(state.consecutiveFailures - 1),
+                            Double(Self.maxConsecutiveFailures - 1)
+                        )
+                        state.backoffDeadline = Date().addingTimeInterval(
+                            self.instanceBackoffBase * pow(2.0, exponent)
+                        )
+                        if state.consecutiveFailures >= Self.maxConsecutiveFailures {
+                            state.isDisabledForSession = true
+                        }
+                    }
+                    return nil
+                }
+            }
+
+            let timeoutNs = UInt64(
+                VLMOrchestratorConstants.requestTimeoutSeconds * 1_000_000_000
+            )
+            let timeoutTask = Task {
+                try? await Task.sleep(nanoseconds: timeoutNs)
+                inferenceTask.cancel()
+            }
+            defer { timeoutTask.cancel() }
+
+            guard let response = await inferenceTask.value else { return }
+
+            let signal = AestheticResponseParser.parse(response.text)
+
+            let currentSig = currentSignatureLock.withLock { $0 }
+            let currentHint = bodyHintLock.withLock { $0 }
+            guard let valid = suppressor.evaluate(
+                signal: signal,
+                tag: tag,
+                currentSignature: currentSig,
+                currentBodyHint: currentHint
+            ) else {
+                onResponseDiscarded?()
+                return
+            }
+
+            onAestheticSignal(valid)
+            // Cache the response only when not in reference mode.
+            if !isReferenceMode {
+                responseCache.store(valid, for: signature)
+            }
+        }
     }
 }
