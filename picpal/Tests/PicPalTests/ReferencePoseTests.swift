@@ -36,7 +36,7 @@ struct ReferencePoseTests {
     // MARK: - Sendable conformance (compile-time check — documented here)
 
     @Test("ReferencePose is Sendable")
-    func referencePoseIsSendable() {
+    func referencePoseIsSendable() async {
         // This test verifies the Sendable marker at compile time.
         // Runtime confirmation: pass ReferencePose across isolation boundaries.
         let keypoints: [String: CGPoint] = [:]
@@ -50,8 +50,8 @@ struct ReferencePoseTests {
             subjectHeightFraction: 0.5,
             headroomFraction: 0.2
         )
-        _ = pose  // Use pose to confirm Sendable
-        #expect(true)
+        // Verify Sendable conformance by crossing an actor boundary
+        await Task.detached { _ = pose }.value
     }
 
     // MARK: - Empty keypoints
@@ -92,7 +92,7 @@ struct ReferencePoseTests {
     // MARK: - Vision coordinate space validation
 
     @Test("ReferencePose stores normalized coordinates (0–1 range)")
-    func referencePoseStoresNormalizedCoordinates() {
+    func referencePoseStoresNormalizedCoordinates() throws {
         let pose = ReferencePose(
             bodyKeypoints: [
                 "leftAnkle": CGPoint(x: 0.1, y: 0.05),
@@ -114,8 +114,9 @@ struct ReferencePoseTests {
             #expect(point.y >= 0.0 && point.y <= 1.0)
         }
 
-        #expect(pose.faceCenter!.x >= 0.0 && pose.faceCenter!.x <= 1.0)
-        #expect(pose.faceCenter!.y >= 0.0 && pose.faceCenter!.y <= 1.0)
+        let faceCenter = try #require(pose.faceCenter)
+        #expect(faceCenter.x >= 0.0 && faceCenter.x <= 1.0)
+        #expect(faceCenter.y >= 0.0 && faceCenter.y <= 1.0)
     }
 
     // MARK: - Bounding box properties
@@ -193,7 +194,7 @@ struct ReferencePoseTests {
     // MARK: - Face yaw sign convention
 
     @Test("ReferencePose stores positive face yaw for right turn")
-    func referencePosePositiveFaceYawForRightTurn() {
+    func referencePosePositiveFaceYawForRightTurn() throws {
         let pose = ReferencePose(
             bodyKeypoints: [:],
             faceCenter: CGPoint(x: 0.5, y: 0.5),
@@ -204,11 +205,12 @@ struct ReferencePoseTests {
             subjectHeightFraction: 0.5,
             headroomFraction: 0.2
         )
-        #expect(pose.faceYaw! > 0)
+        let faceYaw = try #require(pose.faceYaw)
+        #expect(faceYaw > 0)
     }
 
     @Test("ReferencePose stores negative face yaw for left turn")
-    func referencePoseNegativeFaceYawForLeftTurn() {
+    func referencePoseNegativeFaceYawForLeftTurn() throws {
         let pose = ReferencePose(
             bodyKeypoints: [:],
             faceCenter: CGPoint(x: 0.5, y: 0.5),
@@ -219,7 +221,8 @@ struct ReferencePoseTests {
             subjectHeightFraction: 0.5,
             headroomFraction: 0.2
         )
-        #expect(pose.faceYaw! < 0)
+        let faceYaw = try #require(pose.faceYaw)
+        #expect(faceYaw < 0)
     }
 
     // MARK: - Value type semantics
