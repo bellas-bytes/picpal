@@ -5,36 +5,15 @@ import UIKit
 import os
 
 // MARK: - Sendable wrappers
-
-private struct SendablePixelBuffer: @unchecked Sendable {
-    let value: CVPixelBuffer
-}
-
-/// Wraps UIImage (not Sendable in Swift 6) for safe transport across isolation boundaries.
-/// VLMOrchestrator is `@unchecked Sendable`; this wrapper documents the intent.
-private struct SendableUIImage: @unchecked Sendable {
-    let value: UIImage
-}
+private struct SendablePixelBuffer: @unchecked Sendable { let value: CVPixelBuffer }
+private struct SendableUIImage: @unchecked Sendable { let value: UIImage }
 
 // MARK: - VLMOrchestrator
 
-/// Tier-2 VLM orchestrator. Sits after `LandmarkOrchestrator` in the pipeline.
-///
-/// Forwards frames downstream FIRST (Tier-0 forwarding invariant), then gates,
-/// then dispatches inference off the camera queue.
-///
-/// ## Threading
-/// JPEG encoding and Task dispatch run on a private serial `vlmQueue` (QoS `.utility`).
-/// The actual network call runs on Swift's cooperative thread pool inside a `Task`.
-/// The drop-if-busy flag (`isBusy`) prevents CVPixelBuffer pool exhaustion and is
-/// set synchronously before any async dispatch.
-///
-/// ## Swift 6
-/// `@unchecked Sendable` — all shared mutable state is protected by
-/// `OSAllocatedUnfairLock`. Delegate methods are `nonisolated`.
+/// Tier-2 VLM orchestrator: forwards frames downstream first (Tier-0 invariant),
+/// then gates, then dispatches inference on `vlmQueue`.
+/// All shared mutable state is `OSAllocatedUnfairLock`-protected (`@unchecked Sendable`).
 public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
-
-    // MARK: - Downstream pipeline delegate
 
     public weak var downstream: (any CameraFrameDelegate)?
 
@@ -44,12 +23,9 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     private let suppressor: StaleSuppressor
     private let responseCache: VLMResponseCache
     private let onAestheticSignal: @Sendable (AestheticSignal) -> Void
-
     private let onRequestDispatched: (@Sendable () -> Void)?
     private let onRequestCompleted: (@Sendable () -> Void)?
     private let onResponseDiscarded: (@Sendable () -> Void)?
-
-    // MARK: - Private serial queue
 
     private let vlmQueue = DispatchQueue(
         label: VLMOrchestratorConstants.queueLabel,
@@ -75,14 +51,9 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     /// Per-reference consent flag. Must be `true` before reference-image cloud calls are made.
     /// Does NOT affect `VLMSettings.shared.isOnDeviceOnly`.
     private let referenceModeConsentedLock = OSAllocatedUnfairLock<Bool>(initialState: false)
-
-    // MARK: - Named constants
-
     static let maxConsecutiveFailures: Int = 3
     public static let backoffBaseSeconds: TimeInterval = 2.0
-
     private let instanceBackoffBase: TimeInterval
-
     // MARK: - Init
 
     init(
@@ -115,17 +86,13 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
 
     var sessionStats: VLMSessionStats { statsLock.withLock { $0 } }
 
-    /// Optional reference image for two-image reference-mode VLM calls.
-    /// Setting this to a non-nil value bypasses the M5 response cache.
-    /// Never persisted to disk.
+    /// Optional reference image for two-image VLM mode (bypasses M5 cache; never persisted).
     var referenceImage: UIImage? {
         get { referenceImageLock.withLock { $0?.value } }
         set { referenceImageLock.withLock { $0 = newValue.map(SendableUIImage.init) } }
     }
 
-    /// Session-scoped consent for sending reference photos to the cloud VLM service.
-    /// When `false`, reference-image VLM calls are suppressed (FrameEncoder never runs).
-    /// Does NOT write to `VLMSettings.shared.isOnDeviceOnly`.
+    /// Session-scoped consent flag; suppresses reference-image cloud calls when `false`.
     var referenceModeConsented: Bool {
         get { referenceModeConsentedLock.withLock { $0 } }
         set { referenceModeConsentedLock.withLock { $0 = newValue } }
