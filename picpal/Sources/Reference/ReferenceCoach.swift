@@ -58,7 +58,7 @@ public struct ReferenceCoach {
         // Priority 1: Face yaw (most visible defect first)
         if let yawDelta = delta.faceYawDelta {
             if abs(yawDelta) >= Self.faceYawThreshold {
-                let text = yawDelta > 0 ? CueText.faceCamera : CueText.faceCamera
+                let text = CueText.faceCamera
                 return Cue(text: text, priority: Self.referencePriority, sourceTier: Self.referenceSourceTier)
             }
         }

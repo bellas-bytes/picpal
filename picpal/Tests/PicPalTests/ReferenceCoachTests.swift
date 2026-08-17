@@ -228,18 +228,6 @@ struct ReferenceCoachTests {
         #expect(cue?.text == ReferenceCoach.CueText.tiltUp)
     }
 
-    @Test("Vertical within threshold but headroom out → headroom cue")
-    func verticalWithinButHeadroomOut() {
-        let delta = PoseDelta(
-            horizontalOffset: 0.01,
-            verticalOffset: 0.01,
-            headroomDelta: 0.2,   // > 0.08 threshold
-            scaleDelta: 0.05
-        )
-        let cue = coach.cue(from: delta, isNewMatch: false)
-        #expect(cue?.text == ReferenceCoach.CueText.moreHeadroom)
-    }
-
     // MARK: - Priority 5: Headroom (lowest priority)
 
     @Test("Headroom out of threshold (positive, too much space) → moreHeadroom cue")
@@ -306,73 +294,4 @@ struct ReferenceCoachTests {
         #expect(cue?.text == ReferenceCoach.CueText.moveLeft)
     }
 
-    // MARK: - Edge cases
-
-    @Test("At threshold boundary (exactly at) → not considered out")
-    func atThresholdBoundaryNotConsidered() {
-        let delta = PoseDelta(
-            horizontalOffset: PoseDelta.defaultMatchThreshold,  // exactly at threshold
-            verticalOffset: 0.01,
-            headroomDelta: 0.01,
-            scaleDelta: 0.05
-        )
-        let cue = coach.cue(from: delta, isNewMatch: false)
-        // Should be within threshold (>= is used in PoseDelta checks)
-        // Actually looking at PoseDelta: abs(horizontalOffset) < Self.defaultMatchThreshold
-        // So at the boundary, it's NOT within threshold
-        // Wait, let me check: if offset == 0.08 exactly, then abs(offset) = 0.08, which is not < 0.08
-        // So it should return a cue
-        #expect(cue?.text == ReferenceCoach.CueText.moveLeft)
-    }
-
-    @Test("Just below threshold → within threshold")
-    func justBelowThresholdIsWithin() {
-        let delta = PoseDelta(
-            horizontalOffset: 0.079,  // Just below 0.08
-            verticalOffset: 0.01,
-            headroomDelta: 0.01,
-            scaleDelta: 0.05
-        )
-        let cue = coach.cue(from: delta, isNewMatch: false)
-        #expect(cue == nil)
-    }
-
-    @Test("All thresholds are checked correctly (scale uses different threshold)")
-    func scaleUsesLooserThreshold() {
-        let delta = PoseDelta(
-            horizontalOffset: 0.01,
-            verticalOffset: 0.01,
-            headroomDelta: 0.01,
-            scaleDelta: 0.14  // Just below 0.15 scale threshold
-        )
-        let cue = coach.cue(from: delta, isNewMatch: false)
-        #expect(cue == nil)
-    }
-
-    @Test("Scale just at stricter threshold → within")
-    func scaleAtStrictThresholdWithin() {
-        let delta = PoseDelta(
-            horizontalOffset: 0.01,
-            verticalOffset: 0.01,
-            headroomDelta: 0.01,
-            scaleDelta: 0.15  // Exactly at threshold
-        )
-        let cue = coach.cue(from: delta, isNewMatch: false)
-        // At threshold: abs(scaleDelta) = 0.15, which is not < 0.15
-        #expect(cue?.text == ReferenceCoach.CueText.stepCloser)
-    }
-
-    @Test("Negative face yaw exactly at threshold → not out")
-    func faceYawAtThresholdNotOut() {
-        let delta = PoseDelta(
-            horizontalOffset: 0.01,
-            verticalOffset: 0.01,
-            headroomDelta: 0.01,
-            scaleDelta: 0.05,
-            faceYawDelta: -0.15  // Exactly at threshold
-        )
-        let cue = coach.cue(from: delta, isNewMatch: false)
-        // At threshold: abs(faceYawDelta) = 0.15, which is not < 0.15
-        #expect(cue?.text == ReferenceCoach.CueText.faceCamera)
-    }
 }

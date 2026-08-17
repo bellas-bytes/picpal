@@ -319,3 +319,13 @@ Task M5.5-0: complete (commits 04bed33..01b1d40, review clean after fix; 506 tes
 - 35 tests across PoseDeltaTests (23) + ReferencePoseTests (12)
 - Fix: hollow #expect(true) replaced with Task.detached Sendable runtime check; force-unwraps → try #require()
 Minor deferred: defaultFaceYawThreshold is private (defaultMatchThreshold/defaultScaleMatchThreshold are public) — minor visibility inconsistency
+
+Task M5.5-1: complete (commits 5aa27ec..997e086, review clean after fix; 516 tests passing)
+- ReferenceSession: @MainActor final class, extractPose() async, Task.detached Vision inference, @Published pose + extractionError, injectable extractor closure
+- runVision throws ReferenceSessionError (.imageConversionFailed, .noPoseDetected); extractPose do/catch stores to extractionError
+- ReferencePhotoPicker: UIViewControllerRepresentable, PHPickerViewController, selectionLimit:1, filter:.images
+- VNHumanBodyPoseObservation keypoints: double-hop .rawValue.rawValue for plain String
+- Face data via VNDetectFaceLandmarksRequest, nil when no face; headroomFraction with max(0,...) guard
+- 10 ReferenceSessionTests covering state transitions, error paths, overwrite behavior, Combine transitions, 500ms bound
+- Fix: error enum wired (was dead code); overwrite test rewritten using same session + OSAllocatedUnfairLock<Bool> mock
+Minor deferred: comment on injectable closure has wrong type annotation; non-ReferenceSessionError silently discarded (no logging)
