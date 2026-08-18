@@ -74,4 +74,15 @@ public enum CueText {
     /// contract is "one cue or nothing". This string is available for UI labels
     /// (e.g., the debug overlay) that want to show a positive state.
     public static let goodFrame   = "Looking good"
+
+    // MARK: - Predictive coaching (M6)
+
+    // Predictive hints — emitted while a signal is actively improving toward threshold.
+    public static let tiltAlmostLevel   = "almost level"
+    public static let tiltNearlyThere   = "just a touch more"
+    public static let exposureImproving = "light's getting better, hold a moment"
+
+    // Positive confirmations — emitted when the signal crosses the threshold mid-session.
+    public static let tiltConfirmed     = "that's it"
+    public static let exposureConfirmed = "nice light"
 }

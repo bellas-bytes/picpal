@@ -31,6 +31,20 @@ public struct CueEvaluator: Sendable {
     /// This borderline state arises when the level dead-zone is computed without a
     /// sign. The evaluator defaults to `.tiltLeft` as a conservative fallback.
     public func evaluate(frame: SignalFrame) -> Cue? {
+        evaluate(frame: frame, predictive: .noAction)
+    }
+
+    /// Evaluates `frame` with optional predictive coach actions applied to tilt and exposure.
+    ///
+    /// Predictive actions can suppress a corrective cue (`.silent`), replace it with a
+    /// predictive hint (`.emitPredictiveHint`), or emit a positive confirmation
+    /// (`.emitPositiveCue`). Blur, framing, body, and aesthetic cues are unaffected.
+    ///
+    /// - Parameters:
+    ///   - frame: The signal snapshot for this analysis tick.
+    ///   - predictive: Snapshot of predictive coach decisions for this frame.
+    /// - Returns: The highest-priority cue, or `nil` for silence.
+    func evaluate(frame: SignalFrame, predictive: PredictiveActions) -> Cue? {
 
         // 0.5. Lens obstruction — checked before stability so it can bypass any
         //      lower-priority cooldown. Uses .obstruction priority (outranks stability).
@@ -40,11 +54,20 @@ public struct CueEvaluator: Sendable {
 
         // 1. Stability: tilt
         if let tilt = frame.tilt, !tilt.isLevel {
-            let text = tilt.angleDegrees >= 0 ? CueText.tiltLeft : CueText.tiltRight
-            return Cue(text: text, priority: .stability, sourceTier: .tier0)
+            switch predictive.tilt {
+            case .emitPredictiveHint:
+                return Cue(text: CueText.tiltAlmostLevel, priority: .stability, sourceTier: .tier0)
+            case .emitPositiveCue:
+                return Cue(text: CueText.tiltConfirmed, priority: .stability, sourceTier: .tier0)
+            case .silent:
+                break  // suppress corrective; continue evaluating lower-priority cues
+            case .revertToCorrective, .idle:
+                let text = tilt.angleDegrees >= 0 ? CueText.tiltLeft : CueText.tiltRight
+                return Cue(text: text, priority: .stability, sourceTier: .tier0)
+            }
         }
 
-        // 2. Stability: blur
+        // 2. Stability: blur — no predictive path; always corrective or silent.
         if let blur = frame.blur, blur.isBlurry {
             return Cue(text: CueText.holdStill, priority: .stability, sourceTier: .tier0)
         }
@@ -53,9 +76,27 @@ public struct CueEvaluator: Sendable {
         if let exposure = frame.exposure {
             switch exposure.level {
             case .underexposed:
-                return Cue(text: CueText.tooDark, priority: .exposure, sourceTier: .tier0)
+                switch predictive.exposure {
+                case .emitPredictiveHint:
+                    return Cue(text: CueText.exposureImproving, priority: .exposure, sourceTier: .tier0)
+                case .emitPositiveCue:
+                    return Cue(text: CueText.exposureConfirmed, priority: .exposure, sourceTier: .tier0)
+                case .silent:
+                    break  // suppress corrective; continue evaluating lower-priority cues
+                case .revertToCorrective, .idle:
+                    return Cue(text: CueText.tooDark, priority: .exposure, sourceTier: .tier0)
+                }
             case .overexposed:
-                return Cue(text: CueText.tooLight, priority: .exposure, sourceTier: .tier0)
+                switch predictive.exposure {
+                case .emitPredictiveHint:
+                    return Cue(text: CueText.exposureImproving, priority: .exposure, sourceTier: .tier0)
+                case .emitPositiveCue:
+                    return Cue(text: CueText.exposureConfirmed, priority: .exposure, sourceTier: .tier0)
+                case .silent:
+                    break  // suppress corrective; continue evaluating lower-priority cues
+                case .revertToCorrective, .idle:
+                    return Cue(text: CueText.tooLight, priority: .exposure, sourceTier: .tier0)
+                }
             case .ok:
                 break
             }
@@ -188,7 +229,21 @@ public final class CueEngine: @unchecked Sendable {
     /// - A cue was just emitted and the cadence-cap cooldown is active.
     /// - The candidate cue text was recently emitted and the repeat interval has not elapsed.
     public func process(frame: SignalFrame) -> Cue? {
-        guard let candidate = evaluator.evaluate(frame: frame) else { return nil }
+        process(frame: frame, predictive: .noAction)
+    }
+
+    /// Processes a `SignalFrame` with predictive coach actions applied to tilt and exposure.
+    ///
+    /// Predictive actions can suppress or replace corrective tilt/exposure cues before the
+    /// debounce gates run. All other debounce logic (cooldown, repeat suppression) applies
+    /// normally to whatever cue the evaluator selects.
+    ///
+    /// - Parameters:
+    ///   - frame: The signal snapshot for this analysis tick.
+    ///   - predictive: Snapshot of predictive coach decisions for this frame.
+    /// - Returns: The selected cue (post-debounce), or `nil` for silence.
+    func process(frame: SignalFrame, predictive: PredictiveActions) -> Cue? {
+        guard let candidate = evaluator.evaluate(frame: frame, predictive: predictive) else { return nil }
 
         let now = clock()
 
