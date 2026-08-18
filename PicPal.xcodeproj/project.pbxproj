@@ -49,6 +49,7 @@
 		30D36CBCF0562F9C31FB96C2 /* PostSessionSurvey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46707AA5A2CFA2E197263E30 /* PostSessionSurvey.swift */; };
 		31C2255D61A64E283C0131F0 /* IntegrationLatencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DF9AC3850B7AC25D1039BF5 /* IntegrationLatencyTests.swift */; };
 		348BD7A872A9F747920D0F19 /* BodySignal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEDDCB6D79C71B0C38F980F /* BodySignal.swift */; };
+		3FEE0E527B3280871848E0CD /* SignalTrendDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFCE8478B968729E44224443 /* SignalTrendDetectorTests.swift */; };
 		40737DFC7B3A0AC9A8CD0C62 /* TiltProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9BCA7A88868D2B3B568534F /* TiltProcessor.swift */; };
 		436AC921EA8F55922DFB0E76 /* SessionTaskOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4730B49FD58A54FF8E75C7F /* SessionTaskOverlay.swift */; };
 		44193E4453E6F0C442CE6C9E /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD84759A4FAEFB9FB9BCA704 /* Vision.framework */; };
@@ -138,6 +139,7 @@
 		D44779D742AEA80E7D6C732C /* CameraCapture+Internal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408C43CD74866EC40E4371C /* CameraCapture+Internal.swift */; };
 		D689CCE4E40040BC94376D92 /* ThermalMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1243DDAF4DADFD1572EC329D /* ThermalMonitorTests.swift */; };
 		D692DF6D48EECAC60F37D2E1 /* TelemetryExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */; };
+		D8AF5F30D0AD2508D2159240 /* SignalTrendDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D56C8A4DA9E1A93C05A250 /* SignalTrendDetector.swift */; };
 		DAA66C0AF0DE7B190E8C1386 /* CueEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF03B1EC3166DCAF7F5A9D0 /* CueEngine.swift */; };
 		DBCBEE50E418550A8CB45297 /* ReferencePoseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E78F247A6DAB8111F25281D /* ReferencePoseTests.swift */; };
 		DC49FACCBC72BD4177477871 /* PipelineTelemetryBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F091BFAC557A758EE5BC92 /* PipelineTelemetryBridge.swift */; };
@@ -183,6 +185,7 @@
 		03A2BBE40E747D179967FEB8 /* SessionTaskTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTaskTests.swift; sourceTree = "<group>"; };
 		0574D8F8FF911716A77E1A02 /* TelemetryFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryFeed.swift; sourceTree = "<group>"; };
 		05956EC4E2CA8D1684A610E4 /* VLMTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMTestSupport.swift; sourceTree = "<group>"; };
+		05D56C8A4DA9E1A93C05A250 /* SignalTrendDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTrendDetector.swift; sourceTree = "<group>"; };
 		07861590B7571AE61176B61F /* VLMClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMClientTests.swift; sourceTree = "<group>"; };
 		07BEFB5616AD3B986C04BB8B /* PhotosUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PhotosUI.framework; path = System/Library/Frameworks/PhotosUI.framework; sourceTree = SDKROOT; };
 		0DF9AC3850B7AC25D1039BF5 /* IntegrationLatencyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationLatencyTests.swift; sourceTree = "<group>"; };
@@ -309,6 +312,7 @@
 		CD84759A4FAEFB9FB9BCA704 /* Vision.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vision.framework; path = System/Library/Frameworks/Vision.framework; sourceTree = SDKROOT; };
 		CF4D58B615E212399068FE51 /* LandmarkProbeStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkProbeStats.swift; sourceTree = "<group>"; };
 		CFC23307A22D070C51FD44AD /* SignalFrameAccumulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalFrameAccumulator.swift; sourceTree = "<group>"; };
+		CFCE8478B968729E44224443 /* SignalTrendDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalTrendDetectorTests.swift; sourceTree = "<group>"; };
 		D031C255A21D6CFCAFC81950 /* FramingProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingProcessorTests.swift; sourceTree = "<group>"; };
 		D04B2CD19B05E00CC59B1A45 /* HandObstructionAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandObstructionAnalyzer.swift; sourceTree = "<group>"; };
 		D5003345D8AE9C0871CE5DD8 /* CameraConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraConfiguration.swift; sourceTree = "<group>"; };
@@ -521,6 +525,7 @@
 				03A2BBE40E747D179967FEB8 /* SessionTaskTests.swift */,
 				60F48D677A6D04E89986A343 /* SettleEventTimerTests.swift */,
 				9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */,
+				CFCE8478B968729E44224443 /* SignalTrendDetectorTests.swift */,
 				459607E42B0E1E0A16742317 /* StaleSuppressorTests.swift */,
 				191E0B1A0F4E6856C3E8D68E /* TelemetryExporterTests.swift */,
 				2A7F1048DB7FD7179CD99478 /* TelemetrySnapshotTests.swift */,
@@ -600,6 +605,7 @@
 				3AF03B1EC3166DCAF7F5A9D0 /* CueEngine.swift */,
 				4B5192EA007595F31EF1398E /* CueText.swift */,
 				CFC23307A22D070C51FD44AD /* SignalFrameAccumulator.swift */,
+				05D56C8A4DA9E1A93C05A250 /* SignalTrendDetector.swift */,
 			);
 			path = CueEngine;
 			sourceTree = "<group>";
@@ -821,6 +827,7 @@
 				69AAAE586FFE8EDC87DB38FD /* SettleEventTimer.swift in Sources */,
 				1CDEEA8EBE25B9B0E43C2B58 /* SignalFrame.swift in Sources */,
 				85592F0D667CFE9386259F20 /* SignalFrameAccumulator.swift in Sources */,
+				D8AF5F30D0AD2508D2159240 /* SignalTrendDetector.swift in Sources */,
 				97A655AD4F04A9DF92DB19A3 /* StaleSuppressor.swift in Sources */,
 				8F1BA24A05B1E07FDD8CDDBC /* TelemetryExporter.swift in Sources */,
 				277DFB380A7B72895217D3B4 /* TelemetryFeed.swift in Sources */,
@@ -892,6 +899,7 @@
 				A13F6C4C63FEAEE2122DE454 /* SessionTaskTests.swift in Sources */,
 				A515D4F0953F1CEE7736DBF1 /* SettleEventTimerTests.swift in Sources */,
 				E0AEF43926A6E7452D36E8FD /* SignalFrameTests.swift in Sources */,
+				3FEE0E527B3280871848E0CD /* SignalTrendDetectorTests.swift in Sources */,
 				98921A79720CB66C83408508 /* StaleSuppressorTests.swift in Sources */,
 				D692DF6D48EECAC60F37D2E1 /* TelemetryExporterTests.swift in Sources */,
 				0232A810A93E023F80D46C84 /* TelemetrySnapshotTests.swift in Sources */,

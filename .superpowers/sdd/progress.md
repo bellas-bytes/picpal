@@ -388,3 +388,8 @@ Task M5.5-2: complete (commits b6a4db6..1d8c500, review clean after fix; 21 Refe
 - isWithinThreshold && isNewMatch → match-confirmation cue; isWithinThreshold && !isNewMatch → nil
 - Fix: dead ternary on face yaw branch removed (both branches were identical); test file trimmed 378→297 lines
 Minor deferred: explicit public init() {} is unnecessary (auto-synthesized); faceYawThreshold duplicated from PoseDelta (commented)
+
+## M6 — Predictive Coaching + Group-Aware Multi-Person
+Branch: feature/m6-predictive-coaching
+Merge base: 5032620
+Pre-flight note: PredictiveCoach.State.confirmed dead-code path resolved — implementer will use (_, true, .waiting) → .emitPositiveCue in switch ordering instead.
