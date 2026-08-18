@@ -70,11 +70,13 @@
 		5D1BC14FD7DD2EC6F1680672 /* FrameEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D3EED331B54DA4510087D26 /* FrameEncoder.swift */; };
 		5E2D054645B4F1F8CE5948D4 /* ConsentGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F06BD9107917BB51D6EA4C3B /* ConsentGate.swift */; };
 		5EBBF5F5CA42F355439D67BA /* CueEngineDebounceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52AD6975E666CEBDF96F1FB8 /* CueEngineDebounceTests.swift */; };
+		64BA8FAE6EF696DFA65AF7B3 /* ReferenceIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B913E08368BAC5A769BACC8 /* ReferenceIntegrationTests.swift */; };
 		6602A80CCA4BED724176E82B /* DebugOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F6FBDC73456CC10ED0DD44B /* DebugOverlayView.swift */; };
 		68B5060D9028AC60D40D32CB /* FrameEncoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC79EDF9BD138340288987CF /* FrameEncoderTests.swift */; };
 		698AEC170D45EB4CB0D1419E /* MotionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5B3440F257F5258241DA3C /* MotionDelegate.swift */; };
 		69AAAE586FFE8EDC87DB38FD /* SettleEventTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94DA7CC14AAD70F6BA66EB6 /* SettleEventTimer.swift */; };
 		6ACB6313D1FF1DD5200BC989 /* VLMSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DF4CD0466690750F3EDC9D4 /* VLMSettingsTests.swift */; };
+		6C9C5E9D62FA40CF1DC88017 /* ContentView+Reference.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A083986FEF05F31395CA18 /* ContentView+Reference.swift */; };
 		6D716199D28D16BE879BE305 /* ExposureMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6527A3A1E9BCD60A21567908 /* ExposureMonitor.swift */; };
 		6E0746DABE5B2BD7B1074AD9 /* VLMOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E262D159350DFDB343093CF9 /* VLMOrchestrator.swift */; };
 		6EBD433279CF46F3ED807464 /* MotionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C989CACDEA5CD57E0938515C /* MotionManager.swift */; };
@@ -203,6 +205,7 @@
 		2A7B5127FCC3197594AA2CA6 /* AestheticSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AestheticSignal.swift; sourceTree = "<group>"; };
 		2A7F1048DB7FD7179CD99478 /* TelemetrySnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetrySnapshotTests.swift; sourceTree = "<group>"; };
 		2B30150F337B9E19B5F720F0 /* GuidesOverlayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidesOverlayTests.swift; sourceTree = "<group>"; };
+		2B913E08368BAC5A769BACC8 /* ReferenceIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceIntegrationTests.swift; sourceTree = "<group>"; };
 		2C800CC086824DADE0DF5B46 /* BodyPoseAnalyzerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyPoseAnalyzerTests.swift; sourceTree = "<group>"; };
 		2C8043A0736551BD4DBA3F3C /* FramingSignal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingSignal.swift; sourceTree = "<group>"; };
 		31C16D84FEC73DA48F75F27F /* ReferenceOverlayViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceOverlayViewTests.swift; sourceTree = "<group>"; };
@@ -326,6 +329,7 @@
 		F38C1C2627D45B67BE8EBB4A /* FramingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramingMonitor.swift; sourceTree = "<group>"; };
 		F41A749E3797C46A13C74301 /* LandmarkCoordinateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkCoordinateTests.swift; sourceTree = "<group>"; };
 		F4730B49FD58A54FF8E75C7F /* SessionTaskOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTaskOverlay.swift; sourceTree = "<group>"; };
+		F6A083986FEF05F31395CA18 /* ContentView+Reference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ContentView+Reference.swift"; sourceTree = "<group>"; };
 		F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionReading.swift; sourceTree = "<group>"; };
 		F817A8E225C5B2DE0557CB1C /* SceneSignature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneSignature.swift; sourceTree = "<group>"; };
 		F997BCE22FDF8D324C33A08A /* CueTelemetryReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueTelemetryReport.swift; sourceTree = "<group>"; };
@@ -416,6 +420,7 @@
 			children = (
 				F06BD9107917BB51D6EA4C3B /* ConsentGate.swift */,
 				576EAE74AC58442D1D45B548 /* ContentView.swift */,
+				F6A083986FEF05F31395CA18 /* ContentView+Reference.swift */,
 				BE139A0A5DCBCDE12A3D4541 /* ContentView+Session.swift */,
 				B7BDD3F0E51F0545D73917A7 /* PicPalApp.swift */,
 				46707AA5A2CFA2E197263E30 /* PostSessionSurvey.swift */,
@@ -507,6 +512,7 @@
 				DD494229586C20A062618F2F /* PoseDeltaTests.swift */,
 				4772C7BD9DDA59EB352CC7D9 /* PostSessionSurveyTests.swift */,
 				CB1AA7F8BD2A12A9E2E6A284 /* ReferenceCoachTests.swift */,
+				2B913E08368BAC5A769BACC8 /* ReferenceIntegrationTests.swift */,
 				31C16D84FEC73DA48F75F27F /* ReferenceOverlayViewTests.swift */,
 				9E78F247A6DAB8111F25281D /* ReferencePoseTests.swift */,
 				1E5EC5D8DDE6F01EB3D38063 /* ReferenceSessionTests.swift */,
@@ -757,6 +763,7 @@
 				5C5BD9F90A9E0DBDA68BADDC /* CaptureState.swift in Sources */,
 				5E2D054645B4F1F8CE5948D4 /* ConsentGate.swift in Sources */,
 				9E368E7C44503AF2B422488B /* ConsentSheet.swift in Sources */,
+				6C9C5E9D62FA40CF1DC88017 /* ContentView+Reference.swift in Sources */,
 				F51BA3A1CB6409C033010315 /* ContentView+Session.swift in Sources */,
 				F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */,
 				EEDE27CC14CEEF6A288AAC67 /* Cue.swift in Sources */,
@@ -876,6 +883,7 @@
 				453163822CEDB58EE18B6398 /* PoseDeltaTests.swift in Sources */,
 				1E5187BAC8C3D97A2EB37034 /* PostSessionSurveyTests.swift in Sources */,
 				5A07B7CFE663DFEC232EB606 /* ReferenceCoachTests.swift in Sources */,
+				64BA8FAE6EF696DFA65AF7B3 /* ReferenceIntegrationTests.swift in Sources */,
 				BACA5C94D31DEAF1FA1EA0C8 /* ReferenceOverlayViewTests.swift in Sources */,
 				DBCBEE50E418550A8CB45297 /* ReferencePoseTests.swift in Sources */,
 				F4DC5AD61A98A89F3761B7CA /* ReferenceSessionTests.swift in Sources */,
