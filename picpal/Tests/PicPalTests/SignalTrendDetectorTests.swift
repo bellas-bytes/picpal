@@ -244,10 +244,10 @@ struct SignalTrendDetectorTests {
         clock.advance(by: 0.1)
         detector.record(signal: Signal.tilt, value: 0.45)
 
-        clock.advance(by: 0.3)
-        // Sample at t=0 outside 0.3s window, only t=0.1 remains
+        clock.advance(by: 0.25)
+        // Sample at t=0 outside 0.3s window (age 0.35 > 0.3), only t=0.1 remains
         detector.record(signal: Signal.tilt, value: 0.4)
-        // Duration 0.3s, slope -0.1667 < -0.03 → improving
+        // Duration 0.25s, slope -0.2 < -0.03 → improving
         let trend = detector.trend(for: Signal.tilt)
         #expect(trend == .improving)
     }
