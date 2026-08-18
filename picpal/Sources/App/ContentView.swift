@@ -119,6 +119,7 @@ struct ContentView: View {
                     #endif
                     Spacer()
                     // Reference mode button — bottom-right, left of the settings button.
+                    // Disabled while a session is active; use the overlay's X to dismiss first.
                     Button {
                         showReferencePicker = true
                     } label: {
@@ -127,6 +128,7 @@ struct ContentView: View {
                             .padding(buttonIconPadding)
                             .background(.ultraThinMaterial, in: Circle())
                     }
+                    .disabled(referenceSession != nil)
                     .padding([.bottom], buttonEdgePadding)
                     Button {
                         showingVLMSettings = true
