@@ -393,3 +393,27 @@ Minor deferred: explicit public init() {} is unnecessary (auto-synthesized); fac
 Branch: feature/m6-predictive-coaching
 Merge base: 5032620
 Pre-flight note: PredictiveCoach.State.confirmed dead-code path resolved — implementer will use (_, true, .waiting) → .emitPositiveCue in switch ordering instead.
+
+Task M6-0: complete (commits d9cfd6d..c0cea72, review clean; SignalTrendDetector 73 lines, 290-line test file, all ACs pass)
+- Minor deferred: misleading inline arithmetic comment in trimsSamplesOutsideWindow (cosmetic)
+
+Task M6-1: complete (commit 0a5efe9; 29 new tests, 614/615 passing; 1 pre-existing failure in SignalTrendDetectorTests unrelated to M6-1)
+- PredictiveCoach: OSAllocatedUnfairLock state machine (idle/waiting); update(trend:isWithinThreshold:) returns emitPredictiveHint/emitPositiveCue/revertToCorrective/silent/idle. defaultWaitWindowSeconds=2.5
+- PredictiveActions: Sendable value-type snapshot (tilt+exposure); .noAction constant
+- CueEvaluator.evaluate(frame:predictive:): internal overload; public evaluate(frame:) delegates with .noAction (backward compat). Tilt and exposure route through predictive; blur/body/obstruction unaffected
+- CueEngine.process(frame:predictive:): internal overload; public process(frame:) delegates
+- CueText: 5 new constants (tiltAlmostLevel, tiltNearlyThere, exposureImproving, tiltConfirmed, exposureConfirmed)
+- Tests split: PredictiveCoachTests (171 lines, 13 tests) + CueEvaluatorPredictiveTests (193 lines, 16 tests)
+- Design deviation: two-method pattern instead of single public+defaulted-param method — required because PredictiveActions→PredictiveCoach.Action→SignalTrendDetector.Trend chain is internal; public method delegates to internal overload
+- Pre-existing bug noted: SignalTrendDetectorTests customWindowSeconds fails due to IEEE 754 imprecision in window filter (0.4-0.1 > 0.3)
+
+Task M6-2: complete (commit 9fb5a1f, review clean; 13 GroupPresenceDetectorTests passing)
+- GroupPresence.swift (Signals/): personCount, unionBoundingBox, 4 derived fractions, 5 threshold constants
+- GroupPresenceDetector: stateless struct, detect(from:[VNHumanBodyPoseObservation]), testable detect(pairs:) overload; uses recognizedPoints(.all) + joint-position bbox (brief's .boundingBox was a Vision API error — correct deviation)
+- SignalFrame.groupPresence: GroupPresence?, SignalFrameAccumulator.update(groupPresence:) wired
+- LandmarkOrchestratorProbe: visionRequest.results ?? [] passed to detector; capturedGroupPresence(nil) on gate failure
+- Important finding "project.yml not updated" was false positive — project.yml uses directory-glob sources; new files auto-included by xcodegen
+- Minor deferred: em-dash → triple-hyphen comment changes (cosmetic noise in diff)
+- SignalTrendDetector: OSAllocatedUnfairLock<[TrackedSignal:[Sample]]>, injectable clock, window trim on record, slope-based trend
+- Concurrent record+trend safety test (DispatchQueue.concurrentPerform 100 iterations)
+- Minor deferred: misleading inline arithmetic comment in trimsSamplesOutsideWindow (cosmetic only)
