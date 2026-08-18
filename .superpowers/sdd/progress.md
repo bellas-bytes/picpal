@@ -330,6 +330,15 @@ Task M5.5-1: complete (commits 5aa27ec..997e086, review clean after fix; 516 tes
 - Fix: error enum wired (was dead code); overwrite test rewritten using same session + OSAllocatedUnfairLock<Bool> mock
 Minor deferred: comment on injectable closure has wrong type annotation; non-ReferenceSessionError silently discarded (no logging)
 
+Task M5.5-4: complete (commits be8c1ba..55f79a4, review clean after fix wave; 550 tests passing)
+- FrameEncoder.encode(pixelBuffer:referenceImage:) — two JPEG Data values; scale=1.0 fix prevents Retina pixel inflation
+- VLMPrompt.referenceMode — named constant with verbatim spec string
+- VLMOrchestrator: referenceImage: UIImage? (SendableUIImage wrapper), referenceModeConsented: Bool; cache skipped + not written in reference mode; consent checked BEFORE FrameEncoder runs
+- VLMClient.VLMRequest: referenceImageJPEG: Data? backward-compatible; multipart includes "reference" part first
+- ReferenceConsentAlert.swift: SwiftUI ViewModifier .alert; "On-device only" does NOT write VLMSettings.isOnDeviceOnly
+- Fix wave: VLMOrchestrator.swift trimmed to 299 lines (docstring, MARKs, struct one-liners); cache-miss guarded by capturedRefImage == nil
+Minor deferred: test timing-sensitive 350ms sleeps (pre-existing pattern)
+
 Task M5.5-3: complete (commit f0d5004, review clean; 8 ReferenceOverlayViewTests passing)
 - ReferenceOverlayView: SwiftUI struct, ghost Image(uiImage:) scaled to fit, opacity/tint driven by isMatched
 - Layout enum: defaultOpacity=0.30, matchOpacity=0.15, matchTint=Color.green.opacity(0.35), xmarkSymbol, swipeToDismissMinDist
