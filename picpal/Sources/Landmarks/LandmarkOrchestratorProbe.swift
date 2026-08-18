@@ -18,7 +18,7 @@ private struct MergedState {
 /// Executes exclusively on `LandmarkOrchestrator`'s private serial `probeQueue`.
 ///
 /// ## Swift 6 concurrency
-/// `@unchecked Sendable` — all shared mutable state is lock-protected.
+/// `@unchecked Sendable` --- all shared mutable state is lock-protected.
 final class LandmarkOrchestratorProbe: @unchecked Sendable {
 
     private let handLandmarker: HandLandmarker
@@ -28,6 +28,7 @@ final class LandmarkOrchestratorProbe: @unchecked Sendable {
     private let handProducer: HandObstructionSignalProducer
     private let gazeProducer: GazeSignalProducer
     private let stateLock: OSAllocatedUnfairLock<MergedState>
+    private let capturedGroupPresence: @Sendable (GroupPresence?) -> Void
     private let logger = Logger(subsystem: "com.picpal", category: "LandmarkOrchestrator")
 
     // MARK: - Init
@@ -36,11 +37,13 @@ final class LandmarkOrchestratorProbe: @unchecked Sendable {
         handLandmarker: HandLandmarker,
         faceLandmarker: FaceLandmarker,
         cadenceController: LandmarkCadenceController,
-        onBodySignal: @escaping @Sendable (BodySignal) -> Void
+        onBodySignal: @escaping @Sendable (BodySignal) -> Void,
+        onGroupPresence: @escaping @Sendable (GroupPresence?) -> Void
     ) {
         self.handLandmarker    = handLandmarker
         self.faceLandmarker    = faceLandmarker
         self.cadenceController = cadenceController
+        self.capturedGroupPresence = onGroupPresence
 
         let lock = OSAllocatedUnfairLock(initialState: MergedState())
         self.stateLock = lock
@@ -84,6 +87,7 @@ final class LandmarkOrchestratorProbe: @unchecked Sendable {
             bodyProducer.process(observation: nil)
             handProducer.process(keypoints: [])
             gazeProducer.process(faceLandmarks: [])
+            capturedGroupPresence(nil)
             return
         }
         runInference(pixelBuffer: pixelBuffer, timestampMs: timestampMs)
@@ -108,6 +112,10 @@ final class LandmarkOrchestratorProbe: @unchecked Sendable {
             logger.error("Body pose failed: \(error.localizedDescription, privacy: .public)")
         }
         bodyProducer.process(observation: visionRequest.results?.first)
+
+        // Group presence from all observations (not just .first).
+        let groupPresence = GroupPresenceDetector().detect(from: visionRequest.results ?? [])
+        capturedGroupPresence(groupPresence)
 
         // b. MediaPipe hand landmarker
         do {

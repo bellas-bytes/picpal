@@ -58,7 +58,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 exposure: current.exposure,
                 framing: current.framing,
                 body: current.body,
-                aesthetic: current.aesthetic
+                aesthetic: current.aesthetic,
+                groupPresence: current.groupPresence
             )
             current = updated
             return updated
@@ -76,7 +77,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 exposure: current.exposure,
                 framing: current.framing,
                 body: current.body,
-                aesthetic: current.aesthetic
+                aesthetic: current.aesthetic,
+                groupPresence: current.groupPresence
             )
             current = updated
             return updated
@@ -94,7 +96,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 exposure: exposure,
                 framing: current.framing,
                 body: current.body,
-                aesthetic: current.aesthetic
+                aesthetic: current.aesthetic,
+                groupPresence: current.groupPresence
             )
             current = updated
             return updated
@@ -112,7 +115,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 exposure: current.exposure,
                 framing: framing,
                 body: current.body,
-                aesthetic: current.aesthetic
+                aesthetic: current.aesthetic,
+                groupPresence: current.groupPresence
             )
             current = updated
             return updated
@@ -130,7 +134,8 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 exposure: current.exposure,
                 framing: current.framing,
                 body: body,
-                aesthetic: current.aesthetic
+                aesthetic: current.aesthetic,
+                groupPresence: current.groupPresence
             )
             current = updated
             return updated
@@ -150,7 +155,27 @@ public final class SignalFrameAccumulator: @unchecked Sendable {
                 exposure: current.exposure,
                 framing: current.framing,
                 body: current.body,
-                aesthetic: aesthetic
+                aesthetic: aesthetic,
+                groupPresence: current.groupPresence
+            )
+            current = updated
+            return updated
+        }
+        onFrame(frame)
+    }
+
+    /// Merges a new GroupPresence value into the accumulated frame and fires `onFrame`.
+    public func update(groupPresence: GroupPresence?) {
+        let frame = lock.withLock { current in
+            let updated = SignalFrame(
+                timestamp: clock(),
+                tilt: current.tilt,
+                blur: current.blur,
+                exposure: current.exposure,
+                framing: current.framing,
+                body: current.body,
+                aesthetic: current.aesthetic,
+                groupPresence: groupPresence
             )
             current = updated
             return updated

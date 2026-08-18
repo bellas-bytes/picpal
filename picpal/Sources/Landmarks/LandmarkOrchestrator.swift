@@ -18,7 +18,7 @@ private enum OrchestratorConstants {
     static let minHandDetectionConfidence: Float = 0.5
     static let minHandPresenceConfidence: Float  = 0.5
     static let handTrackingConfidence: Float     = 0.5
-    static let maxHands: Int                     = 2   // concat all hands → HandObstructionAnalyzer
+    static let maxHands: Int                     = 2   // concat all hands -> HandObstructionAnalyzer
     static let minFaceDetectionConfidence: Float = 0.5
     static let minFacePresenceConfidence: Float  = 0.5
     static let faceTrackingConfidence: Float     = 0.5
@@ -41,7 +41,7 @@ private enum OrchestratorConstants {
 /// Mutable state is guarded by `OSAllocatedUnfairLock`. Delegate methods are `nonisolated`.
 ///
 /// ## Swift 6 concurrency
-/// `@unchecked Sendable` — all shared mutable state is lock-protected.
+/// `@unchecked Sendable` --- all shared mutable state is lock-protected.
 public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegate {
 
     // MARK: - Queues
@@ -80,12 +80,15 @@ public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegat
     /// Loads `hand_landmarker.task` and `face_landmarker.task` from `Bundle.main`.
     ///
     /// - Parameters:
-    ///   - cadenceController: Rate-limits landmark inference to ≤5 fps.
+    ///   - cadenceController: Rate-limits landmark inference to <=5 fps.
     ///   - onBodySignal: Called on any thread when a merged `BodySignal` stabilises.
+    ///   - onGroupPresence: Called on any thread with group geometry when >=2 persons are
+    ///     detected, or `nil` when the presence gate fails. Defaults to a no-op.
     /// - Throws: `MediaPipeLandmarkProbeError.modelNotFound` if a `.task` file is absent.
     public init(
         cadenceController: LandmarkCadenceController = LandmarkCadenceController(),
-        onBodySignal: @escaping @Sendable (BodySignal) -> Void
+        onBodySignal: @escaping @Sendable (BodySignal) -> Void,
+        onGroupPresence: @escaping @Sendable (GroupPresence?) -> Void = { _ in }
     ) throws {
         self.cadenceController = cadenceController
         self.lastTimestampLock = OSAllocatedUnfairLock(initialState: 0)
@@ -124,7 +127,8 @@ public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegat
             handLandmarker: handLandmarker,
             faceLandmarker: faceLandmarker,
             cadenceController: cadenceController,
-            onBodySignal: onBodySignal
+            onBodySignal: onBodySignal,
+            onGroupPresence: onGroupPresence
         )
     }
 
@@ -135,7 +139,7 @@ public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegat
         didOutputPixelBuffer pixelBuffer: CVPixelBuffer,
         timestamp: CMTime
     ) {
-        // 1. Forward unconditionally — never block Tier-0 frame delivery.
+        // 1. Forward unconditionally --- never block Tier-0 frame delivery.
         downstream?.cameraCapture(capture, didOutputPixelBuffer: pixelBuffer, timestamp: timestamp)
 
         // 2. Strictly-increasing millisecond timestamp for MediaPipe .video mode.
@@ -146,10 +150,10 @@ public final class LandmarkOrchestrator: @unchecked Sendable, CameraFrameDelegat
             return next
         }
 
-        // 3. Cheap cadence gate (timer + settle only, no Vision) — camera queue safe. (I2)
+        // 3. Cheap cadence gate (timer + settle only, no Vision) --- camera queue safe. (I2)
         guard cadenceController.checkCadence(isSettled: true) else { return }
 
-        // 4. Drop-if-busy backpressure — prevents CVPixelBuffer pool exhaustion. (I1)
+        // 4. Drop-if-busy backpressure --- prevents CVPixelBuffer pool exhaustion. (I1)
         guard isBusy.withLock({ busy in
             guard !busy else { return false }
             busy = true
