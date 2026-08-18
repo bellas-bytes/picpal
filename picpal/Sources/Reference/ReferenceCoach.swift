@@ -77,13 +77,13 @@ public struct ReferenceCoach {
 
         // Priority 4: Vertical position
         if abs(delta.verticalOffset) >= PoseDelta.defaultMatchThreshold {
-            let text = delta.verticalOffset > 0 ? CueText.tiltDown : CueText.tiltUp
+            let text = delta.verticalOffset > 0 ? CueText.tiltUp : CueText.tiltDown
             return Cue(text: text, priority: Self.referencePriority, sourceTier: Self.referenceSourceTier)
         }
 
         // Priority 5: Headroom
         if abs(delta.headroomDelta) >= PoseDelta.defaultMatchThreshold {
-            let text = delta.headroomDelta > 0 ? CueText.moreHeadroom : CueText.lessHeadroom
+            let text = delta.headroomDelta > 0 ? CueText.lessHeadroom : CueText.moreHeadroom
             return Cue(text: text, priority: Self.referencePriority, sourceTier: Self.referenceSourceTier)
         }
 

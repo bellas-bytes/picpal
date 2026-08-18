@@ -108,6 +108,31 @@ struct ReferenceOverlayViewTests {
         #expect(callCount == 2)
     }
 
+    // MARK: - extractionFailed tests
+
+    @Test("extractionFailed defaults to false")
+    func extractionFailedDefaultsFalse() {
+        let view = ReferenceOverlayView(
+            image: makeBlankImage(),
+            isMatched: false,
+            isExtracting: false,
+            onDismiss: {}
+        )
+        #expect(view.extractionFailed == false)
+    }
+
+    @Test("extractionFailed is stored as provided")
+    func extractionFailedIsStored() {
+        let view = ReferenceOverlayView(
+            image: makeBlankImage(),
+            isMatched: false,
+            isExtracting: false,
+            extractionFailed: true,
+            onDismiss: {}
+        )
+        #expect(view.extractionFailed == true)
+    }
+
     // MARK: - Stored property tests
 
     @Test("image property is stored unchanged")

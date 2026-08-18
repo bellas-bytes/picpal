@@ -96,6 +96,7 @@ struct ContentView: View {
                     image: session.image,
                     isMatched: referenceMatchState.isMatched,
                     isExtracting: session.isExtracting,
+                    extractionFailed: session.extractionError != nil,
                     onDismiss: clearReferenceState
                 )
             }
@@ -161,13 +162,12 @@ struct ContentView: View {
         // M5.5-5: Reference picker — creates a ReferenceSession and starts extraction.
         .sheet(isPresented: $showReferencePicker) {
             ReferencePhotoPicker { image in
+                showReferencePicker = false
                 guard let image else { return }
                 let session = ReferenceSession(image: image)
                 referenceSession = session
                 referenceSessionHandle.session = session
-                vlmOrchestrator?.referenceImage = image
                 Task { await session.extractPose() }
-                showReferencePicker = false
             }
         }
         // M5.5-5: One-per-session consent alert before cloud reference calls.
@@ -183,6 +183,7 @@ struct ContentView: View {
             onEnableForSession: {
                 referenceCloudConsentGiven = true
                 vlmOrchestrator?.referenceModeConsented = true
+                vlmOrchestrator?.referenceImage = referenceSession?.image
             },
             onOnDeviceOnly: {
                 referenceCloudConsentGiven = true

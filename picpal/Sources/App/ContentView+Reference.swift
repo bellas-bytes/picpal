@@ -150,6 +150,7 @@ extension ContentView {
         sessionHandle: ReferenceSessionHandle
     ) -> @Sendable (SignalFrame) -> Void {
         return { [weak matchState, sessionHandle, coach] frame in
+            guard sessionHandle.session != nil else { return }
             Task { @MainActor [weak matchState, sessionHandle, coach] in
                 guard let ms = matchState,
                       let session = sessionHandle.session,

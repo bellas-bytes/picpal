@@ -198,13 +198,13 @@ struct ReferenceCoachTests {
             scaleDelta: 0.05
         )
         let cue = coach.cue(from: delta, isNewMatch: false)
-        #expect(cue?.text == ReferenceCoach.CueText.tiltDown)
+        #expect(cue?.text == ReferenceCoach.CueText.tiltUp)
     }
 
     // MARK: - Priority 4: Vertical
 
-    @Test("Vertical out of threshold (positive, too high) → tiltDown cue")
-    func verticalPositiveReturnsTiltDown() {
+    @Test("Vertical out of threshold (positive, too high) → tiltUp cue")
+    func verticalPositiveReturnsTiltUp() {
         let delta = PoseDelta(
             horizontalOffset: 0.01,
             verticalOffset: 0.2,   // > 0.08 threshold
@@ -212,12 +212,12 @@ struct ReferenceCoachTests {
             scaleDelta: 0.05
         )
         let cue = coach.cue(from: delta, isNewMatch: false)
-        #expect(cue?.text == ReferenceCoach.CueText.tiltDown)
+        #expect(cue?.text == ReferenceCoach.CueText.tiltUp)
         #expect(cue?.priority == .body)
     }
 
-    @Test("Vertical out of threshold (negative, too low) → tiltUp cue")
-    func verticalNegativeReturnsTiltUp() {
+    @Test("Vertical out of threshold (negative, too low) → tiltDown cue")
+    func verticalNegativeReturnsTiltDown() {
         let delta = PoseDelta(
             horizontalOffset: 0.01,
             verticalOffset: -0.2,  // < -0.08 threshold
@@ -225,13 +225,13 @@ struct ReferenceCoachTests {
             scaleDelta: 0.05
         )
         let cue = coach.cue(from: delta, isNewMatch: false)
-        #expect(cue?.text == ReferenceCoach.CueText.tiltUp)
+        #expect(cue?.text == ReferenceCoach.CueText.tiltDown)
     }
 
     // MARK: - Priority 5: Headroom (lowest priority)
 
-    @Test("Headroom out of threshold (positive, too much space) → moreHeadroom cue")
-    func headroomPositiveReturnsMoreHeadroom() {
+    @Test("Headroom out of threshold (positive, too much space) → lessHeadroom cue")
+    func headroomPositiveReturnsLessHeadroom() {
         let delta = PoseDelta(
             horizontalOffset: 0.01,
             verticalOffset: 0.01,
@@ -239,12 +239,12 @@ struct ReferenceCoachTests {
             scaleDelta: 0.05
         )
         let cue = coach.cue(from: delta, isNewMatch: false)
-        #expect(cue?.text == ReferenceCoach.CueText.moreHeadroom)
+        #expect(cue?.text == ReferenceCoach.CueText.lessHeadroom)
         #expect(cue?.priority == .body)
     }
 
-    @Test("Headroom out of threshold (negative, too little space) → lessHeadroom cue")
-    func headroomNegativeReturnsLessHeadroom() {
+    @Test("Headroom out of threshold (negative, too little space) → moreHeadroom cue")
+    func headroomNegativeReturnsMoreHeadroom() {
         let delta = PoseDelta(
             horizontalOffset: 0.01,
             verticalOffset: 0.01,
@@ -252,7 +252,7 @@ struct ReferenceCoachTests {
             scaleDelta: 0.05
         )
         let cue = coach.cue(from: delta, isNewMatch: false)
-        #expect(cue?.text == ReferenceCoach.CueText.lessHeadroom)
+        #expect(cue?.text == ReferenceCoach.CueText.moreHeadroom)
     }
 
     // MARK: - Priority tie-breaking

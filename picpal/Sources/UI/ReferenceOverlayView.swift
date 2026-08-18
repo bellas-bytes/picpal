@@ -25,6 +25,9 @@ struct ReferenceOverlayView: View {
     let isMatched: Bool
     /// True while Vision pose extraction is running.
     let isExtracting: Bool
+    /// True when pose extraction completed with an error (e.g. no person detected).
+    /// Defaults to `false` so existing call sites without this argument still compile.
+    var extractionFailed: Bool = false
     /// Called on X-button tap or swipe-down gesture.
     let onDismiss: () -> Void
 
@@ -45,7 +48,7 @@ struct ReferenceOverlayView: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            // Inner ZStack centres the ProgressView over the ghost image.
+            // Inner ZStack centres the ProgressView / error overlay over the ghost image.
             ZStack {
                 Image(uiImage: image)
                     .resizable()
@@ -58,6 +61,8 @@ struct ReferenceOverlayView: View {
 
                 if isExtracting {
                     ProgressView()
+                } else if extractionFailed {
+                    extractionErrorOverlay
                 }
             }
 
@@ -89,6 +94,19 @@ struct ReferenceOverlayView: View {
                 .foregroundStyle(.white.opacity(0.8))
         }
         .padding(Layout.dismissButtonPadding)
+    }
+
+    private var extractionErrorOverlay: some View {
+        VStack(spacing: 12) {
+            Text("No person detected — try another photo")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white)
+            Button("OK", action: onDismiss)
+                .buttonStyle(.borderedProminent)
+        }
+        .padding(20)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var swipeToDismiss: some Gesture {
