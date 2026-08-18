@@ -7,7 +7,6 @@ import Testing
 
 @Suite("SignalTrendDetector")
 struct SignalTrendDetectorTests {
-
     typealias Signal = SignalTrendDetector.TrackedSignal
     typealias Trend = SignalTrendDetector.Trend
 
@@ -16,83 +15,51 @@ struct SignalTrendDetectorTests {
     @Test("returns .stable with fewer than 2 samples")
     func stableWithFewerThanTwoSamples() {
         let detector = SignalTrendDetector()
-        detector.record(signal: Signal.tilt, value: 0.5)
-        let trend = detector.trend(for: Signal.tilt)
-        #expect(trend == .stable)
-    }
-
-    @Test("returns .stable with zero samples")
-    func stableWithZeroSamples() {
-        let detector = SignalTrendDetector()
-        let trend = detector.trend(for: Signal.tilt)
-        #expect(trend == .stable)
+        // zero samples
+        #expect(detector.trend(for: .tilt) == .stable)
+        // one sample
+        detector.record(signal: .tilt, value: 0.5)
+        #expect(detector.trend(for: .tilt) == .stable)
     }
 
     // MARK: - Improving trend
 
-    @Test("returns .improving for tilt with decreasing slope exceeding threshold")
-    func improvingTiltWithDecreasingSlope() {
+    @Test("returns .improving with decreasing slope exceeding threshold", arguments: [
+        Signal.tilt,
+        Signal.exposure
+    ])
+    func improvingWithDecreasingSlope(signal: Signal) {
         let clock = MockClock()
         let detector = SignalTrendDetector(clock: { clock.now() })
-
-        // Record tilt values: 0.5 at t=0, then 0.41 at t=1 sec
-        // Slope = (0.41 - 0.5) / 1.0 = -0.09/sec
-        // Threshold is -0.03, so -0.09 < -0.03 → improving
-        clock.advance(by: 0)
-        detector.record(signal: Signal.tilt, value: 0.5)
-
-        clock.advance(by: 1.0)
-        detector.record(signal: Signal.tilt, value: 0.41)
-
-        let trend = detector.trend(for: Signal.tilt)
-        #expect(trend == Trend.improving)
-    }
-
-    @Test("returns .improving for exposure with decreasing slope exceeding threshold")
-    func improvingExposureWithDecreasingSlope() {
-        let clock = MockClock()
-        let detector = SignalTrendDetector(clock: { clock.now() })
+        let startValue: Double = signal == .tilt ? 0.5 : 0.8
+        let endValue: Double = signal == .tilt ? 0.41 : 0.71
 
         clock.advance(by: 0)
-        detector.record(signal: Signal.exposure, value: 0.8)
-
+        detector.record(signal: signal, value: startValue)
         clock.advance(by: 1.0)
-        detector.record(signal: Signal.exposure, value: 0.71)
+        detector.record(signal: signal, value: endValue)
 
-        let trend = detector.trend(for: Signal.exposure)
-        #expect(trend == Trend.improving)
+        #expect(detector.trend(for: signal) == .improving)
     }
 
     // MARK: - Worsening trend
 
-    @Test("returns .worsening for tilt with increasing slope exceeding threshold")
-    func worseningTiltWithIncreasingSlope() {
+    @Test("returns .worsening with increasing slope exceeding threshold", arguments: [
+        Signal.tilt,
+        Signal.exposure
+    ])
+    func worseningWithIncreasingSlope(signal: Signal) {
         let clock = MockClock()
         let detector = SignalTrendDetector(clock: { clock.now() })
+        let startValue: Double = signal == .tilt ? 0.2 : 0.3
+        let endValue: Double = signal == .tilt ? 0.29 : 0.39
 
         clock.advance(by: 0)
-        detector.record(signal: Signal.tilt, value: 0.2)
-
+        detector.record(signal: signal, value: startValue)
         clock.advance(by: 1.0)
-        detector.record(signal: Signal.tilt, value: 0.29)
+        detector.record(signal: signal, value: endValue)
 
-        let trend = detector.trend(for: Signal.tilt)
-        #expect(trend == Trend.worsening)
-    }
-
-    @Test("returns .worsening for exposure with increasing slope exceeding threshold")
-    func worseningExposureWithIncreasingSlope() {
-        let clock = MockClock()
-        let detector = SignalTrendDetector(clock: { clock.now() })
-
-        clock.advance(by: 0)
-        detector.record(signal: Signal.exposure, value: 0.3)
-
-        clock.advance(by: 1.0)
-        detector.record(signal: Signal.exposure, value: 0.39)
-
-        let trend = detector.trend(for: Signal.exposure)
-        #expect(trend == Trend.worsening)
+        #expect(detector.trend(for: signal) == .worsening)
     }
 
     // MARK: - Stable trend
@@ -107,9 +74,7 @@ struct SignalTrendDetectorTests {
 
         clock.advance(by: 1.0)
         detector.record(signal: Signal.tilt, value: 0.48)
-
-        // Slope = (0.48 - 0.5) / 1.0 = -0.02/sec
-        // Threshold is -0.03, so -0.03 < -0.02 < 0.03 → stable
+        // Slope -0.02/sec, within threshold → stable
         let trend = detector.trend(for: Signal.tilt)
         #expect(trend == Trend.stable)
     }
@@ -154,53 +119,36 @@ struct SignalTrendDetectorTests {
         detector.record(signal: Signal.tilt, value: 0.5)
 
         clock.advance(by: 0.4)
-        // Now: old sample at t=0 is outside window (0.4 > 0.5)
-        // Only sample at t=0.3 should remain
+        // Old sample at t=0 outside window (0.4 > 0.5), only t=0.3 remains
         detector.record(signal: Signal.tilt, value: 0.5)
-
-        // With only 2 samples effectively (if trimming works), trend should stabilize
+        // Samples at t=0.3 and t=0.7, duration=0.4, slope=0
         let trend = detector.trend(for: Signal.tilt)
-        // We have samples at t=0.3 and t=0.7, duration = 0.4
-        // slope = (0.5 - 0.5) / 0.4 = 0
         #expect(trend == Trend.stable)
     }
 
     // MARK: - Reset
 
-    @Test("reset clears all samples")
+    @Test("reset clears all samples for all signals")
     func resetClearsAllSamples() {
         let clock = MockClock()
         let detector = SignalTrendDetector(clock: { clock.now() })
 
         clock.advance(by: 0)
-        detector.record(signal: Signal.tilt, value: 0.5)
-
+        detector.record(signal: .tilt, value: 0.5)
         clock.advance(by: 1.0)
-        detector.record(signal: Signal.tilt, value: 0.41)
-
-        detector.reset()
-
-        let trend = detector.trend(for: Signal.tilt)
-        #expect(trend == Trend.stable)
-    }
-
-    @Test("reset works for all signals independently")
-    func resetWorksForAllSignals() {
-        let clock = MockClock()
-        let detector = SignalTrendDetector(clock: { clock.now() })
-
-        clock.advance(by: 0)
-        detector.record(signal: Signal.tilt, value: 0.5)
-        detector.record(signal: Signal.exposure, value: 0.8)
-
+        detector.record(signal: .tilt, value: 0.41)
+        detector.record(signal: .exposure, value: 0.8)
         clock.advance(by: 1.0)
-        detector.record(signal: Signal.tilt, value: 0.41)
-        detector.record(signal: Signal.exposure, value: 0.71)
+        detector.record(signal: .exposure, value: 0.71)
 
+        // Both signals improving before reset
+        #expect(detector.trend(for: .tilt) == .improving)
+        #expect(detector.trend(for: .exposure) == .improving)
+
+        // After reset both are stable
         detector.reset()
-
-        #expect(detector.trend(for: Signal.tilt) == Trend.stable)
-        #expect(detector.trend(for: Signal.exposure) == Trend.stable)
+        #expect(detector.trend(for: .tilt) == .stable)
+        #expect(detector.trend(for: .exposure) == .stable)
     }
 
     // MARK: - Clock injection
@@ -239,10 +187,7 @@ struct SignalTrendDetectorTests {
 
         clock.advance(by: 0.75)
         detector.record(signal: Signal.tilt, value: 0.45)
-
-        // Duration from first to last = 0.75 seconds
-        // Slope = (0.45 - 0.6) / 0.75 = -0.2 / 0.75 ≈ -0.267
-        // -0.267 < -0.03 → improving
+        // Slope ≈ -0.267 < -0.03 → improving
         let trend = detector.trend(for: Signal.tilt)
         #expect(trend == Trend.improving)
     }
@@ -261,14 +206,9 @@ struct SignalTrendDetectorTests {
         clock.advance(by: 1.0)
         detector.record(signal: Signal.tilt, value: 0.41)
         detector.record(signal: Signal.exposure, value: 0.39)
-
-        // Tilt: -0.09/sec → improving
-        let tiltTrend = detector.trend(for: Signal.tilt)
-        #expect(tiltTrend == Trend.improving)
-
-        // Exposure: +0.09/sec → worsening
-        let exposureTrend = detector.trend(for: Signal.exposure)
-        #expect(exposureTrend == Trend.worsening)
+        // Tilt: -0.09/sec → improving; Exposure: +0.09/sec → worsening
+        #expect(detector.trend(for: .tilt) == .improving)
+        #expect(detector.trend(for: .exposure) == .worsening)
     }
 
     // MARK: - Custom thresholds
@@ -287,9 +227,7 @@ struct SignalTrendDetectorTests {
 
         clock.advance(by: 1.0)
         detector.record(signal: Signal.tilt, value: 0.45)
-
-        // Slope = -0.05/sec
-        // With threshold 0.1, -0.1 < -0.05 < 0.1 → stable
+        // Slope -0.05/sec within threshold 0.1 → stable
         let trend = detector.trend(for: Signal.tilt)
         #expect(trend == Trend.stable)
     }
@@ -307,14 +245,10 @@ struct SignalTrendDetectorTests {
         detector.record(signal: Signal.tilt, value: 0.45)
 
         clock.advance(by: 0.3)
-        // Now: first sample at t=0 is outside 0.3s window (0.4 > 0.3)
-        // Samples from t=0.1 onward should remain
+        // Sample at t=0 outside 0.3s window, only t=0.1 remains
         detector.record(signal: Signal.tilt, value: 0.4)
-
-        // Should have samples at t=0.1 and t=0.4
+        // Duration 0.3s, slope -0.1667 < -0.03 → improving
         let trend = detector.trend(for: Signal.tilt)
-        // Duration = 0.3, slope = (0.4 - 0.45) / 0.3 = -0.1667
-        // -0.1667 < -0.03 → improving
         #expect(trend == .improving)
     }
 
