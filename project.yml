@@ -46,6 +46,8 @@ targets:
     dependencies:
       - sdk: Accelerate.framework
       - sdk: Vision.framework
+      # M5.5-1: PHPickerViewController for reference photo selection.
+      - sdk: PhotosUI.framework
       - package: SwiftTasksVision
         product: SwiftTasksVision
     settings:

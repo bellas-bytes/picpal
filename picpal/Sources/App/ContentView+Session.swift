@@ -36,6 +36,7 @@ extension ContentView {
         case .background:
             settleEventTimer?.reset()   // prevent stale timestamp from prior foreground session
             vlmOrchestrator?.invalidateCache()
+            clearReferenceState()       // reference mode does not persist across background cycles
             exportSnapshot(surveyResponse: nil)
             // Set flag so survey appears on next foreground; shown at most once per lifecycle.
             if !surveyShownThisSession &&
@@ -48,31 +49,6 @@ extension ContentView {
         default:
             break
         }
-    }
-
-    // MARK: - Telemetry export
-
-    /// Builds a `TelemetrySnapshot` from current session state and writes it to disk.
-    ///
-    /// `TelemetryFeed` does not expose `currentStats` or `thermalEvents` as public
-    /// properties — placeholders (`FrameTimerStatistics.empty` and `[]`) are used
-    /// until those are surfaced. See task-m4-2-report.md for the follow-up note.
-    @MainActor
-    func exportSnapshot(surveyResponse: Int?) {
-        let report = cueLogger?.makeSummary()
-        let batteryReport = batteryMonitor.endSession()
-        let stats = vlmOrchestrator?.sessionStats
-        let snapshot = TelemetrySnapshot(
-            frameStats: FrameTimerStatistics.empty,
-            thermalEvents: [],
-            batteryReport: batteryReport,
-            cueTelemetry: report,
-            surveyResponse: surveyResponse,
-            vlmCacheHits: stats?.cacheHits,
-            vlmCacheMisses: stats?.cacheMisses
-        )
-        try? telemetryExporter?.export(snapshot: snapshot)
-        batteryMonitor.startSession()   // restart immediately for next foreground session
     }
 
     // MARK: - Composition root
@@ -98,7 +74,13 @@ extension ContentView {
         let expiryHandle = aestheticExpiryTask
         let logger = CueLogger()
         let settleTimer = SettleEventTimer()
-        let accum = SignalFrameAccumulator { [weak debugViewModel] frame in
+        // M5.5-5: Build the per-frame reference coaching callback before the accumulator.
+        let refCallback = makeReferenceCoachingCallback(
+            coach: coach,
+            matchState: referenceMatchState,
+            sessionHandle: referenceSessionHandle
+        )
+        let accum = SignalFrameAccumulator { [weak debugViewModel, refCallback] frame in
             let cue = engine.process(frame: frame)
             if let cue {
                 let now = Date()
@@ -113,6 +95,7 @@ extension ContentView {
                 settleTimer.reset()   // reset after first cue; next settle starts a new burst
                 coach.speak(cue)
             }
+            refCallback(frame)
             let cueText = cue?.text ?? "—"
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.activeCue = cueText

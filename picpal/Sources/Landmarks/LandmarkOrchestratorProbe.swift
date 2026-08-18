@@ -51,21 +51,24 @@ final class LandmarkOrchestratorProbe: @unchecked Sendable {
                 state.poseSignal = signal
                 return LandmarkOrchestratorProbe.winner(from: state)
             }
-            capturedSignal(winner)
+            let rect = cadenceController.lastPresenceResult.dominantRect
+            capturedSignal(BodySignal(hint: winner.hint, confidence: winner.confidence, dominantRect: rect))
         }
         self.handProducer = HandObstructionSignalProducer { signal in
             let winner = lock.withLock { state -> BodySignal in
                 state.handSignal = signal
                 return LandmarkOrchestratorProbe.winner(from: state)
             }
-            capturedSignal(winner)
+            let rect = cadenceController.lastPresenceResult.dominantRect
+            capturedSignal(BodySignal(hint: winner.hint, confidence: winner.confidence, dominantRect: rect))
         }
         self.gazeProducer = GazeSignalProducer { signal in
             let winner = lock.withLock { state -> BodySignal in
                 state.gazeSignal = signal
                 return LandmarkOrchestratorProbe.winner(from: state)
             }
-            capturedSignal(winner)
+            let rect = cadenceController.lastPresenceResult.dominantRect
+            capturedSignal(BodySignal(hint: winner.hint, confidence: winner.confidence, dominantRect: rect))
         }
     }
 

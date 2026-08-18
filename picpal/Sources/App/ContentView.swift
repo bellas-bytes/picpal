@@ -8,6 +8,9 @@ private let buttonIconPadding: CGFloat = 10
 /// Padding from screen edges for control buttons
 private let buttonEdgePadding: CGFloat = 16
 
+/// SF Symbol for the reference-photo mode button.
+private let referenceButtonSFSymbol: String = "photo.on.rectangle"
+
 // MARK: - ContentView
 
 /// Root view — full-screen camera preview with a toggleable debug overlay.
@@ -23,9 +26,22 @@ struct ContentView: View {
     @State var camera = CameraCapture()
     @StateObject var debugViewModel = DebugOverlayViewModel()
     @State private var showingVLMSettings = false
+    @State private var showReferencePicker: Bool = false
     @State private var showConsentSheet: Bool
     @State var showSurvey: Bool = false
     @State var surveyShownThisSession: Bool = false
+
+    // MARK: - Reference mode state
+
+    /// The active reference session. Non-nil while the user has picked a reference photo.
+    /// Internal (not private) so ContentView+Reference.swift can mutate it.
+    @State var referenceSession: ReferenceSession?
+    /// Whether the user has consented to cloud calls for the current reference session.
+    @State var referenceCloudConsentGiven: Bool = false
+    /// Stable class reference for the current session; captured by wireUp() closures.
+    @State var referenceSessionHandle = ReferenceSessionHandle()
+    /// Per-frame match tracking. @StateObject so SwiftUI observes published changes.
+    @StateObject var referenceMatchState = ReferenceMatchState()
     #if DEBUG
     @State private var showSessionKit = false
     @State private var showTuningPanel = false
@@ -74,7 +90,18 @@ struct ContentView: View {
             DebugOverlayView(viewModel: debugViewModel)
             #endif
 
-            // Settings button — bottom-right corner, unobtrusive.
+            // Reference ghost overlay — rendered between debug layer and controls.
+            if let session = referenceSession {
+                ReferenceOverlayView(
+                    image: session.image,
+                    isMatched: referenceMatchState.isMatched,
+                    isExtracting: session.isExtracting,
+                    extractionFailed: session.extractionError != nil,
+                    onDismiss: clearReferenceState
+                )
+            }
+
+            // Control buttons — bottom row.
             VStack {
                 Spacer()
                 HStack {
@@ -91,6 +118,18 @@ struct ContentView: View {
                     .padding([.bottom, .leading], buttonEdgePadding)
                     #endif
                     Spacer()
+                    // Reference mode button — bottom-right, left of the settings button.
+                    // Disabled while a session is active; use the overlay's X to dismiss first.
+                    Button {
+                        showReferencePicker = true
+                    } label: {
+                        Image(systemName: referenceButtonSFSymbol)
+                            .imageScale(.medium)
+                            .padding(buttonIconPadding)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .disabled(referenceSession != nil)
+                    .padding([.bottom], buttonEdgePadding)
                     Button {
                         showingVLMSettings = true
                     } label: {
@@ -122,6 +161,36 @@ struct ContentView: View {
                 // Skip: no record, no export (the background export already fired)
             }
         }
+        // M5.5-5: Reference picker — creates a ReferenceSession and starts extraction.
+        .sheet(isPresented: $showReferencePicker) {
+            ReferencePhotoPicker { image in
+                showReferencePicker = false
+                guard let image else { return }
+                let session = ReferenceSession(image: image)
+                referenceSession = session
+                referenceSessionHandle.session = session
+                Task { await session.extractPose() }
+            }
+        }
+        // M5.5-5: One-per-session consent alert before cloud reference calls.
+        .referenceConsentAlert(
+            isPresented: Binding(
+                get: {
+                    referenceSession != nil
+                        && !referenceCloudConsentGiven
+                        && !VLMSettings.shared.isOnDeviceOnly
+                },
+                set: { _ in }
+            ),
+            onEnableForSession: {
+                referenceCloudConsentGiven = true
+                vlmOrchestrator?.referenceModeConsented = true
+                vlmOrchestrator?.referenceImage = referenceSession?.image
+            },
+            onOnDeviceOnly: {
+                referenceCloudConsentGiven = true
+            }
+        )
         #if DEBUG
         .sheet(isPresented: $showSessionKit) {
             SessionTaskOverlay(tasks: SessionTaskScript.m4Tasks) {

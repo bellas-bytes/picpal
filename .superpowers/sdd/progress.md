@@ -261,3 +261,130 @@ Fix wave (commit 70f2009) addressed:
 - IMPORTANT: ContentView.swift split (452→172 lines); wireUp + exportSnapshot + scenePhase handler moved to ContentView+Session.swift (304 lines)
 
 460 tests passing.
+
+---
+
+# M5 — Scene-Descriptor Caching
+
+Plan file: docs/picpal-tickets-m5.md
+Branch: feature/m5-caching
+Base commit (branch point): a8323638a1d56b4fcbe76d77cfb93555e25bc9f4
+
+Task M5-0: complete (commit 04d9173, review clean; 471 tests passing)
+- VLMResponseCache: final class @unchecked Sendable, OSAllocatedUnfairLock<[Entry]>, injectable clock
+- defaultMaxEntries=20, defaultTTLSeconds=30.0 (named constants)
+- lookup uses isMateriallyDifferent + TTL; store deduplicates before insert, evicts tail
+- 11 VLMResponseCacheTests covering all acceptance criteria + concurrency
+Minor deferred: dead `import os.log` at VLMResponseCache.swift:2; namedConstants test asserts > 0 rather than == exact values
+
+Task M5-1: complete (commits 759398f..c054df9, review clean after fix; tests passing)
+- VLMResponseCache injected into VLMOrchestrator; cache consulted after gate, before FrameEncoder.encode
+- Bypassed when referenceImage != nil (referenceImageLock guard)
+- VLMSessionStats: cacheHits/cacheMisses counters, OSAllocatedUnfairLock protected
+- VLMSessionStats.swift + VLMOrchestratorConstants extracted to keep orchestrator under 300 lines
+- TelemetrySnapshot gains vlmCacheHits: Int? + vlmCacheMisses: Int? (backward-compatible)
+- TuningSettings: vlmCacheTTLSeconds + vlmCacheMaxEntries under #if DEBUG; keys follow com.picpal.tuning.* convention; removed by resetToDefaults()
+- TuningPanel: "Cache TTL" + "Max entries" steppers in VLM section
+- ContentView+Session: invalidateCache() in .background handler alongside settleEventTimer?.reset()
+- Fix: InstantVLMClient gains callCount; cacheHitWithRemark_bypassesClient asserts callCount == 2
+Minor deferred: VLMOrchestratorConstants visibility widened to internal unnecessarily (was private); cosmetic, no correctness impact
+
+## M5 Final whole-branch review fix wave (commit 4904a93)
+
+**Status: MERGE-READY** — all Important findings fixed and verified. 475 tests passing.
+
+Fix wave (commit 4904a93) addressed:
+- IMPORTANT: TuningSettings cache params now wired in wireUp() via #if DEBUG block — vlmCacheTTLSeconds + vlmCacheMaxEntries passed to VLMResponseCache(maxEntries:ttlSeconds:) before orchestrator init
+- IMPORTANT: recordCacheMiss() moved to step 3b (after cache miss, before isBusy) so hits+misses = total gate passes; removed from step-5f success path
+- IMPORTANT: VLMOrchestrator.init access level drop (public→internal) documented with Swift 6 constraint comment
+
+Minor deferred (surface at M6 review):
+- VLMResponseCache.swift:2 dead `import os.log`
+- VLMResponseCacheTests.swift: namedConstants test asserts > 0 rather than == 20 / == 30.0
+- VLMSessionStats.swift: VLMOrchestratorConstants and VLMFailureState have internal visibility (was private) — encapsulation regression
+- VLMSessionStats.swift: misleading filename (contains 3 unrelated types)
+- ContentView+Session.swift debug onExportTelemetry closure omits cache stats (debug-only, low impact)
+
+---
+
+# M5.5 — Reference Photo Mode
+
+Plan file: docs/picpal-tickets-m5-5.md
+Branch: feature/m5.5-reference-photo
+Base commit (branch point): 4904a93485a891b9d738ae39ce3140451c021669
+
+Task M5.5-0: complete (commits 04bed33..01b1d40, review clean after fix; 506 tests passing)
+- ReferencePose: Sendable struct, [String: CGPoint] bodyKeypoints, no Vision import, explicit memberwise init
+- PoseDelta: five offset/delta fields, defaultMatchThreshold=0.08, defaultScaleMatchThreshold=0.15, defaultFaceYawThreshold=0.15 (private), isWithinThreshold using all three, nil faceYawDelta → matched
+- 35 tests across PoseDeltaTests (23) + ReferencePoseTests (12)
+- Fix: hollow #expect(true) replaced with Task.detached Sendable runtime check; force-unwraps → try #require()
+Minor deferred: defaultFaceYawThreshold is private (defaultMatchThreshold/defaultScaleMatchThreshold are public) — minor visibility inconsistency
+
+Task M5.5-1: complete (commits 5aa27ec..997e086, review clean after fix; 516 tests passing)
+- ReferenceSession: @MainActor final class, extractPose() async, Task.detached Vision inference, @Published pose + extractionError, injectable extractor closure
+- runVision throws ReferenceSessionError (.imageConversionFailed, .noPoseDetected); extractPose do/catch stores to extractionError
+- ReferencePhotoPicker: UIViewControllerRepresentable, PHPickerViewController, selectionLimit:1, filter:.images
+- VNHumanBodyPoseObservation keypoints: double-hop .rawValue.rawValue for plain String
+- Face data via VNDetectFaceLandmarksRequest, nil when no face; headroomFraction with max(0,...) guard
+- 10 ReferenceSessionTests covering state transitions, error paths, overwrite behavior, Combine transitions, 500ms bound
+- Fix: error enum wired (was dead code); overwrite test rewritten using same session + OSAllocatedUnfairLock<Bool> mock
+Minor deferred: comment on injectable closure has wrong type annotation; non-ReferenceSessionError silently discarded (no logging)
+
+## M5.5 Final whole-branch review fix wave (commits 5d607eb..0e944b2)
+
+**Status: MERGE-READY** — all Critical and Important findings fixed and verified. 560 tests passing.
+
+Fix wave addressed:
+- CRITICAL: BodySignal.dominantRect always nil → plumbed lastPresenceResult.dominantRect in LandmarkOrchestratorProbe.winner(from:)
+- CRITICAL: Proxy rejected reference multipart field → upload.fields([image,reference]); two-image content array
+- CRITICAL: Vertical + headroom cue polarity inverted → swapped both ternaries in ReferenceCoach + fixed 4 tests
+- IMPORTANT: Cancel picker left showReferencePicker=true → showReferencePicker=false before guard
+- IMPORTANT: vlmOrchestrator.referenceImage set on pick blocked standard Tier-2 → deferred to onEnableForSession
+- IMPORTANT: Extraction failures invisible → extractionFailed: Bool in ReferenceOverlayView; error card + OK button
+- IMPORTANT: Task spawned per frame when reference off → guard sessionHandle.session != nil before Task
+- IMPORTANT: Stale reference image on re-pick without dismiss → .disabled(referenceSession != nil) on reference button
+
+Minor deferred (surface at M6/M7 review):
+- defaultFaceYawThreshold private (inconsistency with public thresholds)
+- Non-ReferenceSessionError paths silently discarded in extractPose()
+- currentOpacity in ReferenceOverlayView is internal (testability tradeoff, undocumented)
+- exportSnapshot in ContentView+Reference.swift (layout pragmatism)
+- @State reference vars are internal (Swift struct extension limitation)
+- Timing-sensitive 350ms sleeps in VLM orchestrator tests (pre-existing)
+- ContentView+Session.swift at exactly 300 lines (no headroom)
+- VLMOrchestratorTests.swift at 349 lines (pre-existing 300-line violation)
+- Consent is session-scoped (not per-reference as spec says); photo B gets cloud call with no new prompt
+- ReferenceOverlayView uses .scaledToFit() while camera preview is aspect-fill
+- ReferenceMatchState.count increments without bound once matched
+- No aspect-ratio normalization between reference and live frame coordinate spaces
+
+Task M5.5-5: complete (commits cd8f2e9..7e133c6, review clean after fix wave; 557 tests passing)
+- ContentView+Reference.swift (new, 184 lines): ReferenceSessionHandle, ReferenceMatchState @MainActor ObservableObject, computePoseDelta(), clearReferenceState(), makeReferenceCoachingCallback()
+- ContentView.swift: reference button (photo.on.rectangle), ReferenceOverlayView in ZStack, picker sheet, consent alert wiring
+- ContentView+Session.swift: clearReferenceState() in background handler, refCallback in accumulator; exportSnapshot moved to +Reference
+- ReferenceIntegrationTests.swift (new, 228 lines): 7 Swift Testing tests including no-body guard test
+- Fix: nil-body guard resets count+isMatched before computePoseDelta; prevents all-zero PoseDelta false match
+Minor deferred: @State reference vars are internal (Swift struct extension limitation); exportSnapshot in +Reference (layout pragmatism)
+
+Task M5.5-4: complete (commits be8c1ba..55f79a4, review clean after fix wave; 550 tests passing)
+- FrameEncoder.encode(pixelBuffer:referenceImage:) — two JPEG Data values; scale=1.0 fix prevents Retina pixel inflation
+- VLMPrompt.referenceMode — named constant with verbatim spec string
+- VLMOrchestrator: referenceImage: UIImage? (SendableUIImage wrapper), referenceModeConsented: Bool; cache skipped + not written in reference mode; consent checked BEFORE FrameEncoder runs
+- VLMClient.VLMRequest: referenceImageJPEG: Data? backward-compatible; multipart includes "reference" part first
+- ReferenceConsentAlert.swift: SwiftUI ViewModifier .alert; "On-device only" does NOT write VLMSettings.isOnDeviceOnly
+- Fix wave: VLMOrchestrator.swift trimmed to 299 lines (docstring, MARKs, struct one-liners); cache-miss guarded by capturedRefImage == nil
+Minor deferred: test timing-sensitive 350ms sleeps (pre-existing pattern)
+
+Task M5.5-3: complete (commit f0d5004, review clean; 8 ReferenceOverlayViewTests passing)
+- ReferenceOverlayView: SwiftUI struct, ghost Image(uiImage:) scaled to fit, opacity/tint driven by isMatched
+- Layout enum: defaultOpacity=0.30, matchOpacity=0.15, matchTint=Color.green.opacity(0.35), xmarkSymbol, swipeToDismissMinDist
+- ProgressView centered when isExtracting; animated easeInOut(duration:0.4) on match transition
+- X button (xmark.circle.fill) top-trailing + swipe-down DragGesture both call onDismiss()
+- Minor deferred: currentOpacity is internal (not private) for testability — not annotated; swipe gesture on Image only (not full overlay); matchTintOverlay uses Color.clear when not matched
+
+Task M5.5-2: complete (commits b6a4db6..1d8c500, review clean after fix; 21 ReferenceCoachTests passing)
+- ReferenceCoach: stateless struct, cue(from:isNewMatch:) -> Cue?, CueText enum for all strings
+- Priority: face yaw > scale > horizontal > vertical > headroom; CuePriority.body (.tier05)
+- isWithinThreshold && isNewMatch → match-confirmation cue; isWithinThreshold && !isNewMatch → nil
+- Fix: dead ternary on face yaw branch removed (both branches were identical); test file trimmed 378→297 lines
+Minor deferred: explicit public init() {} is unnecessary (auto-synthesized); faceYawThreshold duplicated from PoseDelta (commented)

@@ -62,7 +62,7 @@ const upload = multer({
 });
 
 // ── POST /analyze ──────────────────────────────────────────────────────────────
-app.post('/analyze', upload.single('image'), async (req, res) => {
+app.post('/analyze', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'reference', maxCount: 1 }]), async (req, res) => {
   try {
     // Hard call ceiling — enforced server-side, independent of client-side gate
     if (totalCalls >= HARD_CALL_CEILING) {
@@ -72,36 +72,44 @@ app.post('/analyze', upload.single('image'), async (req, res) => {
     }
 
     const { prompt } = req.body;
-    const image = req.file;
+    const imageFile = req.files['image']?.[0];
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
       return res.status(400).json({ error: 'Missing required field: prompt' });
     }
-    if (!image) {
+    if (!imageFile) {
       return res.status(400).json({ error: 'Missing required field: image (JPEG)' });
     }
 
     totalCalls += 1;
 
-    const imageBase64 = image.buffer.toString('base64');
+    const imageBase64 = imageFile.buffer.toString('base64');
     const startMs = Date.now();
+
+    // Build content array: prepend reference image when present.
+    let content;
+    const referenceFile = req.files['reference']?.[0];
+    if (referenceFile) {
+      const refBase64 = referenceFile.buffer.toString('base64');
+      content = [
+        { type: 'text', text: 'Reference photo:' },
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: refBase64 } },
+        { type: 'text', text: 'Current live view:' },
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
+        { type: 'text', text: prompt.trim() },
+      ];
+    } else {
+      content = [
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
+        { type: 'text', text: prompt.trim() },
+      ];
+    }
 
     const message = await anthropic.messages.create({
       model: MODEL_ID,
       max_tokens: MAX_TOKENS,
       thinking: { type: 'disabled' },
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 },
-            },
-            { type: 'text', text: prompt.trim() },
-          ],
-        },
-      ],
+      messages: [{ role: 'user', content }],
     });
 
     const result = message.content
@@ -119,6 +127,7 @@ app.post('/analyze', upload.single('image'), async (req, res) => {
         responseLen: result.length,
         latencyMs,
         callNo: totalCalls,
+        hasReference: Boolean(referenceFile),
       })
     );
 
