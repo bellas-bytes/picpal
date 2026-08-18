@@ -85,4 +85,12 @@ public enum CueText {
     // Positive confirmations — emitted when the signal crosses the threshold mid-session.
     public static let tiltConfirmed     = "that's it"
     public static let exposureConfirmed = "nice light"
+
+    // MARK: - Group coaching (M6)
+
+    public static let groupCutOffLeft  = "someone's getting cut off on the left"
+    public static let groupCutOffRight = "someone's getting cut off on the right"
+    public static let groupSpreadWide  = "group is spread too wide, move back"
+    public static let groupLearnIn     = "lean in, you're too far apart"
+    public static let groupTooHigh     = "group is too high, tilt camera down"
 }

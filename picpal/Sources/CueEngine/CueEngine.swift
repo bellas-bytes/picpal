@@ -13,8 +13,6 @@ import os
 /// 2. **Stability — blur**: `blur.isBlurry == true`
 /// 3. **Exposure**: `exposure.level` is `.underexposed` or `.overexposed`
 /// 4. **Composition**: `framing.hint` is a directional nudge or `.tooCentered`
-///
-/// Slots 5+ (body, aesthetic) are reserved for M2/M3 — add new cases above `return nil`.
 public struct CueEvaluator: Sendable {
 
     public init() {}
@@ -120,9 +118,25 @@ public struct CueEvaluator: Sendable {
             }
         }
 
-        // 4.5. Body framing signals — awkward crop, gaze, and headroom.
-        //      lensObstructed is handled at 0.5 above; goodBody means silence.
-        if let body = frame.body {
+        // 4.5. Body / group framing — mutually exclusive; group mode suppresses body cues.
+        if let group = frame.groupPresence {
+            if group.leftMargin < GroupPresence.edgeCutoffThreshold {
+                return Cue(text: CueText.groupCutOffLeft, priority: .body, sourceTier: .tier05)
+            }
+            if group.rightMargin < GroupPresence.edgeCutoffThreshold {
+                return Cue(text: CueText.groupCutOffRight, priority: .body, sourceTier: .tier05)
+            }
+            if group.spreadFraction > GroupPresence.spreadWideThreshold {
+                return Cue(text: CueText.groupSpreadWide, priority: .body, sourceTier: .tier05)
+            }
+            if group.spreadFraction < GroupPresence.learnInThreshold {
+                return Cue(text: CueText.groupLearnIn, priority: .body, sourceTier: .tier05)
+            }
+            if group.headroomFraction < GroupPresence.highGroupThreshold {
+                return Cue(text: CueText.groupTooHigh, priority: .body, sourceTier: .tier05)
+            }
+        } else if let body = frame.body {
+            // Single-subject path — unchanged from M2.
             switch body.hint {
             case .awkwardCrop:
                 return Cue(text: CueText.awkwardCrop, priority: .body, sourceTier: .tier05)

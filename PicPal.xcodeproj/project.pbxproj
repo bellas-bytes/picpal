@@ -22,6 +22,7 @@
 		1233286151761586731923C4 /* ReferencePose.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAA5368E276BD22817F1B23C /* ReferencePose.swift */; };
 		16E94C529FDEE20C3E416953 /* TemporalSmoother.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0A8DC03D821610C662FDB8 /* TemporalSmoother.swift */; };
 		17BB8337ECF269246C990EEF /* CueEvaluatorBodyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C45F7078BF74C5C1D1E30417 /* CueEvaluatorBodyTests.swift */; };
+		B0FF715777404BC1BD780AB2 /* CueEvaluatorGroupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62A6B7467EC644AE81486527 /* CueEvaluatorGroupTests.swift */; };
 		18D1408B13222EABEC51CAF1 /* LandmarkProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C58CC4E053C73E35829D55C /* LandmarkProbeTests.swift */; };
 		19D78658DA40EF15AEB25A47 /* HandObstructionAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B2CD19B05E00CC59B1A45 /* HandObstructionAnalyzer.swift */; };
 		1A0BC04BEC8F942BA1DE86A8 /* TiltProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C905A78CCC06CD386CEFD97 /* TiltProcessorTests.swift */; };
@@ -310,6 +311,7 @@
 		C44279F6E2EC35AB70883B64 /* VLMOrchestratorCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMOrchestratorCacheTests.swift; sourceTree = "<group>"; };
 		C44FA4CB9FC027A384842A05 /* KeypointFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeypointFilter.swift; sourceTree = "<group>"; };
 		C45F7078BF74C5C1D1E30417 /* CueEvaluatorBodyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorBodyTests.swift; sourceTree = "<group>"; };
+		62A6B7467EC644AE81486527 /* CueEvaluatorGroupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueEvaluatorGroupTests.swift; sourceTree = "<group>"; };
 		C63650A5474A82D6183BBD5E /* CameraCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCapture.swift; sourceTree = "<group>"; };
 		C7A03BB9DB339397EAF59FC2 /* CueLoggerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueLoggerTests.swift; sourceTree = "<group>"; };
 		C7F3D0F915EEDDA0517E6EA9 /* VLMRequestGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VLMRequestGate.swift; sourceTree = "<group>"; };
@@ -509,6 +511,7 @@
 				9B23F582424835E39B1EBE56 /* ConsentGateTests.swift */,
 				52AD6975E666CEBDF96F1FB8 /* CueEngineDebounceTests.swift */,
 				C45F7078BF74C5C1D1E30417 /* CueEvaluatorBodyTests.swift */,
+				62A6B7467EC644AE81486527 /* CueEvaluatorGroupTests.swift */,
 				C9E1DA27A9FDBABA25ACC15C /* CueEvaluatorPredictiveTests.swift */,
 				93DE11B3F0CC3B1F4A31C490 /* CueEvaluatorTests.swift */,
 				C7A03BB9DB339397EAF59FC2 /* CueLoggerTests.swift */,
@@ -890,6 +893,7 @@
 				26332903AAFC0F880A588248 /* ConsentGateTests.swift in Sources */,
 				5EBBF5F5CA42F355439D67BA /* CueEngineDebounceTests.swift in Sources */,
 				17BB8337ECF269246C990EEF /* CueEvaluatorBodyTests.swift in Sources */,
+				B0FF715777404BC1BD780AB2 /* CueEvaluatorGroupTests.swift in Sources */,
 				F355B6E8C972FA3B4BD9D244 /* CueEvaluatorPredictiveTests.swift in Sources */,
 				5BF922D11EF68D8A70FCB581 /* CueEvaluatorTests.swift in Sources */,
 				E32F1E46A8230F71D775C39B /* CueLoggerTests.swift in Sources */,
