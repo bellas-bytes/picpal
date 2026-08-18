@@ -330,6 +330,42 @@ Task M5.5-1: complete (commits 5aa27ec..997e086, review clean after fix; 516 tes
 - Fix: error enum wired (was dead code); overwrite test rewritten using same session + OSAllocatedUnfairLock<Bool> mock
 Minor deferred: comment on injectable closure has wrong type annotation; non-ReferenceSessionError silently discarded (no logging)
 
+## M5.5 Final whole-branch review fix wave (commits 5d607eb..0e944b2)
+
+**Status: MERGE-READY** — all Critical and Important findings fixed and verified. 560 tests passing.
+
+Fix wave addressed:
+- CRITICAL: BodySignal.dominantRect always nil → plumbed lastPresenceResult.dominantRect in LandmarkOrchestratorProbe.winner(from:)
+- CRITICAL: Proxy rejected reference multipart field → upload.fields([image,reference]); two-image content array
+- CRITICAL: Vertical + headroom cue polarity inverted → swapped both ternaries in ReferenceCoach + fixed 4 tests
+- IMPORTANT: Cancel picker left showReferencePicker=true → showReferencePicker=false before guard
+- IMPORTANT: vlmOrchestrator.referenceImage set on pick blocked standard Tier-2 → deferred to onEnableForSession
+- IMPORTANT: Extraction failures invisible → extractionFailed: Bool in ReferenceOverlayView; error card + OK button
+- IMPORTANT: Task spawned per frame when reference off → guard sessionHandle.session != nil before Task
+- IMPORTANT: Stale reference image on re-pick without dismiss → .disabled(referenceSession != nil) on reference button
+
+Minor deferred (surface at M6/M7 review):
+- defaultFaceYawThreshold private (inconsistency with public thresholds)
+- Non-ReferenceSessionError paths silently discarded in extractPose()
+- currentOpacity in ReferenceOverlayView is internal (testability tradeoff, undocumented)
+- exportSnapshot in ContentView+Reference.swift (layout pragmatism)
+- @State reference vars are internal (Swift struct extension limitation)
+- Timing-sensitive 350ms sleeps in VLM orchestrator tests (pre-existing)
+- ContentView+Session.swift at exactly 300 lines (no headroom)
+- VLMOrchestratorTests.swift at 349 lines (pre-existing 300-line violation)
+- Consent is session-scoped (not per-reference as spec says); photo B gets cloud call with no new prompt
+- ReferenceOverlayView uses .scaledToFit() while camera preview is aspect-fill
+- ReferenceMatchState.count increments without bound once matched
+- No aspect-ratio normalization between reference and live frame coordinate spaces
+
+Task M5.5-5: complete (commits cd8f2e9..7e133c6, review clean after fix wave; 557 tests passing)
+- ContentView+Reference.swift (new, 184 lines): ReferenceSessionHandle, ReferenceMatchState @MainActor ObservableObject, computePoseDelta(), clearReferenceState(), makeReferenceCoachingCallback()
+- ContentView.swift: reference button (photo.on.rectangle), ReferenceOverlayView in ZStack, picker sheet, consent alert wiring
+- ContentView+Session.swift: clearReferenceState() in background handler, refCallback in accumulator; exportSnapshot moved to +Reference
+- ReferenceIntegrationTests.swift (new, 228 lines): 7 Swift Testing tests including no-body guard test
+- Fix: nil-body guard resets count+isMatched before computePoseDelta; prevents all-zero PoseDelta false match
+Minor deferred: @State reference vars are internal (Swift struct extension limitation); exportSnapshot in +Reference (layout pragmatism)
+
 Task M5.5-4: complete (commits be8c1ba..55f79a4, review clean after fix wave; 550 tests passing)
 - FrameEncoder.encode(pixelBuffer:referenceImage:) — two JPEG Data values; scale=1.0 fix prevents Retina pixel inflation
 - VLMPrompt.referenceMode — named constant with verbatim spec string

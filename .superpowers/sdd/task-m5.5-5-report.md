@@ -22,3 +22,9 @@ None blocking. One design deviation from the brief is noted below.
 **One-shot match cue guard**: The brief's pseudocode passes `isReferenceMatched` directly as `isNewMatch`, which would re-fire the "matched" cue every frame. Production code uses a `wasMatched` capture so `isNewMatchEvent` is `true` for exactly one frame (the transition). Test 6 verifies this.
 
 **File sizes**: ContentView.swift 238, ContentView+Session.swift 300 (exactly at limit), ContentView+Reference.swift 184, ReferenceIntegrationTests.swift 208 — all ≤ 300 lines.
+
+## Fix wave
+Commit: 7e133c6
+- ContentView+Reference.swift: guard against nil/noPersonPresent body before computePoseDelta; resets count+isMatched
+- ReferenceIntegrationTests.swift: added matchCounterDoesNotIncrementWhenNoBodyPresent (7th test)
+Tests: 7/7 ReferenceIntegrationTests passing, 557 total
