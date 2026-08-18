@@ -54,10 +54,12 @@ final class SignalTrendDetector: @unchecked Sendable {
     /// Returns the current trend for a signal.
     func trend(for signal: TrackedSignal) -> Trend {
         let samples = lock.withLock { $0[signal, default: []] }
-        guard samples.count >= 2 else { return .stable }
-        let duration = samples.last!.timestamp.timeIntervalSince(samples.first!.timestamp)
+        guard samples.count >= 2,
+              let first = samples.first,
+              let last = samples.last else { return .stable }
+        let duration = last.timestamp.timeIntervalSince(first.timestamp)
         guard duration > 0 else { return .stable }
-        let slope = (samples.last!.value - samples.first!.value) / duration
+        let slope = (last.value - first.value) / duration
         // Negative slope = decreasing = improving (both tilt and exposure use abs values)
         if slope < -improvementSlopeThreshold { return .improving }
         if slope > improvementSlopeThreshold { return .worsening }

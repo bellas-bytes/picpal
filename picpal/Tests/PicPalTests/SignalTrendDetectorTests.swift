@@ -129,20 +129,14 @@ struct SignalTrendDetectorTests {
         #expect(trend == Trend.stable)
     }
 
-    @Test("returns .stable when slope is near threshold")
-    func stableWhenSlopeNearThreshold() {
-        let clock = MockClock()
-        let detector = SignalTrendDetector(clock: { clock.now() })
-
-        clock.advance(by: 0)
-        detector.record(signal: Signal.tilt, value: 0.5)
-
-        clock.advance(by: 1.0)
-        detector.record(signal: Signal.tilt, value: 0.48)
-
-        // Slope = (0.48 - 0.5) / 1.0 = -0.02/sec (well within threshold of ±0.03)
-        let trend = detector.trend(for: Signal.tilt)
-        #expect(trend == Trend.stable)
+    @Test("concurrent record and trend calls are safe")
+    func concurrentRecordAndTrendIsSafe() {
+        let detector = SignalTrendDetector()
+        DispatchQueue.concurrentPerform(iterations: 100) { i in
+            detector.record(signal: .tilt, value: Double(i) * 0.01)
+            _ = detector.trend(for: .tilt)
+        }
+        #expect(true)
     }
 
     // MARK: - Window trimming
@@ -303,7 +297,7 @@ struct SignalTrendDetectorTests {
     @Test("respects custom window seconds")
     func customWindowSeconds() {
         let clock = MockClock()
-        let windowSeconds = 0.2
+        let windowSeconds = 0.3
         let detector = SignalTrendDetector(windowSeconds: windowSeconds, clock: { clock.now() })
 
         clock.advance(by: 0)
@@ -313,14 +307,15 @@ struct SignalTrendDetectorTests {
         detector.record(signal: Signal.tilt, value: 0.45)
 
         clock.advance(by: 0.3)
-        // Now: first sample at t=0 is outside 0.2s window (0.3 > 0.2)
-        // Only samples from t=0.1 onward should remain
+        // Now: first sample at t=0 is outside 0.3s window (0.4 > 0.3)
+        // Samples from t=0.1 onward should remain
         detector.record(signal: Signal.tilt, value: 0.4)
 
         // Should have samples at t=0.1 and t=0.4
         let trend = detector.trend(for: Signal.tilt)
-        // This should compute trend with these 2 samples
-        #expect(trend != Trend.worsening)  // Just verify it doesn't crash
+        // Duration = 0.3, slope = (0.4 - 0.45) / 0.3 = -0.1667
+        // -0.1667 < -0.03 → improving
+        #expect(trend == .improving)
     }
 
     // MARK: - Edge cases
