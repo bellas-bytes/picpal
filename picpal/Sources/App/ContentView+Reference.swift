@@ -155,10 +155,12 @@ extension ContentView {
                       let session = sessionHandle.session,
                       let pose = session.pose else { return }
 
-                let delta = computePoseDelta(
-                    referencePose: pose,
-                    liveLandmarks: frame.body ?? .noPersonPresent
-                )
+                guard let body = frame.body, body.dominantRect != nil else {
+                    ms.count = 0
+                    ms.isMatched = false
+                    return
+                }
+                let delta = computePoseDelta(referencePose: pose, liveLandmarks: body)
 
                 if delta.isWithinThreshold {
                     ms.count += 1

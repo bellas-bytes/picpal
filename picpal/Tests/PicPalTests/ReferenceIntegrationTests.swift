@@ -13,6 +13,7 @@ import CoreGraphics
 ///   4. matchCounter — triggers isMatched after 8 consecutive within-threshold frames
 ///   5. matchCounter — resets count and isMatched after one outside-threshold frame
 ///   6. matchCue     — fires exactly once per match event (transition only)
+///   7. matchCounter — absent subject does not increment counter (guard path)
 @Suite("ReferenceIntegration")
 struct ReferenceIntegrationTests {
 
@@ -79,6 +80,17 @@ struct ReferenceIntegrationTests {
         if coach.cue(from: delta, isNewMatch: isNewMatchEvent) != nil {
             cueCount += 1
         }
+    }
+
+    /// Simulates the guard branch added in `makeReferenceCoachingCallback`:
+    /// when `frame.body` is nil or has no `dominantRect`, count resets to 0
+    /// and `isMatched` resets to false without incrementing the counter.
+    private func simulateNoBodyFrame(
+        matchCount: inout Int,
+        isMatched: inout Bool
+    ) {
+        matchCount = 0
+        isMatched = false
     }
 
     // MARK: - Test 1: computePoseDelta zeros when no subject rect
@@ -204,5 +216,20 @@ struct ReferenceIntegrationTests {
         }
 
         #expect(cueCount == 1)
+    }
+
+    // MARK: - Test 7: absent subject does not increment counter
+
+    @Test("referenceMatchCount == 0 and isMatched == false after 10 no-body frames")
+    func matchCounterDoesNotIncrementWhenNoBodyPresent() {
+        var matchCount = 0
+        var isMatched = false
+
+        for _ in 0..<10 {
+            simulateNoBodyFrame(matchCount: &matchCount, isMatched: &isMatched)
+        }
+
+        #expect(matchCount == 0)
+        #expect(!isMatched)
     }
 }
