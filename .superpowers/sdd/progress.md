@@ -407,6 +407,14 @@ Task M6-1: complete (commit 0a5efe9; 29 new tests, 614/615 passing; 1 pre-existi
 - Design deviation: two-method pattern instead of single public+defaulted-param method — required because PredictiveActions→PredictiveCoach.Action→SignalTrendDetector.Trend chain is internal; public method delegates to internal overload
 - Pre-existing bug noted: SignalTrendDetectorTests customWindowSeconds fails due to IEEE 754 imprecision in window filter (0.4-0.1 > 0.3)
 
+Task M6-1: complete (commits 0a5efe9..66326fe, review clean; 615/615 tests passing after IEEE 754 fix)
+- PredictiveCoach.swift (new, 134 lines): state machine .idle/.waiting/.emitPredictiveHint/.silent/.emitPositiveCue/.revertToCorrective; Sendable nested enums; injectable clock
+- PredictiveActions.swift: value-type snapshot struct (tilt + exposure Action fields)
+- CueEvaluator: internal evaluate(frame:predictive:) overload; public evaluate(frame:) delegates with .noAction
+- CueText: 5 new predictive constants (tiltAlmostLevel, tiltNearlyThere, exposureImproving, tiltConfirmed, exposureConfirmed)
+- PredictiveCoachTests.swift (171 lines) + CueEvaluatorPredictiveTests.swift (193 lines): 29 tests
+- fix(m6-0) commit 66326fe: IEEE 754 boundary in customWindowSeconds test — advance 0.3→0.25
+
 Task M6-2: complete (commit 9fb5a1f, review clean; 13 GroupPresenceDetectorTests passing)
 - GroupPresence.swift (Signals/): personCount, unionBoundingBox, 4 derived fractions, 5 threshold constants
 - GroupPresenceDetector: stateless struct, detect(from:[VNHumanBodyPoseObservation]), testable detect(pairs:) overload; uses recognizedPoints(.all) + joint-position bbox (brief's .boundingBox was a Vision API error — correct deviation)
@@ -417,3 +425,8 @@ Task M6-2: complete (commit 9fb5a1f, review clean; 13 GroupPresenceDetectorTests
 - SignalTrendDetector: OSAllocatedUnfairLock<[TrackedSignal:[Sample]]>, injectable clock, window trim on record, slope-based trend
 - Concurrent record+trend safety test (DispatchQueue.concurrentPerform 100 iterations)
 - Minor deferred: misleading inline arithmetic comment in trimsSamplesOutsideWindow (cosmetic only)
+M6-4: complete (commits 999cf12..5a4407e, review clean)
+  - PredictiveCoordinator wiring live pipeline (abs tilt, max clipping)
+  - CueEvent.predictiveHintIssued, TuningSettings/TuningPanel predictive steppers
+  - Equatable on PredictiveCoach.Action, Phase 2 demo scenarios
+  - 633/633 tests passing
