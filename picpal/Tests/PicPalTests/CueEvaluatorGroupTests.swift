@@ -116,7 +116,7 @@ struct CueEvaluatorGroupTests {
         #expect(cue?.sourceTier == .tier05)
     }
 
-    @Test("spreadFraction = 0.95 (> spreadWideThreshold 0.90) → groupSpreadWide")
+    @Test("spreadFraction = 0.95 (> spreadWideThreshold 0.80) → groupSpreadWide")
     func spreadWideCueFiresAboveThreshold() {
         let evaluator = CueEvaluator()
         let group = GroupPresence(
@@ -226,7 +226,7 @@ struct CueEvaluatorGroupTests {
         let group = GroupPresence(
             personCount: 2,
             unionBoundingBox: CGRect(x: 0.04, y: 0.1, width: 0.8, height: 0.6),
-            spreadFraction: 0.8,   // within (not > 0.90, not < 0.55)
+            spreadFraction: 0.8,   // within (not > 0.80, not < 0.35)
             leftMargin: 0.04,      // exactly at threshold — not strictly less than
             rightMargin: 0.1,
             headroomFraction: 0.3  // within (not < 0.12)

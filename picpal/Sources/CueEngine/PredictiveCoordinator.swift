@@ -50,7 +50,7 @@ final class PredictiveCoordinator: @unchecked Sendable {
     func update(_ frame: SignalFrame) -> PredictiveActions {
         // Record tilt: track absolute angle. Decreasing angle = improving toward level.
         if let tilt = frame.tilt {
-            detector.record(signal: .tilt, value: abs(tilt.angleDegrees))
+            detector.record(signal: .tilt, value: abs(tilt.angleDegrees) * .pi / 180)
         }
 
         // Record exposure clipping only when not OK — decreasing fraction = improving.
