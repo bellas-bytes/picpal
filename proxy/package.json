@@ -1,0 +1,21 @@
+{
+  "name": "picpal-vlm-proxy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local dev proxy — forwards JPEG + prompt to Claude Sonnet 5. API key stays server-side.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.55.0",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "multer": "^1.4.5-lts.1"
+  }
+}

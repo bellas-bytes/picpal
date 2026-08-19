@@ -1,0 +1,89 @@
+name: PicPal
+options:
+  bundleIdPrefix: com.picpal
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+# M2-0: MediaPipe Tasks Vision iOS SDK (community SPM wrapper).
+# Official SPM support does not exist as of MediaPipe 1.0.0; Google distributes
+# only via CocoaPods. SwiftTasksVision (paescebu/SwiftTasksVision) bundles the
+# xcframeworks and enables SPM integration. It uses unsafeFlags(["-ObjC"]) to
+# satisfy ObjC runtime requirements — acceptable for app targets (only
+# prohibited as a transitive package dependency).
+packages:
+  SwiftTasksVision:
+    url: https://github.com/paescebu/SwiftTasksVision
+    exactVersion: 0.10.21
+
+targets:
+  PicPal:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: PicPal/Sources
+        excludes:
+          - "**/.gitkeep"
+    resources:
+      # M2-0: Hand and Face landmarker model bundles for MediaPipe Tasks Vision.
+      - path: PicPal/Resources/Models
+    info:
+      path: PicPal/Resources/Info.plist
+      properties:
+        CFBundleName: PicPal
+        CFBundleDisplayName: PicPal
+        CFBundleIdentifier: com.picpal.app
+        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.0.0"
+        NSCameraUsageDescription: "PicPal uses the camera to analyze your photo framing in real time."
+        NSMotionUsageDescription: "PicPal uses device motion to detect tilt and orientation for framing guidance."
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+    dependencies:
+      - sdk: Accelerate.framework
+      - sdk: Vision.framework
+      # M5.5-1: PHPickerViewController for reference photo selection.
+      - sdk: PhotosUI.framework
+      - package: SwiftTasksVision
+        product: SwiftTasksVision
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.picpal.app
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "6.0"
+
+  PicPalTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: PicPal/Tests/PicPalTests
+    settings:
+      base:
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/PicPal.app/PicPal"
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO
+    dependencies:
+      - target: PicPal
+
+schemes:
+  PicPal:
+    build:
+      targets:
+        PicPal: all
+        PicPalTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - PicPalTests
+    archive:
+      config: Release

@@ -1,0 +1,20 @@
+# Xcode — per-user state (never shared)
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad
+
+# Xcode build output
+build/
+DerivedData/
+*.moved-aside
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Proxy — local secrets (never commit)
+proxy/.env
+proxy/node_modules/
