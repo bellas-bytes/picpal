@@ -14,13 +14,9 @@ final class AestheticExpiryHandle: @unchecked Sendable {
 }
 
 // MARK: - Private constants
-
-/// Auto-expiry window for an aesthetic remark: one second past the cue-engine repeat interval
-/// so the accumulator silences naturally before the coach would re-fire the same coaching line.
 private let aestheticRemarkExpirySeconds = CueEngine.defaultMinRepeatIntervalSeconds + 1.0
 
 // MARK: - ContentView+Session
-
 extension ContentView {
 
     // MARK: - Scene phase handler
@@ -35,6 +31,7 @@ extension ContentView {
         switch newPhase {
         case .background:
             settleEventTimer?.reset()   // prevent stale timestamp from prior foreground session
+            predictiveCoordinator.reset()
             vlmOrchestrator?.invalidateCache()
             clearReferenceState()       // reference mode does not persist across background cycles
             exportSnapshot(surveyResponse: nil)
@@ -56,7 +53,6 @@ extension ContentView {
     @MainActor
     func wireUp() {
         guard telemetryFeed == nil else { return }  // idempotent
-
         // Create the cue engine and signal accumulator.
         // The accumulator merges individual signals into a complete SignalFrame and
         // passes it to the engine on every update. Results are dispatched to @MainActor.
@@ -80,8 +76,10 @@ extension ContentView {
             matchState: referenceMatchState,
             sessionHandle: referenceSessionHandle
         )
+        let coordinator = predictiveCoordinator
         let accum = SignalFrameAccumulator { [weak debugViewModel, refCallback] frame in
-            let cue = engine.process(frame: frame)
+            let predictive = coordinator.update(frame)
+            let cue = engine.process(frame: frame, predictive: predictive)
             if let cue {
                 let now = Date()
                 let latencyMs = settleTimer.latencyMilliseconds(cueAt: now)
@@ -89,7 +87,9 @@ extension ContentView {
                     timestamp: now,
                     text: cue.text,
                     tier: cue.sourceTier,
-                    latencyFromSettleMs: latencyMs
+                    latencyFromSettleMs: latencyMs,
+                    predictiveHintIssued: predictive.tilt == .emitPredictiveHint
+                        || predictive.exposure == .emitPredictiveHint
                 )
                 logger.record(event)
                 settleTimer.reset()   // reset after first cue; next settle starts a new burst

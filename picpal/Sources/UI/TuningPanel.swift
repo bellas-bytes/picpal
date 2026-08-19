@@ -19,6 +19,12 @@ private enum TuningRanges {
     static let cacheMaxEntriesMin: Double = 5.0
     static let cacheMaxEntriesMax: Double = 100.0
     static let cacheMaxEntriesStep: Double = 5.0
+    static let waitWindowMin: Double = 0.5
+    static let waitWindowMax: Double = 10.0
+    static let waitWindowStep: Double = 0.5
+    static let slopeMin: Double = 0.01
+    static let slopeMax: Double = 0.20
+    static let slopeStep: Double = 0.01
 }
 
 // MARK: - TuningPanel
@@ -31,6 +37,8 @@ struct TuningPanel: View {
     @State private var vlmCadence: Double = TuningSettings.shared.vlmCadenceSeconds
     @State private var cacheTTL: Double = TuningSettings.shared.vlmCacheTTLSeconds
     @State private var cacheMaxEntries: Double = Double(TuningSettings.shared.vlmCacheMaxEntries)
+    @State private var waitWindow: Double = TuningSettings.shared.predictiveWaitWindowSeconds
+    @State private var slopeThreshold: Double = TuningSettings.shared.trendImprovementSlope
 
     var body: some View {
         NavigationStack {
@@ -89,6 +97,27 @@ struct TuningPanel: View {
                     }
                 }
 
+                Section("Predictive coaching") {
+                    Stepper(
+                        "Wait window: \(String(format: "%.1f", waitWindow))s",
+                        value: $waitWindow,
+                        in: TuningRanges.waitWindowMin...TuningRanges.waitWindowMax,
+                        step: TuningRanges.waitWindowStep
+                    )
+                    .onChange(of: waitWindow) { _, newValue in
+                        TuningSettings.shared.predictiveWaitWindowSeconds = newValue
+                    }
+                    Stepper(
+                        "Improvement slope: \(String(format: "%.3f", slopeThreshold))",
+                        value: $slopeThreshold,
+                        in: TuningRanges.slopeMin...TuningRanges.slopeMax,
+                        step: TuningRanges.slopeStep
+                    )
+                    .onChange(of: slopeThreshold) { _, newValue in
+                        TuningSettings.shared.trendImprovementSlope = newValue
+                    }
+                }
+
                 Section {
                     Button("Reset to defaults") {
                         TuningSettings.shared.resetToDefaults()
@@ -97,6 +126,8 @@ struct TuningPanel: View {
                         vlmCadence = TuningSettings.shared.vlmCadenceSeconds
                         cacheTTL = TuningSettings.shared.vlmCacheTTLSeconds
                         cacheMaxEntries = Double(TuningSettings.shared.vlmCacheMaxEntries)
+                        waitWindow = TuningSettings.shared.predictiveWaitWindowSeconds
+                        slopeThreshold = TuningSettings.shared.trendImprovementSlope
                     }
                     .foregroundStyle(.red)
                 }

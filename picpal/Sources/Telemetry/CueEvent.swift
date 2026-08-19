@@ -17,4 +17,21 @@ public struct CueEvent: Sendable, Encodable, Equatable {
     /// Elapsed milliseconds between the most recent settle event and this cue emission.
     /// `nil` when no settle was recorded for the current burst.
     public let latencyFromSettleMs: Double?
+
+    /// `true` when this cue was a predictive hint (signal improving but not yet within threshold).
+    public let predictiveHintIssued: Bool
+
+    public init(
+        timestamp: Date,
+        text: String,
+        tier: CueSourceTier,
+        latencyFromSettleMs: Double?,
+        predictiveHintIssued: Bool = false
+    ) {
+        self.timestamp = timestamp
+        self.text = text
+        self.tier = tier
+        self.latencyFromSettleMs = latencyFromSettleMs
+        self.predictiveHintIssued = predictiveHintIssued
+    }
 }

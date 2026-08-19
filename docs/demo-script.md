@@ -158,3 +158,46 @@
 3. **Expected**: Tier-0 FPS ≥ 25 in both sessions. Thermal state stays `nominal`
    or `fair` in both sessions. No statistically significant regression in FPS when
    Tier 2 is active (VLM runs on a utility queue; camera queue is unblocked).
+
+---
+
+## Phase 2 — M6 Validation
+
+### Scenario A: Tilt predictive check
+
+**Setup**: device tilted 5° or more off level.
+
+1. Observe: corrective tilt cue fires ("Tilt left/right a little").
+2. Slowly correct the tilt.
+3. **Expected**: when angle begins decreasing, predictive hint fires ("almost level").
+4. **Expected**: engine remains silent during the wait window (no repeated cues).
+5. Continue correcting until level.
+6. **Expected**: positive confirmation fires ("that's it") once the device levels.
+
+**Pass criteria**: hint fires once, silence during window, confirmation on level.
+
+### Scenario B: Exposure predictive check
+
+**Setup**: scene underexposed (cover ambient light source or aim at dark area).
+
+1. Observe: corrective exposure cue fires ("Too dark — find more light").
+2. Gradually uncover/improve the light source.
+3. **Expected**: predictive hint fires ("light's getting better, hold a moment").
+4. **Expected**: silence during wait window.
+5. Complete the improvement until exposure reads OK.
+6. **Expected**: positive confirmation fires ("nice light").
+
+**Pass criteria**: hint fires once, silence during window, confirmation on recovery.
+
+### Scenario C: Group photo check
+
+**Setup**: two or more people stand in front of camera.
+
+1. Stand naturally — one person partially off-frame on the left.
+2. **Expected**: group cue fires ("someone's getting cut off on the left") instead of single-subject body cue.
+3. Widen the frame to include everyone.
+4. **Expected**: no group edge-cutoff cue; engine may be silent or fire aesthetic/framing cue.
+5. Have one person step away — only one person in frame.
+6. **Expected**: group mode deactivates; single-subject body cues resume normally.
+
+**Pass criteria**: group cue replaces single-subject cue in group mode; single-subject cue resumes after group dissolves.

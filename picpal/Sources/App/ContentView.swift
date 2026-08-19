@@ -68,6 +68,7 @@ struct ContentView: View {
     @State var voiceCoach = VoiceCoach()
     @State var cueLogger: CueLogger?
     @State var settleEventTimer: SettleEventTimer?
+    @State var predictiveCoordinator = PredictiveCoordinator.live()
     @State var batteryMonitor = BatteryMonitor()
     @State var telemetryExporter: TelemetryExporter?
 

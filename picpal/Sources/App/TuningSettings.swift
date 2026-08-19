@@ -8,11 +8,13 @@ final class TuningSettings: @unchecked Sendable {
     private init() {}
 
     private enum Keys {
-        static let cueCooldown       = "com.picpal.tuning.cueCooldown"
-        static let minRepeatInterval = "com.picpal.tuning.minRepeatInterval"
-        static let vlmCadence        = "com.picpal.tuning.vlmCadence"
-        static let vlmCacheTTL       = "com.picpal.tuning.vlmCacheTTL"
-        static let vlmCacheMaxEntries = "com.picpal.tuning.vlmCacheMaxEntries"
+        static let cueCooldown          = "com.picpal.tuning.cueCooldown"
+        static let minRepeatInterval    = "com.picpal.tuning.minRepeatInterval"
+        static let vlmCadence           = "com.picpal.tuning.vlmCadence"
+        static let vlmCacheTTL          = "com.picpal.tuning.vlmCacheTTL"
+        static let vlmCacheMaxEntries   = "com.picpal.tuning.vlmCacheMaxEntries"
+        static let predictiveWaitWindow = "com.picpal.tuning.predictiveWaitWindow"
+        static let trendImprovementSlope = "com.picpal.tuning.trendImprovementSlope"
     }
 
     var cueCooldownSeconds: Double {
@@ -38,10 +40,19 @@ final class TuningSettings: @unchecked Sendable {
         }
         set { UserDefaults.standard.set(newValue, forKey: Keys.vlmCacheMaxEntries) }
     }
+    var predictiveWaitWindowSeconds: Double {
+        get { stored(Keys.predictiveWaitWindow, default: PredictiveCoach.defaultWaitWindowSeconds) }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.predictiveWaitWindow) }
+    }
+    var trendImprovementSlope: Double {
+        get { stored(Keys.trendImprovementSlope, default: SignalTrendDetector.defaultImprovementSlopeThreshold) }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.trendImprovementSlope) }
+    }
 
     func resetToDefaults() {
         [Keys.cueCooldown, Keys.minRepeatInterval, Keys.vlmCadence,
-         Keys.vlmCacheTTL, Keys.vlmCacheMaxEntries]
+         Keys.vlmCacheTTL, Keys.vlmCacheMaxEntries,
+         Keys.predictiveWaitWindow, Keys.trendImprovementSlope]
             .forEach { UserDefaults.standard.removeObject(forKey: $0) }
     }
 

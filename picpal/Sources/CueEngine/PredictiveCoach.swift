@@ -33,7 +33,7 @@ final class PredictiveCoach: @unchecked Sendable {
     // MARK: - Action
 
     /// The action `CueEvaluator` should take for this signal this frame.
-    enum Action: Sendable {
+    enum Action: Sendable, Equatable {
         /// Emit a predictive hint ("almost level" etc.).
         case emitPredictiveHint
         /// Emit a positive confirmation cue — signal crossed threshold while waiting.
