@@ -131,13 +131,13 @@ struct CueEvaluatorGroupTests {
         #expect(cue?.text == CueText.groupSpreadWide)
     }
 
-    @Test("spreadFraction = 0.40 (< learnInThreshold 0.55) → groupLearnIn")
+    @Test("spreadFraction = 0.25 (< learnInThreshold 0.35) → groupLearnIn")
     func learnInCueFiresBelowThreshold() {
         let evaluator = CueEvaluator()
         let group = GroupPresence(
             personCount: 2,
-            unionBoundingBox: CGRect(x: 0.1, y: 0.1, width: 0.4, height: 0.6),
-            spreadFraction: 0.40,
+            unionBoundingBox: CGRect(x: 0.1, y: 0.1, width: 0.25, height: 0.6),
+            spreadFraction: 0.25,
             leftMargin: 0.1,
             rightMargin: 0.1,
             headroomFraction: 0.3

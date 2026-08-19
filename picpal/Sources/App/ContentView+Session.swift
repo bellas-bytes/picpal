@@ -88,8 +88,8 @@ extension ContentView {
                     text: cue.text,
                     tier: cue.sourceTier,
                     latencyFromSettleMs: latencyMs,
-                    predictiveHintIssued: predictive.tilt == .emitPredictiveHint
-                        || predictive.exposure == .emitPredictiveHint
+                    predictiveHintIssued: cue.text == CueText.tiltAlmostLevel
+                        || cue.text == CueText.exposureImproving
                 )
                 logger.record(event)
                 settleTimer.reset()   // reset after first cue; next settle starts a new burst

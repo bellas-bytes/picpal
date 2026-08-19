@@ -24,7 +24,7 @@ public struct GroupPresence: Sendable {
 
     public static let minPersonCount: Int = 2
     public static let edgeCutoffThreshold: Float = 0.04
-    public static let spreadWideThreshold: Float = 0.90
-    public static let learnInThreshold: Float = 0.55
+    public static let spreadWideThreshold: Float = 0.80
+    public static let learnInThreshold: Float = 0.35
     public static let highGroupThreshold: Float = 0.12
 }

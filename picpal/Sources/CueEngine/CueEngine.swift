@@ -51,17 +51,16 @@ public struct CueEvaluator: Sendable {
         }
 
         // 1. Stability: tilt
-        if let tilt = frame.tilt, !tilt.isLevel {
-            switch predictive.tilt {
-            case .emitPredictiveHint:
-                return Cue(text: CueText.tiltAlmostLevel, priority: .stability, sourceTier: .tier05)
-            case .emitPositiveCue:
-                return Cue(text: CueText.tiltConfirmed, priority: .stability, sourceTier: .tier05)
-            case .silent:
-                break  // suppress corrective; continue evaluating lower-priority cues
-            case .revertToCorrective, .idle:
-                let text = tilt.angleDegrees >= 0 ? CueText.tiltLeft : CueText.tiltRight
-                return Cue(text: text, priority: .stability, sourceTier: .tier0)
+        if let tilt = frame.tilt {
+            if predictive.tilt == .emitPositiveCue { return Cue(text: CueText.tiltConfirmed, priority: .stability, sourceTier: .tier05) }
+            if !tilt.isLevel {
+                switch predictive.tilt {
+                case .emitPredictiveHint: return Cue(text: CueText.tiltAlmostLevel, priority: .stability, sourceTier: .tier05)
+                case .silent: break  // suppress corrective; continue evaluating lower-priority cues
+                case .revertToCorrective, .idle:
+                    return Cue(text: tilt.angleDegrees >= 0 ? CueText.tiltLeft : CueText.tiltRight, priority: .stability, sourceTier: .tier0)
+                case .emitPositiveCue: break
+                }
             }
         }
 
@@ -72,28 +71,21 @@ public struct CueEvaluator: Sendable {
 
         // 3. Exposure
         if let exposure = frame.exposure {
+            if predictive.exposure == .emitPositiveCue { return Cue(text: CueText.exposureConfirmed, priority: .exposure, sourceTier: .tier05) }
             switch exposure.level {
             case .underexposed:
                 switch predictive.exposure {
-                case .emitPredictiveHint:
-                    return Cue(text: CueText.exposureImproving, priority: .exposure, sourceTier: .tier05)
-                case .emitPositiveCue:
-                    return Cue(text: CueText.exposureConfirmed, priority: .exposure, sourceTier: .tier05)
-                case .silent:
-                    break  // suppress corrective; continue evaluating lower-priority cues
-                case .revertToCorrective, .idle:
-                    return Cue(text: CueText.tooDark, priority: .exposure, sourceTier: .tier0)
+                case .emitPredictiveHint: return Cue(text: CueText.exposureImproving, priority: .exposure, sourceTier: .tier05)
+                case .silent: break  // suppress corrective; continue evaluating lower-priority cues
+                case .revertToCorrective, .idle: return Cue(text: CueText.tooDark, priority: .exposure, sourceTier: .tier0)
+                case .emitPositiveCue: break
                 }
             case .overexposed:
                 switch predictive.exposure {
-                case .emitPredictiveHint:
-                    return Cue(text: CueText.exposureImproving, priority: .exposure, sourceTier: .tier05)
-                case .emitPositiveCue:
-                    return Cue(text: CueText.exposureConfirmed, priority: .exposure, sourceTier: .tier05)
-                case .silent:
-                    break  // suppress corrective; continue evaluating lower-priority cues
-                case .revertToCorrective, .idle:
-                    return Cue(text: CueText.tooLight, priority: .exposure, sourceTier: .tier0)
+                case .emitPredictiveHint: return Cue(text: CueText.exposureImproving, priority: .exposure, sourceTier: .tier05)
+                case .silent: break  // suppress corrective; continue evaluating lower-priority cues
+                case .revertToCorrective, .idle: return Cue(text: CueText.tooLight, priority: .exposure, sourceTier: .tier0)
+                case .emitPositiveCue: break
                 }
             case .ok:
                 break
