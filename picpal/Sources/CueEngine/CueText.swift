@@ -79,7 +79,6 @@ public enum CueText {
 
     // Predictive hints — emitted while a signal is actively improving toward threshold.
     public static let tiltAlmostLevel   = "almost level"
-    public static let tiltNearlyThere   = "just a touch more"
     public static let exposureImproving = "light's getting better, hold a moment"
 
     // Positive confirmations — emitted when the signal crosses the threshold mid-session.

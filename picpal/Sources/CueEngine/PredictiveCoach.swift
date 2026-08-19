@@ -71,6 +71,7 @@ final class PredictiveCoach: @unchecked Sendable {
     ///   - trend: The current `SignalTrendDetector.Trend` for this signal.
     ///   - isWithinThreshold: `true` when the signal is already inside the good zone.
     /// - Returns: The `Action` `CueEvaluator` should take for this signal.
+    @discardableResult
     func update(trend: SignalTrendDetector.Trend, isWithinThreshold: Bool) -> Action {
         lock.withLock { state in
             let now = clock()

@@ -40,7 +40,7 @@ struct GroupPresenceDetector {
         let locations = allPoints.values
             .filter { $0.confidence >= Self.minimumJointConfidence }
             .map { $0.location }
-        guard !locations.isEmpty else { return nil }
+        guard locations.count >= 2 else { return nil }
         let xs = locations.map { $0.x }
         let ys = locations.map { $0.y }
         guard let minX = xs.min(), let maxX = xs.max(),

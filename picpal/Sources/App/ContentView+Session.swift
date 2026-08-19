@@ -220,7 +220,7 @@ extension ContentView {
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.bodyHint = label
             }
-        }
+        } onGroupPresence: { [accum] in accum.update(groupPresence: $0) }
 
         let feed = debugViewModel.makeTelemetryFeed(downstream: probe)
         vlmOrch.downstream = feed.bridge
