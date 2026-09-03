@@ -261,7 +261,7 @@
 		6AA6168FE7D6DC8079864214 /* TiltMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TiltMonitor.swift; sourceTree = "<group>"; };
 		6E4E630941D5EEA5BF4A4CB7 /* ExposureProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExposureProcessorTests.swift; sourceTree = "<group>"; };
 		6F8DCEC4C5B866F851120115 /* StaleSuppressor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaleSuppressor.swift; sourceTree = "<group>"; };
-		6FAAF108C70285DB6D41DDD4 /* PicPal.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PicPal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6FAAF108C70285DB6D41DDD4 /* PicPal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PicPal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FC2DBA229DE279A78303065 /* PipelineTelemetryBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineTelemetryBridgeTests.swift; sourceTree = "<group>"; };
 		7075685D405FFBAD26B96A60 /* DebugOverlayViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlayViewModelTests.swift; sourceTree = "<group>"; };
 		70FCE1A8992CE6769C8DB9E8 /* ReferenceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceSession.swift; sourceTree = "<group>"; };
@@ -756,8 +756,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = C9C958F92F8A6B676C714319 /* Build configuration list for PBXProject "PicPal" */;
 			developmentRegion = en;
@@ -1059,6 +1057,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XVA476D588;
 				INFOPLIST_FILE = PicPal/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1162,6 +1161,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XVA476D588;
 				INFOPLIST_FILE = PicPal/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
