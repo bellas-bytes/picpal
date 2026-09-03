@@ -121,6 +121,7 @@
 		AA31C1D0F537D6862D4D0822 /* LandmarkCoordinates.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECB7648B2D56A3423C4D1687 /* LandmarkCoordinates.swift */; };
 		AB354C403CE12A9E9C550114 /* ExposureProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5112611E348867EF918B46 /* ExposureProcessor.swift */; };
 		AC62EB33F458AF5745DA80EB /* GroupPresenceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46A28252D3E015FA59D87311 /* GroupPresenceDetector.swift */; };
+		AD4B64463001DAF14893F06B /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 449848DC149D6933EE4DFB56 /* Sentry */; };
 		B27187008E6443B731DD1888 /* BodyCueIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8BB80326F864A7A45A98492 /* BodyCueIntegrationTests.swift */; };
 		B570FCF6881ED92CBA02D332 /* BodyPoseAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84A7F04A6A97845176ADE5C3 /* BodyPoseAnalyzer.swift */; };
 		B6407873BF84C5DCDDB23DE3 /* LandmarkCadenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17731ACA076FED46E1B9A4E /* LandmarkCadenceTests.swift */; };
@@ -374,6 +375,7 @@
 				44193E4453E6F0C442CE6C9E /* Vision.framework in Frameworks */,
 				DE9F79F77C448440410CE92E /* PhotosUI.framework in Frameworks */,
 				CC8F7F870D5F62FE699D90C1 /* SwiftTasksVision in Frameworks */,
+				AD4B64463001DAF14893F06B /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -719,6 +721,7 @@
 			name = PicPal;
 			packageProductDependencies = (
 				78E07CAF0021F8DFA773AF95 /* SwiftTasksVision */,
+				449848DC149D6933EE4DFB56 /* Sentry */,
 			);
 			productName = PicPal;
 			productReference = 6FAAF108C70285DB6D41DDD4 /* PicPal.app */;
@@ -763,6 +766,7 @@
 			mainGroup = CEE8245EC2A4B661CC35AB21;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				D3C50AA594B38B3B837D2D98 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				E06E526E1A9D68C1F1C02D00 /* XCRemoteSwiftPackageReference "SwiftTasksVision" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -1201,6 +1205,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		D3C50AA594B38B3B837D2D98 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = exactVersion;
+				version = 8.40.1;
+			};
+		};
 		E06E526E1A9D68C1F1C02D00 /* XCRemoteSwiftPackageReference "SwiftTasksVision" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/paescebu/SwiftTasksVision";
@@ -1212,6 +1224,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		449848DC149D6933EE4DFB56 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3C50AA594B38B3B837D2D98 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 		78E07CAF0021F8DFA773AF95 /* SwiftTasksVision */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E06E526E1A9D68C1F1C02D00 /* XCRemoteSwiftPackageReference "SwiftTasksVision" */;
