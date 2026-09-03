@@ -171,6 +171,7 @@
 		F08F7587EB726EBFE4852C90 /* BlurMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93C920A73E0065F412030EB /* BlurMonitor.swift */; };
 		F0B19A34EC0B9F7AF5F38EE5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 576EAE74AC58442D1D45B548 /* ContentView.swift */; };
 		F1074965CD86018D140DE864 /* MotionReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78EC9AB17C61DBC382BE4E9 /* MotionReading.swift */; };
+		F2ECB4AE5EB819DFBF7AC5A3 /* ProxyHealthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2DFEFA818F1A0CC32CC2E35 /* ProxyHealthClient.swift */; };
 		F355B6E8C972FA3B4BD9D244 /* CueEvaluatorPredictiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9E1DA27A9FDBABA25ACC15C /* CueEvaluatorPredictiveTests.swift */; };
 		F4DC5AD61A98A89F3761B7CA /* ReferenceSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5EC5D8DDE6F01EB3D38063 /* ReferenceSessionTests.swift */; };
 		F51BA3A1CB6409C033010315 /* ContentView+Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE139A0A5DCBCDE12A3D4541 /* ContentView+Session.swift */; };
@@ -298,6 +299,7 @@
 		9C58CC4E053C73E35829D55C /* LandmarkProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarkProbeTests.swift; sourceTree = "<group>"; };
 		9E78F247A6DAB8111F25281D /* ReferencePoseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferencePoseTests.swift; sourceTree = "<group>"; };
 		9F55C9C8201E23B39E86A79F /* SignalFrameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalFrameTests.swift; sourceTree = "<group>"; };
+		A2DFEFA818F1A0CC32CC2E35 /* ProxyHealthClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyHealthClient.swift; sourceTree = "<group>"; };
 		A2EE354404AE6CB1F9ED031C /* AestheticPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AestheticPrompt.swift; sourceTree = "<group>"; };
 		A3165FBF8E23EAB79116BF4D /* MediaPipeProbeStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPipeProbeStats.swift; sourceTree = "<group>"; };
 		A5B9FADA996D75EC6DADF79A /* FrameTimerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameTimerTests.swift; sourceTree = "<group>"; };
@@ -601,6 +603,7 @@
 				720604A796CC49B74EFF6A98 /* AestheticResponseParser.swift */,
 				2A7B5127FCC3197594AA2CA6 /* AestheticSignal.swift */,
 				8D3EED331B54DA4510087D26 /* FrameEncoder.swift */,
+				A2DFEFA818F1A0CC32CC2E35 /* ProxyHealthClient.swift */,
 				6F8DCEC4C5B866F851120115 /* StaleSuppressor.swift */,
 				990BF00AA7F4C79C3F7BD3BF /* VLMClient.swift */,
 				E262D159350DFDB343093CF9 /* VLMOrchestrator.swift */,
@@ -851,6 +854,7 @@
 				B6ABC5782170A332845E0414 /* PredictiveCoach.swift in Sources */,
 				56EC1AB37BD627A8DEC650A2 /* PredictiveCoordinator.swift in Sources */,
 				5C0801F08150564C1A68E4EF /* PresenceGate.swift in Sources */,
+				F2ECB4AE5EB819DFBF7AC5A3 /* ProxyHealthClient.swift in Sources */,
 				262A05411F761DCFD0FB8BDF /* ReferenceCoach.swift in Sources */,
 				75D1034E36D86E107E30C5D7 /* ReferenceConsentAlert.swift in Sources */,
 				F6B87E1BB7D68BA8BD7EF520 /* ReferenceOverlayView.swift in Sources */,
