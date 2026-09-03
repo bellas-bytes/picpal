@@ -18,3 +18,4 @@ DerivedData/
 # Proxy — local secrets (never commit)
 proxy/.env
 proxy/node_modules/
+proxy/.call-counter.json

@@ -54,6 +54,11 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
     static let maxConsecutiveFailures: Int = 3
     public static let backoffBaseSeconds: TimeInterval = 2.0
     private let instanceBackoffBase: TimeInterval
+
+    static let maxRetryAttempts: Int = 2
+    /// 1 s; multiplied by attempt number (1×, 2×) for linear backoff.
+    static let retryBaseDelayNanoseconds: UInt64 = 1_000_000_000
+    private let retrySleep: @Sendable (UInt64) async -> Void
     // MARK: - Init
 
     init(
@@ -62,6 +67,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         suppressor: StaleSuppressor = StaleSuppressor(),
         responseCache: VLMResponseCache = VLMResponseCache(),
         backoffBaseSeconds: TimeInterval = VLMOrchestrator.backoffBaseSeconds,
+        retrySleep: (@Sendable (UInt64) async -> Void)? = nil,
         onRequestDispatched: (@Sendable () -> Void)? = nil,
         onRequestCompleted: (@Sendable () -> Void)? = nil,
         onResponseDiscarded: (@Sendable () -> Void)? = nil,
@@ -72,6 +78,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
         self.suppressor = suppressor
         self.responseCache = responseCache
         self.instanceBackoffBase = backoffBaseSeconds
+        self.retrySleep = retrySleep ?? { ns in try? await Task.sleep(nanoseconds: ns) }
         self.onRequestDispatched = onRequestDispatched
         self.onRequestCompleted = onRequestCompleted
         self.onResponseDiscarded = onResponseDiscarded
@@ -240,7 +247,7 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
 
             let inferenceTask = Task<VLMResponse?, Never> {
                 do {
-                    let r = try await self.client.analyze(request)
+                    let r = try await self.analyzeWithRetry(request)
                     self.failureLock.withLock { state in
                         state.consecutiveFailures = 0
                         state.backoffDeadline = Date.distantPast
@@ -293,6 +300,29 @@ public final class VLMOrchestrator: @unchecked Sendable, CameraFrameDelegate {
             // Cache the response only when not in reference mode.
             if !isReferenceMode {
                 responseCache.store(valid, for: signature)
+            }
+        }
+    }
+
+    // MARK: - Retry helper
+
+    /// Retries on `.networkFailure` / HTTP 502 up to `maxRetryAttempts` times (1 s, then 2 s).
+    /// 503 and all other errors surface immediately without retry.
+    private func analyzeWithRetry(_ request: VLMRequest) async throws(VLMError) -> VLMResponse {
+        var attempt = 0
+        while true {
+            do {
+                return try await client.analyze(request)
+            } catch {
+                let transient: Bool
+                switch error {
+                case .networkFailure:           transient = true
+                case .httpError(502, _):        transient = true
+                default:                        transient = false
+                }
+                guard transient, attempt < Self.maxRetryAttempts else { throw error }
+                attempt += 1
+                await retrySleep(Self.retryBaseDelayNanoseconds * UInt64(attempt))
             }
         }
     }

@@ -181,9 +181,18 @@ struct VLMOrchestratorTests {
 
         let client = AlwaysFailingVLMClient()
         let gate = VLMRequestGate(cadenceSeconds: 0)
-        // backoffBaseSeconds: 0 so failures accumulate without waiting for backoff windows.
-        let orch = VLMOrchestrator(client: client, gate: gate, backoffBaseSeconds: 0) { _ in }
+        // backoffBaseSeconds: 0, retrySleep: no-op — failures accumulate without delays.
+        // Each frame exhausts all retry attempts before isBusy clears, so the 200 ms
+        // wait is sufficient for completion.
+        let orch = VLMOrchestrator(
+            client: client, gate: gate,
+            backoffBaseSeconds: 0,
+            retrySleep: { _ in }   // instant retries — no real sleep
+        ) { _ in }
         let capture = CameraCapture()
+
+        // attemptsPerFrame = 1 initial + maxRetryAttempts retries.
+        let attemptsPerFrame = 1 + VLMOrchestrator.maxRetryAttempts
 
         // Send VLMOrchestrator.maxConsecutiveFailures novel frames, each with a
         // distinctly different luminance so the novelty gate never blocks them.
@@ -197,8 +206,10 @@ struct VLMOrchestratorTests {
             try? await Task.sleep(nanoseconds: 200_000_000) // 200 ms
         }
 
-        // All maxConsecutiveFailures calls were attempted and failed.
-        #expect(client.callCount == VLMOrchestrator.maxConsecutiveFailures)
+        // Each frame triggers attemptsPerFrame analyze calls (retries exhausted before
+        // the session-level failure counter increments).
+        let expectedCallCount = VLMOrchestrator.maxConsecutiveFailures * attemptsPerFrame
+        #expect(client.callCount == expectedCallCount)
 
         // Now send one more novel frame — session should be disabled, no new call.
         guard let extraBuf = makeFilledPixelBuffer(grayValue: 200) else {
@@ -208,8 +219,8 @@ struct VLMOrchestratorTests {
         orch.cameraCapture(capture, didOutputPixelBuffer: extraBuf, timestamp: .zero)
         try? await Task.sleep(nanoseconds: 200_000_000)
 
-        // Call count must remain exactly maxConsecutiveFailures.
-        #expect(client.callCount == VLMOrchestrator.maxConsecutiveFailures)
+        // Call count must remain exactly expectedCallCount (session disabled, no new calls).
+        #expect(client.callCount == expectedCallCount)
     }
 
     // MARK: - Test 7: backoff deadline prevents immediate retry after one failure

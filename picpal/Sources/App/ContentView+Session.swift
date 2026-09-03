@@ -53,6 +53,18 @@ extension ContentView {
     @MainActor
     func wireUp() {
         guard telemetryFeed == nil else { return }  // idempotent
+
+        // Check proxy health on launch — non-blocking; logs a warning when near ceiling.
+        Task {
+            let health = await ProxyHealthClient().checkHealth()
+            if !health.isReachable {
+                print("[picpal] Proxy health check: unreachable — is the proxy running?")
+            } else if health.isNearCeiling {
+                print("[picpal] Proxy health check: near ceiling (\(health.calls)/\(health.ceiling) calls used).")
+            } else {
+                print("[picpal] Proxy health check: ok (\(health.calls)/\(health.ceiling) calls used).")
+            }
+        }
         // Create the cue engine and signal accumulator.
         // The accumulator merges individual signals into a complete SignalFrame and
         // passes it to the engine on every update. Results are dispatched to @MainActor.

@@ -18,6 +18,9 @@ import Anthropic from '@anthropic-ai/sdk';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import multer from 'multer';
+import { readFileSync, writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 // ── Named constants ────────────────────────────────────────────────────────────
 const PORT                 = 4000;
@@ -28,8 +31,29 @@ const RATE_LIMIT_MAX_CALLS = 20;       // max calls per IP per window
 const HARD_CALL_CEILING    = 200;      // total calls this process lifetime
 const MAX_IMAGE_BYTES      = 5 * 1024 * 1024; // 5 MB per upload
 
-// ── Global call counter ────────────────────────────────────────────────────────
-let totalCalls = 0;
+// ── Persistent call counter ────────────────────────────────────────────────────
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const CALL_COUNTER_PATH = join(__dirname, '.call-counter.json');
+
+function loadCallCount() {
+  try {
+    const raw = readFileSync(CALL_COUNTER_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    return typeof parsed.totalCalls === 'number' ? parsed.totalCalls : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveCallCount(count) {
+  try {
+    writeFileSync(CALL_COUNTER_PATH, JSON.stringify({ totalCalls: count }), 'utf8');
+  } catch (err) {
+    console.error('[picpal-proxy] Failed to persist call counter:', err?.message);
+  }
+}
+
+let totalCalls = loadCallCount();
 
 // ── Anthropic client ───────────────────────────────────────────────────────────
 // Key is read from environment only — never hardcoded.
@@ -82,6 +106,7 @@ app.post('/analyze', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'ref
     }
 
     totalCalls += 1;
+    saveCallCount(totalCalls);
 
     const imageBase64 = imageFile.buffer.toString('base64');
     const startMs = Date.now();
@@ -146,8 +171,8 @@ app.post('/analyze', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'ref
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
-    totalCalls,
-    callsRemaining: HARD_CALL_CEILING - totalCalls,
+    calls: totalCalls,
+    ceiling: HARD_CALL_CEILING,
   });
 });
 
