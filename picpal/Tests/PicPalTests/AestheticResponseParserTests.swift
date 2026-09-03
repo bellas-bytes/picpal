@@ -168,6 +168,32 @@ struct AestheticResponseParserTests {
         #expect(signal == .nothingToSay)
     }
 
+    // MARK: - Lighting cues
+
+    /// A corrective lighting cue ("observation — action" format) must pass through
+    /// without being rejected. The em-dash separating the observation from the
+    /// imperative is a single character and does not constitute a second sentence.
+    @Test("Corrective lighting cue passes through parser as .remark")
+    func correctiveLightingCueParsed() {
+        // 9 words — well within the 15-word limit; single sentence end (no terminal punctuation)
+        let signal = AestheticResponseParser.parse("backlit — turn them to face the light")
+        #expect(signal.hint == .remark)
+        #expect(signal.remark == "backlit — turn them to face the light")
+        #expect(signal.confidence == 1.0)
+    }
+
+    /// A positive lighting acknowledgement ("great soft light — keep this") must also
+    /// pass through. The parser must not discard beneficial-lighting cues just because
+    /// they are non-corrective.
+    @Test("Positive lighting cue passes through parser as .remark")
+    func positiveLightingCueParsed() {
+        // 6 words — well within the 15-word limit; no terminal punctuation mid-sentence
+        let signal = AestheticResponseParser.parse("great soft light — keep this")
+        #expect(signal.hint == .remark)
+        #expect(signal.remark == "great soft light — keep this")
+        #expect(signal.confidence == 1.0)
+    }
+
     // MARK: - AestheticSignal sentinel shape
 
     @Test("nothingToSay sentinel has expected field values")
