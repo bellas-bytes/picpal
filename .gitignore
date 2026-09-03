@@ -19,3 +19,6 @@ DerivedData/
 proxy/.env
 proxy/node_modules/
 proxy/.call-counter.json
+
+# Xcode export options — contains team ID, git-ignored by convention
+ExportOptions.plist
