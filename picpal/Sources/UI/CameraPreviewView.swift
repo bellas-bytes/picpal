@@ -13,6 +13,8 @@ import AVFoundation
 struct CameraPreviewView: UIViewRepresentable {
 
     let camera: CameraCapture
+    /// Current camera position — drives preview mirroring for the front camera.
+    var cameraPosition: AVCaptureDevice.Position
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -29,7 +31,15 @@ struct CameraPreviewView: UIViewRepresentable {
         return container
     }
 
-    func updateUIView(_ uiView: CameraContainerView, context: Context) {}
+    func updateUIView(_ uiView: CameraContainerView, context: Context) {
+        // Mirror the preview when using the front camera so it feels like a selfie mirror.
+        let mirrored = cameraPosition == .front
+        let connection = uiView.previewLayer.connection
+        if let connection, connection.isVideoMirroringSupported {
+            connection.automaticallyAdjustsVideoMirroring = false
+            connection.isVideoMirrored = mirrored
+        }
+    }
 }
 
 // MARK: - Coordinator

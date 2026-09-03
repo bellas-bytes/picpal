@@ -48,6 +48,7 @@ public final class CameraCapture: @unchecked Sendable {
 
     private let stateLock = OSAllocatedUnfairLock<CaptureState>(initialState: .idle)
     private let configLock: OSAllocatedUnfairLock<CameraConfiguration>
+    private let positionLock = OSAllocatedUnfairLock<AVCaptureDevice.Position>(initialState: .back)
     // Set synchronously before enqueueing stop work; checked by startSession before
     // calling captureSession.startRunning(), so stop() during .starting aborts cleanly.
     private let cancellationRequested = OSAllocatedUnfairLock<Bool>(initialState: false)
@@ -74,6 +75,11 @@ public final class CameraCapture: @unchecked Sendable {
     /// The configuration in effect (or queued for next session start).
     public var currentConfiguration: CameraConfiguration {
         configLock.withLock { $0 }
+    }
+
+    /// The camera position currently in use (front or back). Thread-safe.
+    public var cameraPosition: AVCaptureDevice.Position {
+        positionLock.withLock { $0 }
     }
 
     /// Receiver of frame and state events. Safe to assign from any thread.
@@ -155,6 +161,49 @@ public final class CameraCapture: @unchecked Sendable {
         }
     }
 
+    // MARK: - Camera position
+
+    /// Toggle between front and back camera.
+    ///
+    /// The position flips atomically and is immediately visible via `cameraPosition`.
+    /// If the session is running, the capture input is swapped on the session queue
+    /// without stopping the session (uses `beginConfiguration` / `commitConfiguration`).
+    public func switchCamera() {
+        // Flip position synchronously so callers can read it immediately.
+        positionLock.withLock { $0 = ($0 == .back) ? .front : .back }
+        let newPosition = positionLock.withLock { $0 }
+
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            guard stateLock.withLock({ $0 }) == .running else { return }
+            let config = configLock.withLock { $0 }
+
+            captureSession.beginConfiguration()
+            defer { captureSession.commitConfiguration() }
+
+            // Remove the existing device input.
+            for input in captureSession.inputs where input is AVCaptureDeviceInput {
+                captureSession.removeInput(input)
+            }
+
+            guard let device = AVCaptureDevice.default(
+                .builtInWideAngleCamera, for: .video, position: newPosition
+            ) else {
+                logger.error("switchCamera: no device for position \(String(describing: newPosition), privacy: .public)")
+                return
+            }
+
+            do {
+                let input = try AVCaptureDeviceInput(device: device)
+                guard captureSession.canAddInput(input) else { return }
+                captureSession.addInput(input)
+                try applyFrameRate(config.targetFPS, to: device)
+            } catch {
+                logger.error("switchCamera input error: \(error.localizedDescription, privacy: .public)")
+            }
+        }
+    }
+
     // MARK: - Private: session setup
 
     private func startSession() {
@@ -196,8 +245,9 @@ public final class CameraCapture: @unchecked Sendable {
 
         captureSession.sessionPreset = configuration.preset
 
+        let position = positionLock.withLock { $0 }
         guard let device = AVCaptureDevice.default(
-            .builtInWideAngleCamera, for: .video, position: .back
+            .builtInWideAngleCamera, for: .video, position: position
         ) else {
             throw CameraError.deviceUnavailable
         }

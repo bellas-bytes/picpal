@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 
 // MARK: - Private constants
@@ -10,6 +11,9 @@ private let buttonEdgePadding: CGFloat = 16
 
 /// SF Symbol for the reference-photo mode button.
 private let referenceButtonSFSymbol: String = "photo.on.rectangle"
+
+/// SF Symbol for the camera-flip button.
+private let flipCameraButtonSFSymbol: String = "camera.rotate"
 
 // MARK: - ContentView
 
@@ -24,6 +28,7 @@ private let referenceButtonSFSymbol: String = "photo.on.rectangle"
 struct ContentView: View {
 
     @State var camera = CameraCapture()
+    @State private var cameraPosition: AVCaptureDevice.Position = .back
     @StateObject var debugViewModel = DebugOverlayViewModel()
     @State private var showingVLMSettings = false
     @State private var showReferencePicker: Bool = false
@@ -79,7 +84,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            CameraPreviewView(camera: camera)
+            CameraPreviewView(camera: camera, cameraPosition: cameraPosition)
                 .ignoresSafeArea()
 
             GuidesOverlayView(viewModel: debugViewModel)
@@ -119,6 +124,19 @@ struct ContentView: View {
                     .padding([.bottom, .leading], buttonEdgePadding)
                     #endif
                     Spacer()
+                    // Camera-flip button — swap front/back camera.
+                    // Disabled while a reference session is active (reference photo is camera-specific).
+                    Button {
+                        camera.switchCamera()
+                        cameraPosition = camera.cameraPosition
+                    } label: {
+                        Image(systemName: flipCameraButtonSFSymbol)
+                            .imageScale(.medium)
+                            .padding(buttonIconPadding)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .disabled(referenceSession != nil)
+                    .padding([.bottom], buttonEdgePadding)
                     // Reference mode button — bottom-right, left of the settings button.
                     // Disabled while a session is active; use the overlay's X to dismiss first.
                     Button {
