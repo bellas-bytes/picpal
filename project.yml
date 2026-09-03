@@ -15,6 +15,10 @@ packages:
   SwiftTasksVision:
     url: https://github.com/paescebu/SwiftTasksVision
     exactVersion: 0.10.21
+  # M6-0c: Sentry crash reporter (reads SENTRY_DSN from environment at runtime).
+  Sentry:
+    url: https://github.com/getsentry/sentry-cocoa
+    exactVersion: "8.40.1"
 
 targets:
   PicPal:
@@ -50,6 +54,9 @@ targets:
       - sdk: PhotosUI.framework
       - package: SwiftTasksVision
         product: SwiftTasksVision
+      # M6-0c: Sentry crash reporter — app target only, not test target.
+      - package: Sentry
+        product: Sentry
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.picpal.app
