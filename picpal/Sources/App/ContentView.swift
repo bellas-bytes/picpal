@@ -77,6 +77,17 @@ struct ContentView: View {
     @State var batteryMonitor = BatteryMonitor()
     @State var telemetryExporter: TelemetryExporter?
 
+    // MARK: - Manual exposure control state
+
+    /// Screen-space point where the user last tapped to set focus/exposure.
+    @State var exposureTapPoint: CGPoint?
+    /// Current EV bias value driven by the slider (−2 to +2).
+    @State var evBias: Float = 0
+    /// Whether the focus square and EV slider are visible.
+    @State var showEVControls: Bool = false
+    /// Handle for the auto-dismiss task so it can be cancelled on re-interaction.
+    @State var evDismissHandle = EVDismissHandle()
+
     @Environment(\.scenePhase) private var scenePhase
     /// Pending aesthetic-remark expiry Task wrapped in a class so `@Sendable` closures
     /// can cancel and reschedule it through a shared reference.
@@ -95,6 +106,9 @@ struct ContentView: View {
             #else
             DebugOverlayView(viewModel: debugViewModel)
             #endif
+
+            // Manual exposure control — tap-to-focus square and EV slider.
+            exposureControlOverlay
 
             // Reference ghost overlay — rendered between debug layer and controls.
             if let session = referenceSession {

@@ -42,7 +42,7 @@ public struct CueEvaluator: Sendable {
     ///   - frame: The signal snapshot for this analysis tick.
     ///   - predictive: Snapshot of predictive coach decisions for this frame.
     /// - Returns: The highest-priority cue, or `nil` for silence.
-    func evaluate(frame: SignalFrame, predictive: PredictiveActions) -> Cue? {
+    func evaluate(frame: SignalFrame, predictive: PredictiveActions, suppressExposureCue: Bool = false) -> Cue? {
 
         // 0.5. Lens obstruction — checked before stability so it can bypass any
         //      lower-priority cooldown. Uses .obstruction priority (outranks stability).
@@ -69,8 +69,8 @@ public struct CueEvaluator: Sendable {
             return Cue(text: CueText.holdStill, priority: .stability, sourceTier: .tier0)
         }
 
-        // 3. Exposure
-        if let exposure = frame.exposure {
+        // 3. Exposure — suppressed when the user has manually locked EV bias.
+        if let exposure = frame.exposure, !suppressExposureCue {
             if predictive.exposure == .emitPositiveCue { return Cue(text: CueText.exposureConfirmed, priority: .exposure, sourceTier: .tier05) }
             switch exposure.level {
             case .underexposed:
@@ -192,9 +192,20 @@ public final class CueEngine: @unchecked Sendable {
         var lastCue: Cue?
         var lastCueTime: Date?
         var cooldownEndTime: Date?
+        /// When `true`, the evaluator skips all exposure cues.
+        var suppressExposureCue: Bool = false
     }
 
     private let stateLock: OSAllocatedUnfairLock<EngineState>
+
+    /// When set to `true`, the evaluator skips all exposure coaching cues for the
+    /// lifetime of the manual EV session. Reset to `false` when EV returns to 0.
+    ///
+    /// Thread-safe: reads and writes are protected by `stateLock`.
+    public var suppressExposureCue: Bool {
+        get { stateLock.withLock { $0.suppressExposureCue } }
+        set { stateLock.withLock { $0.suppressExposureCue = newValue } }
+    }
 
     // MARK: - Init
 
@@ -249,7 +260,8 @@ public final class CueEngine: @unchecked Sendable {
     ///   - predictive: Snapshot of predictive coach decisions for this frame.
     /// - Returns: The selected cue (post-debounce), or `nil` for silence.
     func process(frame: SignalFrame, predictive: PredictiveActions) -> Cue? {
-        guard let candidate = evaluator.evaluate(frame: frame, predictive: predictive) else { return nil }
+        let suppress = stateLock.withLock { $0.suppressExposureCue }
+        guard let candidate = evaluator.evaluate(frame: frame, predictive: predictive, suppressExposureCue: suppress) else { return nil }
 
         let now = clock()
 
