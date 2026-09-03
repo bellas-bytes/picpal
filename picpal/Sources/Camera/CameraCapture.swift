@@ -63,6 +63,18 @@ public final class CameraCapture: @unchecked Sendable {
     nonisolated(unsafe) private var videoOutput    = AVCaptureVideoDataOutput()
     /// Retained to keep the delegate alive for the lifetime of the output.
     nonisolated(unsafe) private var sampleReceiver: SampleBufferReceiver?
+    /// The active capture device. Set on `sessionQueue`; read on any thread (nonisolated).
+    nonisolated(unsafe) public private(set) var videoDevice: AVCaptureDevice?
+
+    // MARK: - Exposure-bias state (written from the UI on the main thread)
+
+    /// `true` when the user has manually set a non-zero EV bias via `setExposureBias(_:)`.
+    /// Resets to `false` when bias returns to 0. Used by `CueEngine` to suppress
+    /// exposure coaching cues while the user is in manual EV control.
+    ///
+    /// `internal(set)` so `CameraCapture+ExposureControl.swift` can write it from the
+    /// same module without `private(set)` restricting it to one file.
+    public internal(set) var exposureBiasIsManual: Bool = false
 
     // MARK: - Public interface
 
@@ -207,6 +219,7 @@ public final class CameraCapture: @unchecked Sendable {
             throw CameraError.cannotAddInput
         }
         captureSession.addInput(input)
+        videoDevice = device
 
         try applyFrameRate(configuration.targetFPS, to: device)
 
