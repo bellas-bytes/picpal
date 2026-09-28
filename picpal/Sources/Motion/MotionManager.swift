@@ -39,6 +39,14 @@ public final class MotionManager: @unchecked Sendable {
     private let dataSource: any MotionDataSource
     private let motionQueue: OperationQueue
     private let processorLock: OSAllocatedUnfairLock<MotionProcessor>
+    private let orientationLock = OSAllocatedUnfairLock<CaptureOrientation>(initialState: .portrait)
+    public func setOrientation(_ orientation: CaptureOrientation) {
+        orientationLock.withLock { $0 = orientation }
+    }
+
+    static let physicalOrientationDidChange = Notification.Name("PicPalPhysicalCameraOrientationDidChange")
+    private let physicalOrientationLock = OSAllocatedUnfairLock(initialState: PhysicalCameraOrientationTracker())
+
     private let delegateBox = MotionDelegateBox()
     private let logger = Logger(subsystem: "com.picpal", category: "MotionManager")
 
@@ -123,12 +131,21 @@ public final class MotionManager: @unchecked Sendable {
     /// Called on `motionQueue` for every CoreMotion update.
     private func handle(sample: MotionSample) {
         let (reading, settleChanged) = processorLock.withLock { processor in
-            processor.process(sample: sample)
+            processor.process(sample: MotionSample(
+                roll: sample.isHorizonValid ? orientationLock.withLock { $0.relativeRoll(sample.roll) } : 0,
+                pitch: sample.pitch, rotationRateX: sample.rotationRateX,
+                rotationRateY: sample.rotationRateY, rotationRateZ: sample.rotationRateZ,
+                timestamp: sample.timestamp))
         }
 
+        let physicalOrientation = physicalOrientationLock.withLock { $0.update(sample) }
         let box = delegateBox
         let manager = self
         DispatchQueue.main.async {
+            if let physicalOrientation {
+                NotificationCenter.default.post(name: Self.physicalOrientationDidChange, object: manager,
+                                                userInfo: ["orientation": physicalOrientation])
+            }
             guard let del = box.get() else { return }
             del.motionManager(manager, didUpdate: reading)
             if let settled = settleChanged {

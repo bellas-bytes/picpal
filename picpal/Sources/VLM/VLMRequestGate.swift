@@ -71,8 +71,11 @@ public struct VLMRequestGate: Sendable {
         self.budget = budget
         self.clock = clock
         self.lastRequestSignature = nil
-        self.lastAuthorizedTime = 0
+        self.lastAuthorizedTime = -.infinity
     }
+
+    var isBudgetExhausted: Bool { budget.isExhausted }
+    mutating func consumeRetry() -> Bool { budget.tryConsume() }
 
     // MARK: - Public API
 
@@ -92,28 +95,29 @@ public struct VLMRequestGate: Sendable {
     ///   - isSettled: Whether the scene has settled, as reported by
     ///     `SceneGate` / `TiltMonitor`.
     /// - Returns: `true` when all four gates pass; `false` on first failure.
-    public mutating func shouldRequest(signature: SceneSignature, isSettled: Bool) -> Bool {
-
-        // Gate 1: Settle — cheapest boolean check; no computation.
+    /// Non-consuming eligibility, also used before cache delivery and image preparation.
+    func isEligible(signature: SceneSignature?, isSettled: Bool, allowsVerification: Bool = false) -> Bool {
         guard isSettled else { return false }
+        if !allowsVerification, let signature, let last = lastRequestSignature,
+           !signature.isMateriallyDifferent(from: last) { return false }
+        return clock() - lastAuthorizedTime >= cadenceSeconds
+    }
 
-        // Gate 2: Novelty — compare against last REQUEST, not the current frame.
-        // Skip comparison on the first-ever call (no prior signature).
-        if let last = lastRequestSignature {
-            guard signature.isMateriallyDifferent(from: last) else { return false }
-        }
-
-        // Gate 3: Cadence cap — timestamp compare; no Vision or network work.
-        let now = clock()
-        guard now - lastAuthorizedTime >= cadenceSeconds else { return false }
-
-        // Gate 4: Budget — consume only after gates 1–3 pass.
-        // Depletion is permanent; this call may transition `budget` to exhausted.
-        guard budget.tryConsume() else { return false }
-
-        // All gates passed — record authorization baseline for subsequent calls.
+    mutating func recordDelivery(signature: SceneSignature?) {
         lastRequestSignature = signature
-        lastAuthorizedTime = now
+        lastAuthorizedTime = clock()
+    }
+
+    /// Commit only at the actual transport boundary, after encoding and cancellation checks.
+    mutating func consumeNetworkAttempt(signature: SceneSignature?) -> Bool {
+        guard budget.tryConsume() else { return false }
+        recordDelivery(signature: signature)
         return true
+    }
+
+    /// Convenience combined authorization for callers dispatching immediately.
+    public mutating func shouldRequest(signature: SceneSignature, isSettled: Bool, allowsVerification: Bool = false) -> Bool {
+        guard isEligible(signature: signature, isSettled: isSettled, allowsVerification: allowsVerification) else { return false }
+        return consumeNetworkAttempt(signature: signature)
     }
 }

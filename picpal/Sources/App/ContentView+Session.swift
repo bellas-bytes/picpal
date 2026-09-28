@@ -56,7 +56,8 @@ extension ContentView {
 
         // Check proxy health on launch — non-blocking; logs a warning when near ceiling.
         Task {
-            let health = await ProxyHealthClient().checkHealth()
+            let endpoint = VLMSettings.shared.proxyURL.deletingLastPathComponent().appendingPathComponent("health")
+            let health = await ProxyHealthClient(healthURL: endpoint).checkHealth()
             if !health.isReachable {
                 print("[picpal] Proxy health check: unreachable — is the proxy running?")
             } else if health.isNearCeiling {
@@ -76,20 +77,14 @@ extension ContentView {
         #else
         let engine = CueEngine()
         #endif
-        let coach = voiceCoach  // capture strong local reference (no retain cycle)
+        let screen = cameraScreen
         // Capture the class reference so @Sendable closures below can cancel/reschedule
         // the expiry Task through the shared handle without capturing the view struct.
         let expiryHandle = aestheticExpiryTask
         let logger = CueLogger()
         let settleTimer = SettleEventTimer()
-        // M5.5-5: Build the per-frame reference coaching callback before the accumulator.
-        let refCallback = makeReferenceCoachingCallback(
-            coach: coach,
-            matchState: referenceMatchState,
-            sessionHandle: referenceSessionHandle
-        )
         let coordinator = predictiveCoordinator
-        let accum = SignalFrameAccumulator { [weak debugViewModel, refCallback] frame in
+        let accum = SignalFrameAccumulator { [weak debugViewModel] frame in
             let predictive = coordinator.update(frame)
             let cue = engine.process(frame: frame, predictive: predictive)
             if let cue {
@@ -105,12 +100,11 @@ extension ContentView {
                 )
                 logger.record(event)
                 settleTimer.reset()   // reset after first cue; next settle starts a new burst
-                coach.speak(cue)
+                // Primary spoken guidance now follows fresh person observations.
             }
-            refCallback(frame)
-            let cueText = cue?.text ?? "—"
+            // Reference matching also uses the fresh person observation in CameraScreenModel.
             Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.activeCue = cueText
+                debugViewModel?.receiveCoachingCue(cue)
             }
         }
 
@@ -124,20 +118,7 @@ extension ContentView {
             }
         }
 
-        let exposureMon = ExposureMonitor(downstream: framingMon) { [weak debugViewModel, accum] signal in
-            accum.update(exposure: signal)
-            let label: String
-            switch signal.level {
-            case .ok:           label = "ok"
-            case .underexposed: label = "under"
-            case .overexposed:  label = "over"
-            }
-            Task { @MainActor [weak debugViewModel] in
-                debugViewModel?.exposureLevel = label
-            }
-        }
-
-        let blurMon = BlurMonitor(downstream: exposureMon) { [weak debugViewModel, accum] signal in
+        let blurMon = BlurMonitor(downstream: framingMon) { [weak debugViewModel, accum] signal in
             accum.update(blur: signal)
             Task { @MainActor [weak debugViewModel] in
                 debugViewModel?.blurScore = signal.sharpnessScore
@@ -172,7 +153,7 @@ extension ContentView {
         let vlmCache = VLMResponseCache()
         #endif
         let vlmOrch = VLMOrchestrator(
-            client: AnthropicVLMClient(proxyURL: VLMSettings.shared.proxyURL),
+            client: ConfiguredVLMClient(),
             gate: vlmGate,
             responseCache: vlmCache,
             onRequestDispatched: { [weak debugViewModel, expiryHandle] in
@@ -193,6 +174,9 @@ extension ContentView {
                     debugViewModel?.vlmDiscardCount += 1
                 }
             },
+            onReferenceAnalysis: { event in
+                Task { @MainActor in screen.receive(referenceAnalysis: event) }
+            },
             onAestheticSignal: { [weak debugViewModel, accum, expiryHandle] signal in
                 accum.update(aesthetic: signal)
                 switch signal.hint {
@@ -201,13 +185,15 @@ extension ContentView {
                     Task { @MainActor [weak debugViewModel, accum, expiryHandle] in
                         expiryHandle.task?.cancel()
                         expiryHandle.task = nil
-                        debugViewModel?.aestheticRemark = signal.remark
+                        screen.receive(aesthetic: signal.remark)
+                    debugViewModel?.aestheticRemark = signal.remark
                         let newTask = Task { [accum, weak debugViewModel] in
                             try? await Task.sleep(for: .seconds(aestheticRemarkExpirySeconds))
                             guard !Task.isCancelled else { return }
                             accum.update(aesthetic: AestheticSignal.nothingToSay)
                             await MainActor.run { [weak debugViewModel] in
-                                debugViewModel?.aestheticRemark = ""
+                                screen.receive(aesthetic: nil)
+                        debugViewModel?.aestheticRemark = ""
                             }
                         }
                         expiryHandle.task = newTask
@@ -217,6 +203,7 @@ extension ContentView {
                     Task { @MainActor [weak debugViewModel, expiryHandle] in
                         expiryHandle.task?.cancel()
                         expiryHandle.task = nil
+                        screen.receive(aesthetic: nil)
                         debugViewModel?.aestheticRemark = ""
                     }
                 }
@@ -235,15 +222,38 @@ extension ContentView {
         } onGroupPresence: { [accum] in accum.update(groupPresence: $0) }
 
         let feed = debugViewModel.makeTelemetryFeed(downstream: probe)
-        vlmOrch.downstream = feed.bridge
-
-        // Wire: LandmarkOrchestrator → VLMOrchestrator → telemetry bridge.
-        // When orchestrator is nil (Simulator — model files absent), vlmOrch becomes
-        // the direct adapter downstream so Tier-2 wiring stays intact.
-        orchestrator?.downstream = vlmOrch
-        let adapterDownstream: any CameraFrameDelegate = orchestrator ?? vlmOrch
+        orchestrator?.downstream = feed.bridge
+        let adapterDownstream: any CameraFrameDelegate = orchestrator ?? feed.bridge
         let adapter = SceneGateAdapter(gate: sceneGate, downstream: adapterDownstream)
-        camera.delegate = adapter
+        // Reference verification needs fresh unchanged frames. The VLM has its own
+        // cadence/budget gates and must sit before the scene novelty gate.
+        vlmOrch.downstream = adapter
+        let subjects = SubjectObservationMonitor(downstream: vlmOrch, onObservation: { [screen] observation in
+            Task { @MainActor in screen.receive(observation) }
+        }, onLivePose: { [screen, weak debugViewModel] observation in
+            Task { @MainActor in
+                debugViewModel?.subjectDetectionSummary = observation.detectionSummary
+                if screen.receive(livePose: observation) { vlmOrch.requestReferenceVerification() }
+            }
+        })
+        subjectMonitor = subjects
+        let exposureMon = ExposureMonitor(downstream: subjects) { [weak debugViewModel, accum] signal in
+            accum.update(exposure: signal)
+            let label: String
+            switch signal.level {
+            case .ok:           label = "ok"
+            case .underexposed: label = "under"
+            case .overexposed:  label = "over"
+            }
+            Task { @MainActor [weak debugViewModel] in
+                screen.receive(exposure: signal)
+                debugViewModel?.exposureLevel = label
+            }
+        }
+
+        vlmOrch.updateReferenceMotion(isSettled: false)
+        vlmOrch.updateReferenceArmed(cameraScreen.isArmed)
+        camera.delegate = exposureMon
         feed.start()
         camera.requestPermissionAndStart()
 
@@ -253,6 +263,7 @@ extension ContentView {
         landmarkProbe = probe
         landmarkOrchestrator = orchestrator
         vlmOrchestrator = vlmOrch
+        syncReferenceAnalysis()
         telemetryFeed = feed
         sceneGateAdapter = adapter
         cueEngine = engine
@@ -287,14 +298,18 @@ extension ContentView {
         }
         #endif
 
-        let monitor = TiltMonitor(onSettleChange: { [sceneGate] settled in
+        let monitor = TiltMonitor(onSettleChange: { [sceneGate, vlmOrch] settled in
             sceneGate.update(isSettled: settled)
+            vlmOrch.updateReferenceMotion(isSettled: settled)
             if settled {
                 settleTimer.recordSettle()
             }
+        }, onReading: { reading in
+            Task { @MainActor in screen.receive(motion: reading) }
         }) { [weak debugViewModel, accum] signal in
             accum.update(tilt: signal)
             Task { @MainActor [weak debugViewModel] in
+                screen.receive(tilt: signal)
                 debugViewModel?.tiltDegrees = signal.angleDegrees
                 debugViewModel?.isLevel = signal.isLevel
             }

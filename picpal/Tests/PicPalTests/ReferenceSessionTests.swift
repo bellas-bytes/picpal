@@ -1,4 +1,5 @@
 import Testing
+import Vision
 import UIKit
 import CoreGraphics
 import Combine
@@ -196,5 +197,262 @@ struct ReferenceSessionTests {
         #expect(session.pose == nil)
         #expect(session.extractionError == .noPoseDetected)
         #expect(!session.isExtracting)
+    }
+
+    @Test("unexpected Vision errors surface as analysis failure")
+    func unexpectedErrorIsVisible() async {
+        let session = ReferenceSession(image: makeBlankImage()) { _ in
+            throw NSError(domain: "Vision", code: -1)
+        }
+        await session.extractPose()
+        #expect(session.pose == nil)
+        #expect(session.extractionError == .analysisFailed)
+        #expect(!session.isExtracting)
+    }
+
+    @Test("photo orientation is forwarded to Vision including mirrored images")
+    func imageOrientationMapping() {
+        #expect(ReferenceSession.visionOrientation(for: .up) == .up)
+        #expect(ReferenceSession.visionOrientation(for: .down) == .down)
+        #expect(ReferenceSession.visionOrientation(for: .left) == .left)
+        #expect(ReferenceSession.visionOrientation(for: .right) == .right)
+        #expect(ReferenceSession.visionOrientation(for: .upMirrored) == .upMirrored)
+        #expect(ReferenceSession.visionOrientation(for: .downMirrored) == .downMirrored)
+        #expect(ReferenceSession.visionOrientation(for: .leftMirrored) == .leftMirrored)
+        #expect(ReferenceSession.visionOrientation(for: .rightMirrored) == .rightMirrored)
+    }
+}
+import Foundation
+import Testing
+@testable import PicPal
+
+struct SelfieReferenceTests {
+    let face = CGRect(x: 0.25, y: 0.3, width: 0.5, height: 0.5)
+
+    @Test func faceWithoutBodySupportsFramingButNeverPose() throws {
+        let reference = try ReferenceSession.makePose(body: nil, faces: [face], personBoxes: [], geometry: ReferenceGeometry())
+        var comparator = ReferenceLocalComparator()
+        let result = comparator.compare(reference: reference, live: LivePoseObservation(capturedAt: 1,
+            geometryRevision: 1, personBox: nil, joints: [:], subjectCount: 1, faceBox: face))
+        #expect(reference.framingDomain == .face)
+        #expect(result.subjectPresent)
+        #expect(result.framingAligned)
+        #expect(result.poseAligned == nil)
+    }
+
+    @Test func absentOrAmbiguousFacesCannotCreateSelfieReference() {
+        for faces in [[], [face, face]] {
+            #expect(throws: ReferenceSessionError.self) {
+                try ReferenceSession.makePose(body: nil, faces: faces, personBoxes: [], geometry: ReferenceGeometry())
+            }
+        }
+    }
+
+    @Test func faceCannotMatchPersonRectangle() throws {
+        let reference = try ReferenceSession.makePose(body: nil, faces: [face], personBoxes: [], geometry: ReferenceGeometry())
+        var comparator = ReferenceLocalComparator()
+        let result = comparator.compare(reference: reference, live: LivePoseObservation(capturedAt: 1,
+            geometryRevision: 1, personBox: face, joints: [:], subjectCount: 1))
+        #expect(!result.framingAligned)
+        #expect(result.poseAligned == nil)
+    }
+
+    @Test func multipleBodiesRejectSingleFace() {
+        #expect(throws: ReferenceSessionError.self) {
+            try ReferenceSession.makePose(body: BodyTrackerResult(joints: [:], subjectCount: 2), faces: [face],
+                personBoxes: [], geometry: ReferenceGeometry())
+        }
+    }
+}
+
+@Suite struct SelfieCoordinatorTests {
+    @Test func faceAlignedWithoutBodyNeverRequestsFullBodyOrAutoCaptures() throws {
+        let face = CGRect(x: 0.25, y: 0.3, width: 0.5, height: 0.5)
+        let reference = try ReferenceSession.makePose(body: nil, faces: [face], personBoxes: [], geometry: ReferenceGeometry())
+        var comparator = ReferenceLocalComparator()
+        var coordinator = ReferenceCoachingCoordinator()
+        let session = UUID()
+        for time in [1.0, 1.5, 2.0, 2.5] {
+            let local = comparator.compare(reference: reference, live: LivePoseObservation(capturedAt: time,
+                geometryRevision: 1, personBox: nil, joints: [:], subjectCount: 1, faceBox: face))
+            let result = coordinator.update(ReferenceCoachingInput(sessionID: session, generation: 1,
+                geometryRevision: 1, now: time, local: local, profile: nil, comparison: nil,
+                cloudAvailability: .localOnly, captureSafe: true))
+            #expect(result.caption == "Face framing aligned")
+            #expect(!result.allowsAutoCapture)
+            #expect(!result.referenceMatched)
+        }
+    }
+
+    @Test func absentFaceAndBodyRequestsSubject() throws {
+        let face = CGRect(x: 0.25, y: 0.3, width: 0.5, height: 0.5)
+        let reference = try ReferenceSession.makePose(body: nil, faces: [face], personBoxes: [], geometry: ReferenceGeometry())
+        var comparator = ReferenceLocalComparator()
+        let local = comparator.compare(reference: reference, live: LivePoseObservation(capturedAt: 1,
+            geometryRevision: 1, personBox: nil, joints: [:], subjectCount: 0))
+        var coordinator = ReferenceCoachingCoordinator()
+        let result = coordinator.update(ReferenceCoachingInput(sessionID: UUID(), generation: 1,
+            geometryRevision: 1, now: 1, local: local, profile: nil, comparison: nil,
+            cloudAvailability: .localOnly, captureSafe: true))
+        #expect(result.caption == "Bring the person into view")
+    }
+}
+
+struct SelfieLiveEvidenceTests {
+    private func measured(body: BodyTrackerResult? = nil, facesAvailable: Bool = true,
+                          faces: [CGRect]? = nil, people: [CGRect] = []) -> LivePoseObservation {
+        .measured(capturedAt: 1, geometryRevision: 2, body: body, personBoxes: people,
+            faceBoxes: faces ?? [CGRect(x: 0.25, y: 0.3, width: 0.5, height: 0.5)],
+            rectanglesAvailable: true, facesAvailable: facesAvailable,
+            geometry: ReferenceGeometry(), backend: .mediaPipe)
+    }
+    @Test func failedBodyInferencePreservesLiveFace() {
+        let live = measured()
+        #expect(live.analysisAvailable)
+        #expect(live.faceBox != nil)
+        #expect(live.personBox == nil)
+        #expect(live.joints.isEmpty)
+        #expect(live.subjectCount == 1)
+    }
+    @Test func failedFaceDetectorIsUnknown() {
+        #expect(!measured(facesAvailable: false).analysisAvailable)
+    }
+    @Test func ambiguousFacesRemainAmbiguous() {
+        let face = CGRect(x: 0.25, y: 0.3, width: 0.5, height: 0.5)
+        #expect(measured(faces: [face, face]).subjectCount == 2)
+    }
+    @Test func measuredMultipleSubjectsStillBlockGuidanceAndCapture() throws {
+        let face = CGRect(x: 0.25, y: 0.3, width: 0.5, height: 0.5)
+        let reference = try ReferenceSession.makePose(body: nil, faces: [face], personBoxes: [], geometry: ReferenceGeometry())
+        for live in [measured(faces: [face, face]),
+                     measured(body: BodyTrackerResult(joints: [:], subjectCount: 2)),
+                     measured(people: [CGRect(x: 0, y: 0, width: 0.5, height: 1),
+                                       CGRect(x: 0.5, y: 0, width: 0.5, height: 1)])] {
+            var comparator = ReferenceLocalComparator()
+            var coordinator = ReferenceCoachingCoordinator()
+            let local = comparator.compare(reference: reference, live: live)
+            let result = coordinator.update(ReferenceCoachingInput(sessionID: UUID(), generation: 1,
+                geometryRevision: 2, now: 1, local: local, profile: nil, comparison: nil,
+                cloudAvailability: .localOnly, captureSafe: true))
+            #expect(result.caption == "Keep one person in view")
+            #expect(!result.allowsAutoCapture)
+            #expect(!result.referenceMatched)
+            #expect(result.action == nil)
+        }
+    }
+
+    @Test func disagreementDoesNotInventASecondPerson() throws {
+        let live = measured(people: [CGRect(x: 0, y: 0, width: 0.1, height: 0.1)])
+        #expect(live.subjectCount == 1)
+        #expect(!live.analysisAvailable)
+        let reference = try ReferenceSession.makePose(body: nil,
+            faces: [CGRect(x: 0.25, y: 0.3, width: 0.5, height: 0.5)], personBoxes: [], geometry: ReferenceGeometry())
+        var comparator = ReferenceLocalComparator()
+        let local = comparator.compare(reference: reference, live: live)
+        var coordinator = ReferenceCoachingCoordinator()
+        let result = coordinator.update(ReferenceCoachingInput(sessionID: UUID(), generation: 1,
+            geometryRevision: 2, now: 1, local: local, profile: nil, comparison: nil,
+            cloudAvailability: .localOnly, captureSafe: true))
+        #expect(result.caption == "Waiting for a clear view")
+        #expect(!result.allowsAutoCapture)
+        #expect(!result.referenceMatched)
+        #expect(result.action == nil)
+    }
+}
+
+
+struct ClippedDetectorBoxTests {
+    // Measured detector output from the reported landscape selfie. No image is retained.
+    let face = CGRect(x: 0.4320677221, y: 0.3998402059, width: 0.1852161139, height: 0.2469548136)
+    let person = CGRect(x: 0.0628140691, y: -0.0036271811, width: 0.8802344811, height: 0.8152901313)
+
+    @Test func liveIngestionPreservesCroppedDetectionsForClipping() {
+        let detections = SubjectObservationMonitor.confidentDetections([
+            VNDetectedObjectObservation(boundingBox: person)
+        ])
+        #expect(detections.count == 1)
+        let live = LivePoseObservation.measured(capturedAt: 1, geometryRevision: 1, body: nil,
+            personBoxes: detections.map(\.boundingBox), faceBoxes: [face], rectanglesAvailable: true,
+            facesAvailable: true, geometry: ReferenceGeometry(), backend: .vision)
+        #expect(live.analysisAvailable)
+        #expect(live.subjectCount == 1)
+        #expect(live.personBox?.minY == 0)
+    }
+
+    @Test func liveIngestionDoesNotHideSecondCroppedOrInvalidDetection() throws {
+        for second in [CGRect(x: 0.95, y: 0.3, width: 0.2, height: 0.4),
+                       CGRect(x: 1.1, y: 0.3, width: 0.2, height: 0.4)] {
+            let detections = SubjectObservationMonitor.confidentDetections([
+                VNDetectedObjectObservation(boundingBox: person),
+                VNDetectedObjectObservation(boundingBox: second)
+            ])
+            #expect(detections.count == 2)
+            let live = LivePoseObservation.measured(capturedAt: 1, geometryRevision: 1, body: nil,
+                personBoxes: detections.map(\.boundingBox), faceBoxes: [face], rectanglesAvailable: true,
+                facesAvailable: true, geometry: ReferenceGeometry(), backend: .vision)
+            #expect(live.subjectCount == 2)
+            var comparator = ReferenceLocalComparator()
+            let reference = try ReferenceSession.makePose(body: nil, faces: [face],
+                personBoxes: [], geometry: ReferenceGeometry())
+            let local = comparator.compare(reference: reference, live: live)
+            #expect(!local.framingAligned)
+            #expect(local.poseAligned == nil)
+        }
+    }
+
+    @Test func croppedSelfieRetainsReferenceAndLiveFraming() throws {
+        let geometry = ReferenceGeometry(imageAspectRatio: 4.0 / 3.0)
+        let reference = try ReferenceSession.makePose(body: nil, faces: [face], personBoxes: [person], geometry: geometry)
+        let live = LivePoseObservation.measured(capturedAt: 1, geometryRevision: 1, body: nil,
+            personBoxes: [person], faceBoxes: [face], rectanglesAvailable: true, facesAvailable: true,
+            geometry: geometry, backend: .vision)
+        #expect(reference.framingDomain == .face)
+        #expect(live.analysisAvailable)
+        #expect(live.personBox?.minY == 0)
+        #expect(abs((live.personBox?.height ?? 0) - 0.8116629502) < 0.000001)
+        var comparator = ReferenceLocalComparator()
+        let result = comparator.compare(reference: reference, live: live)
+        #expect(result.subjectPresent)
+        #expect(result.framingAligned)
+        #expect(result.poseAligned == nil)
+    }
+
+    @Test func edgeClippedFacesUseVisibleImageBounds() throws {
+        for box in [CGRect(x: -0.01, y: 0.2, width: 0.4, height: 0.4),
+                    CGRect(x: 0.7, y: 0.7, width: 0.4, height: 0.4)] {
+            let reference = try ReferenceSession.makePose(body: nil, faces: [box], personBoxes: [], geometry: ReferenceGeometry())
+            #expect(reference.subjectBoundingBox.minX >= 0)
+            #expect(reference.subjectBoundingBox.maxX <= 1)
+            #expect(reference.subjectBoundingBox.maxY <= 1)
+        }
+    }
+
+    @Test func clippingDoesNotHideASecondSubject() {
+        let second = CGRect(x: 0.95, y: 0.3, width: 0.2, height: 0.4)
+        #expect(throws: ReferenceSessionError.self) {
+            try ReferenceSession.makePose(body: nil, faces: [face], personBoxes: [person, second], geometry: ReferenceGeometry())
+        }
+        let live = LivePoseObservation.measured(capturedAt: 1, geometryRevision: 1, body: nil,
+            personBoxes: [person, second], faceBoxes: [face], rectanglesAvailable: true, facesAvailable: true,
+            geometry: ReferenceGeometry(), backend: .vision)
+        #expect(live.analysisAvailable)
+        #expect(live.subjectCount == 2)
+        #expect(live.personBox == nil)
+    }
+
+    @Test func malformedAndInvisibleBoxesRemainUnavailable() {
+        for box in [CGRect(x: 1.1, y: 0.1, width: 0.1, height: 0.1),
+                    CGRect(x: 0.1, y: 0.1, width: -0.1, height: 0.1),
+                    CGRect(x: 0.1, y: 0.1, width: 0, height: 0.1),
+                    CGRect(x: CGFloat.nan, y: 0.1, width: 0.1, height: 0.1),
+                    CGRect(x: 0.1, y: 0.1, width: CGFloat.infinity, height: 0.1)] {
+            #expect(throws: ReferenceSessionError.self) {
+                try ReferenceSession.makePose(body: nil, faces: [face], personBoxes: [box], geometry: ReferenceGeometry())
+            }
+            let live = LivePoseObservation.measured(capturedAt: 1, geometryRevision: 1, body: nil,
+                personBoxes: [box], faceBoxes: [face], rectanglesAvailable: true, facesAvailable: true,
+                geometry: ReferenceGeometry(), backend: .vision)
+            #expect(!live.analysisAvailable)
+        }
     }
 }

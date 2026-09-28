@@ -2,7 +2,7 @@ import Foundation
 
 /// The complete session payload serialised to disk.
 public struct TelemetrySnapshot: Sendable, Encodable {
-    /// Accumulated frame-timing statistics for the session.
+    /// Scene-gated synchronous delegate-dispatch timings, not capture FPS or asynchronous inference latency.
     public let frameStats: FrameTimerStatistics
     /// Ordered list of thermal state transitions observed during the session.
     public let thermalEvents: [ThermalEvent]

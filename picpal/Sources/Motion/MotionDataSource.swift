@@ -7,7 +7,7 @@ import Foundation
 ///
 /// All fields are value types, making `MotionSample` trivially `Sendable`.
 struct MotionSample: Sendable {
-    /// Device attitude roll (radians), from `CMDeviceMotion.attitude.roll`.
+    /// Clockwise portrait horizon angle (radians), derived from gravity.
     let roll: Double
     /// Device attitude pitch (radians), from `CMDeviceMotion.attitude.pitch`.
     let pitch: Double
@@ -19,6 +19,8 @@ struct MotionSample: Sendable {
     let rotationRateZ: Double
     /// CoreMotion sample timestamp (seconds since device boot).
     let timestamp: TimeInterval
+    /// False when gravity has too little screen-plane projection to define a horizon.
+    var isHorizonValid: Bool = true
 }
 
 // MARK: - MotionDataSource protocol
@@ -61,6 +63,27 @@ final class CoreMotionDataSource: MotionDataSource, @unchecked Sendable {
 
     var isDeviceMotionAvailable: Bool { manager.isDeviceMotionAvailable }
 
+    static func makeSample(from motion: CMDeviceMotion) -> MotionSample {
+        // Euler roll rotates around the phone's long axis, not the portrait
+        // camera horizon. Project gravity into the screen plane instead.
+        let gravity = motion.gravity
+        let projection = hypot(gravity.x, gravity.y)
+        // Near face-up/face-down, there is no reliable horizon in this plane.
+        let minimumGravityProjection = 0.15
+        let horizonAngle = projection >= minimumGravityProjection
+            ? atan2(gravity.x, -gravity.y)
+            : 0
+        return MotionSample(
+            roll: horizonAngle,
+            pitch: motion.attitude.pitch,
+            rotationRateX: motion.rotationRate.x,
+            rotationRateY: motion.rotationRate.y,
+            rotationRateZ: motion.rotationRate.z,
+            timestamp: motion.timestamp,
+            isHorizonValid: projection >= minimumGravityProjection
+        )
+    }
+
     func startUpdates(
         to queue: OperationQueue,
         updateInterval: TimeInterval,
@@ -72,14 +95,7 @@ final class CoreMotionDataSource: MotionDataSource, @unchecked Sendable {
                 handler(nil, error)
                 return
             }
-            let sample = MotionSample(
-                roll: motion.attitude.roll,
-                pitch: motion.attitude.pitch,
-                rotationRateX: motion.rotationRate.x,
-                rotationRateY: motion.rotationRate.y,
-                rotationRateZ: motion.rotationRate.z,
-                timestamp: motion.timestamp
-            )
+            let sample = Self.makeSample(from: motion)
             handler(sample, nil)
         }
     }

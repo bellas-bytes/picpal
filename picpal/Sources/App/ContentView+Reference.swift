@@ -2,9 +2,6 @@ import SwiftUI
 
 // MARK: - Named constants
 
-/// Number of consecutive within-threshold frames required to confirm a match.
-/// Exposed as `internal` so ReferenceIntegrationTests can use the same constant.
-internal let referenceMatchConfirmationFrames: Int = 8
 
 // MARK: - ReferenceSessionHandle
 
@@ -125,63 +122,75 @@ extension ContentView {
         referenceSessionHandle.session = nil
         referenceMatchState.reset()
         referenceCloudConsentGiven = false
-        vlmOrchestrator?.referenceImage = nil
-        vlmOrchestrator?.referenceModeConsented = false
+        referenceCloudEnabled = false
+        cameraScreen.configureReference(nil, cloudAllowed: false)
+        voiceCoach.stop()
+        syncReferenceAnalysis()
     }
 
-    // MARK: - Per-frame coaching callback
+    func syncReferenceAnalysis() {
+        let cloudAllowed = referenceCloudEnabled && !VLMSettings.shared.isOnDeviceOnly
+        cameraScreen.configureReference(referenceSession, cloudAllowed: cloudAllowed)
+        subjectMonitor?.updateGeometry(revision: cameraScreen.referenceGeometryRevision,
+            isMirrored: cameraPosition == .front, previewAspectRatio: previewAspectRatio)
+        vlmOrchestrator?.setReferenceContext(sessionID: referenceSession?.id,
+            generation: cameraScreen.referenceGeneration, image: referenceSession?.image,
+            consented: cloudAllowed && !cameraControlsBlocked,
+            geometryRevision: cameraScreen.referenceGeometryRevision)
+    }
 
-    /// Returns a `@Sendable` callback suitable for injection into `wireUp()`'s
-    /// `SignalFrameAccumulator`.
-    ///
-    /// The callback dispatches a `Task { @MainActor }` on every frame so that:
-    /// - `ReferenceSession.pose` (a `@MainActor @Published` property) is accessed safely.
-    /// - `ReferenceMatchState` (a `@MainActor ObservableObject`) is mutated safely.
-    /// - SwiftUI automatically re-renders `ReferenceOverlayView` when `isMatched` changes.
-    ///
-    /// Match logic:
-    /// - Increment `count` while the delta is within threshold; reset to 0 when outside.
-    /// - Set `isMatched = true` once `count` reaches `referenceMatchConfirmationFrames`.
-    /// - Pass `isNewMatchEvent` (a one-frame transition flag) to `ReferenceCoach` so the
-    ///   "nice — that looks like the reference shot" cue fires exactly once per match event.
-    func makeReferenceCoachingCallback(
-        coach: VoiceCoach,
-        matchState: ReferenceMatchState,
-        sessionHandle: ReferenceSessionHandle
-    ) -> @Sendable (SignalFrame) -> Void {
-        return { [weak matchState, sessionHandle, coach] frame in
-            guard sessionHandle.session != nil else { return }
-            Task { @MainActor [weak matchState, sessionHandle, coach] in
-                guard let ms = matchState,
-                      let session = sessionHandle.session,
-                      let pose = session.pose else { return }
+}
 
-                guard let body = frame.body, body.dominantRect != nil else {
-                    ms.count = 0
-                    ms.isMatched = false
-                    return
-                }
-                let delta = computePoseDelta(referencePose: pose, liveLandmarks: body)
+extension ContentView {
+    func updatePreviewAspect(_ size: CGSize) {
+        guard size.width > 0, size.height > 0 else { return }
+        let aspect = size.width / size.height
+        guard abs(previewAspectRatio - aspect) > 0.001 else { return }
+        previewAspectRatio = aspect
+        cameraScreen.interrupt()
+        cameraScreen.invalidateReferenceGeometry()
+        referenceMatchState.reset()
+        voiceCoach.stop()
+        syncReferenceAnalysis()
+    }
 
-                if delta.isWithinThreshold {
-                    ms.count += 1
-                } else {
-                    ms.count = 0
-                    ms.isMatched = false
-                }
-
-                // Capture state before the potential transition so isNewMatchEvent
-                // is true only on the FIRST frame that crosses the threshold.
-                let wasMatched = ms.isMatched
-                if ms.count >= referenceMatchConfirmationFrames && !ms.isMatched {
-                    ms.isMatched = true
-                }
-                let isNewMatchEvent = !wasMatched && ms.isMatched
-
-                if let cue = ReferenceCoach().cue(from: delta, isNewMatch: isNewMatchEvent) {
-                    coach.speak(cue)
-                }
+    func requestPhysicalCameraRotation() {
+        guard !cameraScreen.isBusy, !isSwitchingCamera,
+              let physicalOrientation,
+              let window = previewCoordinates.container?.window,
+              let scene = window.windowScene else { return }
+        sceneRotation.update(physicalOrientation: physicalOrientation, interfaceOrientation: scene.interfaceOrientation,
+                             isActive: scene.activationState == .foregroundActive,
+                             hasPresentedController: window.rootViewController?.presentedViewController != nil) { mask in
+            #if DEBUG
+            print("[PicPal rotation] Request physical=\(physicalOrientation) scene=\(scene.interfaceOrientation.rawValue)")
+            #endif
+            scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask)) { error in
+                // UIKit remains authoritative on rejection; never rotate buffers alone.
+                #if DEBUG
+                print("[PicPal rotation] Scene rotation rejected: \(error.localizedDescription)")
+                #endif
             }
         }
+    }
+
+    func updateCaptureOrientation(interfaceOrientation: UIInterfaceOrientation? = nil) {
+        let sceneOrientation = interfaceOrientation ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first { $0.activationState == .foregroundActive }?.interfaceOrientation
+        let next = sceneOrientation.map { captureOrientation.updated(forInterface: $0) }
+            ?? captureOrientation.updated(for: UIDevice.current.orientation)
+        guard next != captureOrientation else { return }
+        cameraScreen.interrupt()
+        cameraScreen.invalidateReferenceGeometry()
+        referenceMatchState.reset()
+        voiceCoach.stop()
+        captureOrientation = next
+        #if DEBUG
+        print("[PicPal rotation] Applied scene capture=\(next)")
+        #endif
+        camera.setOrientation(next)
+        motionManager.setOrientation(next)
+        showEVControls = false
+        syncReferenceAnalysis()
     }
 }

@@ -29,9 +29,9 @@ targets:
       - path: PicPal/Sources
         excludes:
           - "**/.gitkeep"
-    resources:
       # M2-0: Hand and Face landmarker model bundles for MediaPipe Tasks Vision.
       - path: PicPal/Resources/Models
+        buildPhase: resources
     info:
       path: PicPal/Resources/Info.plist
       properties:
@@ -41,17 +41,21 @@ targets:
         CFBundleVersion: "1"
         CFBundleShortVersionString: "1.0.0"
         NSCameraUsageDescription: "PicPal uses the camera to analyze your photo framing in real time."
+        NSPhotoLibraryAddUsageDescription: "PicPal saves the photos you take to your photo library."
         NSMotionUsageDescription: "PicPal uses device motion to detect tilt and orientation for framing guidance."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
     dependencies:
       - sdk: Accelerate.framework
       - sdk: Vision.framework
       # M5.5-1: PHPickerViewController for reference photo selection.
       - sdk: PhotosUI.framework
+      - sdk: Photos.framework
       - package: SwiftTasksVision
         product: SwiftTasksVision
       # M6-0c: Sentry crash reporter — app target only, not test target.
@@ -59,6 +63,9 @@ targets:
         product: Sentry
     settings:
       base:
+        DEVELOPMENT_TEAM: XVA476D588
+        CODE_SIGN_IDENTITY: "iPhone Developer"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         PRODUCT_BUNDLE_IDENTIFIER: com.picpal.app
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"

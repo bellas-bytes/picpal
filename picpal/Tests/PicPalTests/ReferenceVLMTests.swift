@@ -116,12 +116,13 @@ struct ReferenceVLMTests {
         let capture = CameraCapture()
 
         orch.referenceImage = makeTestUIImage()
+        orch.updateReferenceMotion(isSettled: true)
         orch.referenceModeConsented = true
 
         guard let bufA = makeFilledPixelBuffer(grayValue: 90) else {
             Issue.record("Failed to create buffer A"); return
         }
-        orch.cameraCapture(capture, didOutputPixelBuffer: bufA, timestamp: .zero)
+        orch.cameraCapture(capture, didOutputPixelBuffer: bufA, timestamp: CMClockGetTime(CMClockGetHostTimeClock()))
         try? await Task.sleep(nanoseconds: 350_000_000) // 350 ms
 
         #expect(client.callCount == 1, "first frame in reference mode must invoke client")
@@ -130,10 +131,10 @@ struct ReferenceVLMTests {
         guard let bufB = makeFilledPixelBuffer(grayValue: 200) else {
             Issue.record("Failed to create buffer B"); return
         }
-        orch.cameraCapture(capture, didOutputPixelBuffer: bufB, timestamp: .zero)
+        orch.cameraCapture(capture, didOutputPixelBuffer: bufB, timestamp: CMClockGetTime(CMClockGetHostTimeClock()))
         try? await Task.sleep(nanoseconds: 350_000_000)
 
-        #expect(client.callCount == 2, "second reference-mode frame must invoke client again")
+        #expect(client.callCount == 1, "reference verification must respect the eight-second minimum")
     }
 
     // MARK: - Test 4
@@ -156,7 +157,7 @@ struct ReferenceVLMTests {
         guard let buf = makeFilledPixelBuffer(grayValue: 60) else {
             Issue.record("Failed to create buffer"); return
         }
-        orch.cameraCapture(capture, didOutputPixelBuffer: buf, timestamp: .zero)
+        orch.cameraCapture(capture, didOutputPixelBuffer: buf, timestamp: CMClockGetTime(CMClockGetHostTimeClock()))
         try? await Task.sleep(nanoseconds: 350_000_000)
 
         #expect(client.callCount == 0,
@@ -177,15 +178,116 @@ struct ReferenceVLMTests {
         let capture = CameraCapture()
 
         orch.referenceImage = makeTestUIImage()
+        orch.updateReferenceMotion(isSettled: true)
         orch.referenceModeConsented = true // consent given
 
         guard let buf = makeFilledPixelBuffer(grayValue: 75) else {
             Issue.record("Failed to create buffer"); return
         }
-        orch.cameraCapture(capture, didOutputPixelBuffer: buf, timestamp: .zero)
+        orch.cameraCapture(capture, didOutputPixelBuffer: buf, timestamp: CMClockGetTime(CMClockGetHostTimeClock()))
         try? await Task.sleep(nanoseconds: 350_000_000)
 
         #expect(client.callCount == 1,
                 "VLM client must be called exactly once when referenceModeConsented is true")
+    }
+}
+
+private final class ControlledReferenceClient: VLMClient, @unchecked Sendable {
+    private struct State {
+        var request: VLMRequest?
+        var continuation: CheckedContinuation<VLMResponse, Never>?
+    }
+    private let state = OSAllocatedUnfairLock(initialState: State())
+    var request: VLMRequest? { state.withLock { $0.request } }
+    func analyze(_ request: VLMRequest) async throws(VLMError) -> VLMResponse {
+        await withCheckedContinuation { continuation in
+            state.withLock { $0.request = request; $0.continuation = continuation }
+        }
+    }
+    func complete() {
+        let profile = ReferenceProfile(schemaVersion: 1, summary: "Portrait", features: ReferenceDimension.allCases.map {
+            ReferenceFeature(dimension: $0, evidence: "Visible", confidence: 0.8, applicable: true)
+        })
+        let text = String(data: try! JSONEncoder().encode(profile), encoding: .utf8)!
+        let continuation = state.withLock { let c = $0.continuation; $0.continuation = nil; return c }
+        continuation?.resume(returning: VLMResponse(text: text))
+    }
+}
+
+extension ReferenceVLMTests {
+    @Test(arguments: ["replace", "revoke", "dismiss", "geometry", "expired", "global"])
+    func delayedProfileNeverEscapesChangedContext(transition: String) async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+        let client = ControlledReferenceClient()
+        let time = OSAllocatedUnfairLock(initialState: 100.0)
+        let events = OSAllocatedUnfairLock(initialState: 0)
+        let orchestrator = VLMOrchestrator(client: client, clock: { time.withLock { $0 } },
+            onReferenceAnalysis: { _ in events.withLock { $0 += 1 } }, onAestheticSignal: { _ in })
+        let id = UUID()
+        let image = makeTestUIImage()
+        orchestrator.setReferenceContext(sessionID: id, generation: 1, image: image, consented: true, geometryRevision: 0)
+        orchestrator.updateReferenceMotion(isSettled: true)
+        guard let buffer = makeFilledPixelBuffer(grayValue: 100) else { Issue.record("Missing buffer"); return }
+        orchestrator.cameraCapture(CameraCapture(), didOutputPixelBuffer: buffer, timestamp: CMClockGetTime(CMClockGetHostTimeClock()))
+        for _ in 0..<100 where client.request == nil { try? await Task.sleep(nanoseconds: 10_000_000) }
+        #expect(client.request?.operation == .referenceProfile)
+        #expect(client.request?.imageJPEG.isEmpty == true)
+        #expect(client.request?.referenceImageJPEG?.isEmpty == false)
+        switch transition {
+        case "replace": orchestrator.setReferenceContext(sessionID: UUID(), generation: 2, image: image, consented: true, geometryRevision: 0)
+        case "revoke": orchestrator.setReferenceContext(sessionID: id, generation: 2, image: image, consented: false, geometryRevision: 0)
+        case "dismiss": orchestrator.setReferenceContext(sessionID: nil, generation: 2, image: nil, consented: false, geometryRevision: 0)
+        case "geometry": orchestrator.setReferenceContext(sessionID: id, generation: 1, image: image, consented: true, geometryRevision: 1)
+        case "expired": time.withLock { $0 = 111 }
+        default: VLMSettings.shared.isOnDeviceOnly = true
+        }
+        client.complete()
+        try? await Task.sleep(nanoseconds: 80_000_000)
+        #expect(events.withLock { $0 } == 0)
+        #expect(orchestrator.sessionStats.staleDiscards == 1)
+    }
+}
+
+
+extension ReferenceVLMTests {
+    @Test func profileStartsWithoutCameraFrameOrSettledMotion() async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+        let client = ControlledReferenceClient()
+        let events = OSAllocatedUnfairLock(initialState: 0)
+        let orch = VLMOrchestrator(client: client,
+            onReferenceAnalysis: { if case .profile = $0 { events.withLock { $0 += 1 } } },
+            onAestheticSignal: { _ in })
+        orch.updateReferenceMotion(isSettled: false)
+        orch.setReferenceContext(sessionID: UUID(), generation: 1, image: makeTestUIImage(),
+                                 consented: true, geometryRevision: 0)
+        for _ in 0..<50 where client.request == nil { try? await Task.sleep(nanoseconds: 10_000_000) }
+        #expect(client.request?.operation == .referenceProfile)
+        #expect(client.request?.imageJPEG.isEmpty == true)
+        client.complete()
+        for _ in 0..<50 where events.withLock({ $0 }) == 0 { try? await Task.sleep(nanoseconds: 10_000_000) }
+        #expect(events.withLock { $0 } == 1)
+    }
+}
+
+extension ReferenceVLMTests {
+    @Test func delayedProfileMeasuresAsyncCompletionAndIgnoresLiveSceneChanges() async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+        let client = ControlledReferenceClient()
+        let time = OSAllocatedUnfairLock(initialState: 100.0)
+        let orch = VLMOrchestrator(client: client, clock: { time.withLock { $0 } }, onAestheticSignal: { _ in })
+        orch.setReferenceContext(sessionID: UUID(), generation: 1, image: makeTestUIImage(), consented: true, geometryRevision: 0)
+        for _ in 0..<100 where client.request == nil { try? await Task.sleep(nanoseconds: 10_000_000) }
+        #expect(orch.sessionStats.networkAttempts == 1)
+        #expect(orch.sessionStats.requests.first?.completedAt == nil)
+        time.withLock { $0 = 104 }
+        let buffer = makeFilledPixelBuffer(grayValue: 200)!
+        orch.cameraCapture(CameraCapture(), didOutputPixelBuffer: buffer, timestamp: CMClockGetTime(CMClockGetHostTimeClock()))
+        client.complete()
+        for _ in 0..<100 where orch.sessionStats.acceptedResults == 0 { try? await Task.sleep(nanoseconds: 10_000_000) }
+        #expect(orch.sessionStats.acceptedResults == 1)
+        #expect(orch.sessionStats.requests.first?.completionLatency == 4)
     }
 }

@@ -25,6 +25,7 @@ public final class TiltMonitor: @unchecked Sendable, MotionDelegate {
     private let processor: TiltProcessor
     private let onSettleChange: (@Sendable (Bool) -> Void)?
     private let onSignal: @Sendable (TiltSignal) -> Void
+    private let onReading: (@Sendable (MotionReading) -> Void)?
 
     /// Guards the mutable hysteresis state. Starts level (`true`).
     private let levelLock: OSAllocatedUnfairLock<Bool>
@@ -41,17 +42,20 @@ public final class TiltMonitor: @unchecked Sendable, MotionDelegate {
     public init(
         processor: TiltProcessor = TiltProcessor(),
         onSettleChange: (@Sendable (Bool) -> Void)? = nil,
+        onReading: (@Sendable (MotionReading) -> Void)? = nil,
         onSignal: @escaping @Sendable (TiltSignal) -> Void
     ) {
         self.processor = processor
         self.onSettleChange = onSettleChange
         self.onSignal = onSignal
+        self.onReading = onReading
         self.levelLock = OSAllocatedUnfairLock(initialState: true)
     }
 
     // MARK: - MotionDelegate
 
     public nonisolated func motionManager(_ manager: MotionManager, didUpdate reading: MotionReading) {
+        onReading?(reading)
         let signal = levelLock.withLock { lastIsLevel in
             let result = processor.process(reading: reading, wasLevel: lastIsLevel)
             lastIsLevel = result.isLevel

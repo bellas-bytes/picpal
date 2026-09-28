@@ -15,6 +15,9 @@ import UIKit
 /// - Returns `nil` on any unlockable or malformed pixel buffer.
 /// - Never crashes on invalid input.
 public enum FrameEncoder {
+    // CIContext supports concurrent rendering; images and render destinations remain per call.
+    private static let context = CIContext()
+
 
     // MARK: - Named constants
 
@@ -64,7 +67,6 @@ public enum FrameEncoder {
         }
 
         // Render to UIImage, then compress as JPEG.
-        let context = CIContext()
         guard let cgImage = context.createCGImage(scaledImage, from: scaledImage.extent) else {
             return nil
         }
@@ -100,7 +102,7 @@ public enum FrameEncoder {
     // MARK: - Private helpers
 
     /// Downscales `image` so its longest edge is ≤ `maxDimension`, then JPEG-compresses it.
-    private static func encodeUIImage(_ image: UIImage) -> Data? {
+    static func encodeUIImage(_ image: UIImage) -> Data? {
         let size = image.size
         guard size.width > 0, size.height > 0 else { return nil }
 

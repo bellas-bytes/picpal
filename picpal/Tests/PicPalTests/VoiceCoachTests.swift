@@ -1,4 +1,5 @@
 import Testing
+import AVFoundation
 @testable import PicPal
 
 // MARK: - VoiceCoachTests
@@ -7,7 +8,21 @@ import Testing
 ///
 /// `AVSpeechSynthesizer` cannot speak in a simulator test environment; these tests
 /// exercise only the logic layer via internal test hooks (`speakCount`, `currentPriority`).
+@MainActor
+@Suite(.serialized)
 struct VoiceCoachTests {
+
+    @Test("Coaching audio uses playback so silent mode does not suppress speech")
+    func speechConfiguresAudioSession() throws {
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(.ambient)
+        let coach = VoiceCoach()
+        defer { coach.stop() }
+        coach.speak(makeCue())
+        #expect(session.category == .playback)
+        #expect(session.mode == .spokenAudio)
+        #expect(session.categoryOptions.contains(.mixWithOthers))
+    }
 
     // MARK: - Helpers
 

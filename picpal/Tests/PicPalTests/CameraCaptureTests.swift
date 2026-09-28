@@ -34,6 +34,19 @@ struct CameraCaptureTests {
         #expect(capture.delegate == nil)
     }
 
+    @Test @MainActor func previewTransitionHidesWithoutAnimatingAndRestores() {
+        let coordinates = CameraPreviewCoordinates()
+        let container = CameraContainerView()
+        coordinates.layer = container.previewLayer
+        coordinates.container = container
+        coordinates.beginSwitch()
+        #expect(container.previewLayer.isHidden)
+        #expect(container.previewLayer.animationKeys()?.isEmpty ?? true)
+        coordinates.endSwitch()
+        #expect(!container.previewLayer.isHidden)
+        #expect(container.previewLayer.animationKeys()?.isEmpty ?? true)
+    }
+
     // MARK: - configure(preset:fps:)
 
     @Test func configureUpdatesPreset() {

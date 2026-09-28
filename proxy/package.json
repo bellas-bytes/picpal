@@ -2,12 +2,13 @@
   "name": "picpal-vlm-proxy",
   "version": "0.1.0",
   "private": true,
-  "description": "Local dev proxy — forwards JPEG + prompt to Claude Sonnet 5. API key stays server-side.",
+  "description": "Local dev proxy \u2014 forwards JPEG + prompt to Claude Sonnet 5. API key stays server-side.",
   "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=20"

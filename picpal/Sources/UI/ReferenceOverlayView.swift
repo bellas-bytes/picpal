@@ -6,15 +6,8 @@ import SwiftUI
 /// the debug overlay. The caller owns match detection and extraction state; this
 /// view only renders them.
 ///
-/// ## State transitions
-/// - **Idle** (`isMatched == false`, `isExtracting == false`): ghost image at 30 % opacity.
-/// - **Extracting** (`isExtracting == true`): ghost image at 15 % opacity + centred `ProgressView`.
-/// - **Matched** (`isMatched == true`, `isExtracting == false`): ghost image at 15 % opacity
-///   with a green tint overlay, animated via `.easeInOut(duration: 0.4)`.
-///
-/// ## Dismissal
-/// Both the X button (top-trailing) and a downward swipe (`translation.height > 0`)
-/// invoke `onDismiss`.
+/// The chosen opacity is preserved during extraction and matching.
+/// The close button remains available when the ghost is fully transparent.
 struct ReferenceOverlayView: View {
 
     // MARK: - Properties
@@ -28,19 +21,17 @@ struct ReferenceOverlayView: View {
     /// True when pose extraction completed with an error (e.g. no person detected).
     /// Defaults to `false` so existing call sites without this argument still compile.
     var extractionFailed: Bool = false
+    /// Only the active, measured pose adjustment is highlighted.
+    var guidanceTarget: PoseGuidanceTarget? = nil
+    var opacity: Double = 0.30
     /// Called on X-button tap or swipe-down gesture.
     let onDismiss: () -> Void
 
     // MARK: - Layout constants
 
     private enum Layout {
-        static let defaultOpacity: Double = 0.30
-        static let matchOpacity: Double = 0.15
-        static let matchTint: Color = .green.opacity(0.35)
         static let dismissButtonSize: CGFloat = 32
         static let dismissButtonPadding: CGFloat = 16
-        static let extractingOpacity: Double = 0.15
-        static let swipeMinimumDistance: CGFloat = 40
         static let xmarkSymbol = "xmark.circle.fill"
     }
 
@@ -57,12 +48,29 @@ struct ReferenceOverlayView: View {
                     .opacity(currentOpacity)
                     .overlay(matchTintOverlay)
                     .animation(.easeInOut(duration: 0.4), value: isMatched)
-                    .gesture(swipeToDismiss)
+                    .allowsHitTesting(false)
 
                 if isExtracting {
                     ProgressView()
                 } else if extractionFailed {
                     extractionErrorOverlay
+                }
+
+                if !isExtracting, !extractionFailed, let target = guidanceTarget,
+                   target.point.x.isFinite, target.point.y.isFinite,
+                   (0...1).contains(target.point.x), (0...1).contains(target.point.y) {
+                    GeometryReader { geometry in
+                        ZStack {
+                            Circle().stroke(.white.opacity(0.95), style: StrokeStyle(lineWidth: 2, dash: [4, 3]))
+                                .frame(width: 32, height: 32)
+                            Circle().fill(.white).frame(width: 5, height: 5)
+                        }
+                        .shadow(color: .black.opacity(0.8), radius: 3)
+                        .position(x: target.point.x * geometry.size.width, y: target.point.y * geometry.size.height)
+                    }
+                    .allowsHitTesting(false)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Pose target: \(target.label)")
                 }
             }
 
@@ -72,19 +80,13 @@ struct ReferenceOverlayView: View {
 
     // MARK: - Opacity
 
-    /// Current opacity of the ghost image, driven by `isExtracting` and `isMatched`.
-    ///
-    /// `isExtracting` takes priority so the loading indicator is always visible
-    /// during Vision inference.
-    var currentOpacity: Double {
-        if isExtracting { return Layout.extractingOpacity }
-        return isMatched ? Layout.matchOpacity : Layout.defaultOpacity
-    }
+    var currentOpacity: Double { opacity.isFinite ? min(1, max(0, opacity)) : 0.30 }
+    var matchTintOpacity: Double { isMatched ? 0.35 * currentOpacity : 0 }
 
     // MARK: - Sub-views
 
     private var matchTintOverlay: some View {
-        isMatched ? Layout.matchTint : Color.clear
+        Color.green.opacity(matchTintOpacity)
     }
 
     private var dismissButton: some View {
@@ -98,7 +100,7 @@ struct ReferenceOverlayView: View {
 
     private var extractionErrorOverlay: some View {
         VStack(spacing: 12) {
-            Text("No person detected — try another photo")
+            Text("Choose another reference photo")
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.white)
@@ -109,10 +111,4 @@ struct ReferenceOverlayView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 
-    private var swipeToDismiss: some Gesture {
-        DragGesture(minimumDistance: Layout.swipeMinimumDistance)
-            .onEnded { value in
-                if value.translation.height > 0 { onDismiss() }
-            }
-    }
 }

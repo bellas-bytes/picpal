@@ -9,6 +9,21 @@
 
 ---
 
+## Implemented behavior — September 16, 2026 (supersedes conflicting requirements below)
+
+The current implementation is deliberately more conservative than the original PRD. Where later sections describe rectangle-based full matching, an automatic match from local landmarks, or automatic reference capture from local evidence, this section takes precedence.
+
+- On-device reference coaching compares subject framing and a supported subset of 2D torso and major-limb pose. It can say **Framing aligned** or give a supported arm/lean adjustment. It does not assess lighting, viewpoint, depth, hands, facial expression, or every crop, and it never turns a similar person rectangle into a full-reference match.
+- **Reference matched** requires a fresh, schema-validated cloud profile and two-image comparison covering framing, pose, viewpoint, lighting, and background, plus stable local alignment for 1.5 seconds. Unknown or unsupported evidence blocks a full match.
+- The manual shutter remains available regardless of reference readiness. Automatic reference capture is allowed only after the full-match policy passes and physical capture conditions are safe. Local-only users therefore retain manual capture but do not receive automatic reference capture.
+- Cloud reference work requires the global cloud setting and explicit consent for the active reference. Changing the service endpoint disables cloud coaching and requires a fresh choice. Reference image bytes, derived profiles, and model text remain session-memory-only and are invalidated on reference, consent, camera-geometry, or session changes.
+- Cloud output is structured: a reference profile records evidence, confidence, assessability, and applicability for each dimension; a comparison records reference/live evidence, `matched`/`different`/`unknown`/`notApplicable`, and at most one concrete action. Responses are validated before use.
+- Comparisons older than 8 seconds at delivery are stale. Requests use the existing 8-second minimum cadence with event-driven opportunities for the first comparison, settled changes, and action verification. The product target is at most three cloud calls per minute on average, including the profile and retries; this is an unverified measurement target, not a hard cap implied by the cadence.
+
+Automated validation passes 742 Swift tests, 8 proxy tests and 3 evaluation-harness tests; the pre-change baseline was 696 Swift tests. Real-phone direction/mirroring and crop/orientation checks, app-session freshness/call-rate measurements, and the semantic image benchmark are not complete. The checked-in evaluation scaffold defines 30 scenarios, but contains no actual images or human reviews and must not be presented as a passed visual benchmark.
+
+---
+
 ## Executive Summary
 
 Reference Photo Mode lets a user hold up a photo they want to replicate and receive real-time coaching that closes the gap between their live view and the reference. The user picks any photo from their library — a professional shot, a location reference, a pose they admired — and PicPal overlays it as a ghost on the viewfinder while coaching them toward a match.
@@ -274,3 +289,5 @@ Match confirmation is multimodal: the ghost overlay tints green and fades when l
 ---
 
 *This PRD was created through interactive requirements gathering with quality scoring to ensure comprehensive coverage of business, functional, UX, and technical dimensions.*
+
+Stationary scenes and transient errors receive a sparse refresh after 20 seconds, still subject to consent, freshness and the shared budget. This avoids indefinite waiting without polling at the maximum request rate.

@@ -76,8 +76,8 @@ extension ReferencePhotoPicker {
 
             guard let result = results.first else {
                 // User cancelled — report nil.
-                Task { @MainActor [weak self] in
-                    self?.onPick(nil)
+                Task { @MainActor [self] in
+                    self.onPick(nil)
                 }
                 return
             }
@@ -86,8 +86,8 @@ extension ReferencePhotoPicker {
             let provider = result.itemProvider
             provider.loadObject(ofClass: UIImage.self) { object, _ in
                 let image = object as? UIImage
-                Task { @MainActor [weak self] in
-                    self?.onPick(image)
+                Task { @MainActor [self] in
+                    self.onPick(image)
                 }
             }
         }

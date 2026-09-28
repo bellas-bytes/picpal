@@ -1,4 +1,5 @@
 import UIKit
+import ImageIO
 import Vision
 
 // MARK: - ReferenceSessionError
@@ -9,12 +10,12 @@ enum ReferenceSessionError: Error {
     case noPoseDetected
     /// The `UIImage` could not be converted to a `CGImage` for Vision processing.
     case imageConversionFailed
+    /// Vision could not finish analyzing the selected image.
+    case analysisFailed
 }
 
 // MARK: - Private constants
 
-/// Minimum confidence threshold for including a body keypoint.
-private let keypointConfidenceThreshold: Float = 0.3
 
 // MARK: - ReferenceSession
 
@@ -34,6 +35,7 @@ final class ReferenceSession: ObservableObject {
     // MARK: - Published state
 
     /// The selected reference image. Immutable after init.
+    let id = UUID()
     let image: UIImage
 
     /// The extracted pose, set on completion of `extractPose()`. Nil if extraction is
@@ -68,7 +70,7 @@ final class ReferenceSession: ObservableObject {
         image: UIImage,
         visionExtractor: @escaping @Sendable (UIImage) throws -> ReferencePose = ReferenceSession.runVision(on:)
     ) {
-        self.image = image
+        self.image = image.imageOrientation == .up ? image : ReferenceBodyTracker.uprightImage(image)
         self.visionExtractor = visionExtractor
     }
 
@@ -96,6 +98,7 @@ final class ReferenceSession: ObservableObject {
             extractionError = error
         } catch {
             pose = nil
+            extractionError = .analysisFailed
         }
     }
 
@@ -111,97 +114,100 @@ final class ReferenceSession: ObservableObject {
     /// Declared `static` to prevent inadvertent capture of `self` inside the detached task.
     /// No Vision types leak into the returned `ReferencePose` — joint names are stored as
     /// their `rawValue` `String`s.
-    nonisolated private static func runVision(on image: UIImage) throws -> ReferencePose {
+    nonisolated private static func runVision(on sourceImage: UIImage) throws -> ReferencePose {
+        let image = ReferenceBodyTracker.uprightImage(sourceImage)
         guard let cgImage = image.cgImage else {
             throw ReferenceSessionError.imageConversionFailed
         }
 
-        // MARK: Body pose (required)
-
-        let bodyRequest = VNDetectHumanBodyPoseRequest()
-        let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-        try handler.perform([bodyRequest])
-
-        guard let bodyObservation = bodyRequest.results?.first else {
-            throw ReferenceSessionError.noPoseDetected
-        }
-
-        // Map joint names to normalized CGPoints, filtering below confidence threshold.
-        //
-        // VNHumanBodyPoseObservation.JointName conforms to RawRepresentable where
-        // RawValue is VNRecognizedPointKey (not String). VNRecognizedPointKey in turn
-        // has a String rawValue. Two hops are needed to reach the plain String key:
-        //   JointName → .rawValue → VNRecognizedPointKey → .rawValue → String
-        let allPoints = try bodyObservation.recognizedPoints(
-            VNHumanBodyPoseObservation.JointsGroupName.all
-        )
-        let keypoints: [String: CGPoint] = allPoints.reduce(into: [:]) { dict, kv in
-            if kv.value.confidence > keypointConfidenceThreshold {
-                dict[kv.key.rawValue.rawValue] = CGPoint(x: kv.value.x, y: kv.value.y)
+        let handler = VNImageRequestHandler(cgImage: cgImage, orientation: .up, options: [:])
+        // Face detection is independent: a body tracker failure cannot erase a selfie.
+        let faceRequest = VNDetectFaceLandmarksRequest()
+        let facesAvailable = (try? handler.perform([faceRequest])) != nil
+        let faces = faceRequest.results?.filter { $0.confidence >= 0.5 } ?? []
+        let rectangleRequest = VNDetectHumanRectanglesRequest()
+        rectangleRequest.upperBodyOnly = false
+        let rectanglesAvailable = (try? handler.perform([rectangleRequest])) != nil
+        let rectangles = rectangleRequest.results?.filter { $0.confidence >= 0.5 } ?? []
+        let tracker = try? ReferenceBodyTracker(video: false)
+        let backend: PoseTrackingBackend = tracker == nil ? .vision : .mediaPipe
+        var body: BodyTrackerResult?
+        if let tracker {
+            body = try? tracker.detect(image: image)
+        } else {
+            let request = VNDetectHumanBodyPoseRequest()
+            if (try? handler.perform([request])) != nil {
+                let observations = request.results ?? []
+                let points = observations.count == 1 ? (try? observations[0].recognizedPoints(.all)) ?? [:] : [:]
+                body = BodyTrackerResult(joints: Dictionary(uniqueKeysWithValues: points.map {
+                    ($0.key.rawValue.rawValue, LivePoseJoint(point: $0.value.location, confidence: $0.value.confidence))
+                }), subjectCount: observations.count)
             }
         }
+        guard facesAvailable, rectanglesAvailable else { throw ReferenceSessionError.analysisFailed }
+        return try makePose(body: body, faces: faces.map(\.boundingBox), personBoxes: rectangles.map(\.boundingBox),
+            geometry: ReferenceGeometry(imageAspectRatio: Double(image.size.width / max(image.size.height, 1))),
+            backend: backend, faceYaw: faces.count == 1 ? faces[0].yaw?.floatValue : nil,
+            selfie: SelfiePoseTracker.detect(handler: handler, face: faces.count == 1 ? faces[0] : nil,
+                imageAspectRatio: Double(image.size.width / max(image.size.height, 1))))
+    }
 
-        // Derive body bounding box from keypoints (more reliable than observation.boundingBox
-        // for VNHumanBodyPoseObservation). All coordinates are in Vision normalized space
-        // (origin bottom-left, y-axis pointing up).
-        let xValues = keypoints.values.map(\.x)
-        let yValues = keypoints.values.map(\.y)
-        guard
-            let minX = xValues.min(), let maxX = xValues.max(),
-            let minY = yValues.min(), let maxY = yValues.max()
-        else {
+    /// Shared selection logic for independently measured face, person and body evidence.
+    nonisolated static func makePose(body: BodyTrackerResult?, faces: [CGRect], personBoxes: [CGRect],
+                                    geometry: ReferenceGeometry, backend: PoseTrackingBackend = .vision,
+                                    faceYaw: Float? = nil, selfie: SelfiePoseObservation? = nil) throws -> ReferencePose {
+        let clippedFaces = faces.compactMap(clippedDetectorBox)
+        let clippedPeople = personBoxes.compactMap(clippedDetectorBox)
+        guard faces.count <= 1, personBoxes.count <= 1, (body?.subjectCount ?? 0) <= 1,
+              clippedFaces.count == faces.count, clippedPeople.count == personBoxes.count else {
             throw ReferenceSessionError.noPoseDetected
         }
-        let bodyBox = CGRect(
-            x: minX,
-            y: minY,
-            width: max(maxX - minX, 0),
-            height: max(maxY - minY, 0)
-        )
-
-        // MARK: Face detection (optional)
-
-        var faceCenter: CGPoint?
-        var faceYaw: Float?
-        var faceBox: CGRect?
-
-        let faceRequest = VNDetectFaceLandmarksRequest()
-        // Reuse the same handler for efficiency (image is already decoded).
-        if (try? handler.perform([faceRequest])) != nil,
-           let faceObservation = faceRequest.results?.first {
-            let fb = faceObservation.boundingBox
-            faceCenter = CGPoint(x: fb.midX, y: fb.midY)
-            // VNFaceObservation.yaw: positive = face turned to the right (observer frame).
-            faceYaw = faceObservation.yaw.map { Float($0.doubleValue) }
-            faceBox = fb
+        let faces = clippedFaces
+        let personBoxes = clippedPeople
+        let face = faces.first
+        if let face, let person = personBoxes.first,
+           !person.insetBy(dx: -0.03, dy: -0.03).contains(CGPoint(x: face.midX, y: face.midY)) {
+            throw ReferenceSessionError.noPoseDetected
         }
-
-        // MARK: Subject bounding box
-
-        // Union of body and face boxes (both present, or fall back to body only).
-        let subjectBox: CGRect
-        if let fb = faceBox {
-            subjectBox = bodyBox.union(fb)
-        } else {
-            subjectBox = bodyBox
+        let joints = body?.associatedJoints(personBoxes: personBoxes) ?? [:]
+        let domain: ReferenceFramingDomain = joints.isEmpty && face != nil ? .face : .person
+        guard let box = domain == .face ? face : personBoxes.first else {
+            throw ReferenceSessionError.noPoseDetected
         }
+        return ReferencePose(bodyKeypoints: joints.mapValues(\.point),
+            faceCenter: face.map { CGPoint(x: $0.midX, y: $0.midY) }, faceYaw: faceYaw,
+            subjectBoundingBox: box, subjectCenterX: Float(box.midX), subjectCenterY: Float(box.midY),
+            subjectHeightFraction: Float(box.height), headroomFraction: Float(max(0, 1 - box.maxY)),
+            jointConfidences: joints.mapValues(\.confidence), geometry: geometry, subjectCount: 1,
+            trackingBackend: backend, faceBox: face, framingDomain: domain, selfie: selfie)
+    }
 
-        // In Vision coords (y-up), the top of the subject is the maximum Y value.
-        // Headroom = space between the top of the subject and the top of the frame.
-        let subjectCenterX = Float(subjectBox.midX)
-        let subjectCenterY = Float(subjectBox.midY)
-        let subjectHeightFraction = Float(subjectBox.height)
-        let headroomFraction = Float(max(0, 1.0 - subjectBox.maxY))
+    /// Detectors can extend a cropped subject just beyond the image. Preserve its
+    /// visible bounds; malformed or entirely offscreen evidence remains invalid.
+    nonisolated static func clippedDetectorBox(_ box: CGRect) -> CGRect? {
+        guard [box.origin.x, box.origin.y, box.size.width, box.size.height,
+               box.maxX, box.maxY].allSatisfy(\.isFinite),
+              box.size.width > 0, box.size.height > 0 else { return nil }
+        let clipped = box.intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
+        return validBox(clipped) ? clipped : nil
+    }
 
-        return ReferencePose(
-            bodyKeypoints: keypoints,
-            faceCenter: faceCenter,
-            faceYaw: faceYaw,
-            subjectBoundingBox: subjectBox,
-            subjectCenterX: subjectCenterX,
-            subjectCenterY: subjectCenterY,
-            subjectHeightFraction: subjectHeightFraction,
-            headroomFraction: headroomFraction
-        )
+    nonisolated static func validBox(_ box: CGRect) -> Bool {
+        [box.origin.x, box.origin.y, box.size.width, box.size.height].allSatisfy(\.isFinite)
+            && box.size.width > 0 && box.size.height > 0 && box.minX >= 0 && box.minY >= 0 && box.maxX <= 1 && box.maxY <= 1
+    }
+
+    nonisolated static func visionOrientation(for orientation: UIImage.Orientation) -> CGImagePropertyOrientation {
+        switch orientation {
+        case .up: return .up
+        case .down: return .down
+        case .left: return .left
+        case .right: return .right
+        case .upMirrored: return .upMirrored
+        case .downMirrored: return .downMirrored
+        case .leftMirrored: return .leftMirrored
+        case .rightMirrored: return .rightMirrored
+        @unknown default: return .up
+        }
     }
 }

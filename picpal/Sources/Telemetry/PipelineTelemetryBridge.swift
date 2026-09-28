@@ -5,11 +5,12 @@ import Foundation
 import os
 
 /// A `CameraFrameDelegate` that sits between `CameraCapture` and a downstream delegate,
-/// measuring frame-arrival timing and computing frames per second.
+/// measuring scene-gated frame arrivals and synchronous delegate-dispatch duration.
+/// This does not measure capture FPS or asynchronous inference completion.
 ///
 /// ## Pipeline position
 /// ```
-/// CameraCapture → PipelineTelemetryBridge → downstream (nil until analysis is added)
+/// CameraCapture → SceneGate → PipelineTelemetryBridge → downstream (nil until analysis is added)
 /// ```
 ///
 /// ## Threading model
@@ -104,7 +105,7 @@ public final class PipelineTelemetryBridge: @unchecked Sendable, CameraFrameDele
             return measured
         }
         if let fps {
-            logger.debug("FPS: \(fps, format: .fixed(precision: 1), privacy: .public)")
+            logger.debug("Scene-gated frames/s: \(fps, format: .fixed(precision: 1), privacy: .public)")
             onFPSUpdate(fps)
         }
     }

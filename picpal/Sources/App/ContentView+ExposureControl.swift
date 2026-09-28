@@ -56,7 +56,6 @@ extension ContentView {
                 }
             }
         }
-        .ignoresSafeArea()
     }
 
     // MARK: - EV slider view
@@ -96,7 +95,8 @@ extension ContentView {
     // MARK: - Gesture handlers
 
     private func handleTap(at location: CGPoint, in size: CGSize) {
-        let devicePoint = devicePoint(from: location, viewSize: size)
+        let devicePoint = previewCoordinates.devicePoint(at: location) ?? devicePoint(from: location, viewSize: size)
+        cameraScreen.useManualFocus()
         camera.setFocusAndExposure(at: devicePoint)
         withAnimation(.easeOut(duration: 0.25)) {
             exposureTapPoint = location
@@ -114,6 +114,7 @@ extension ContentView {
     private func resetEV() {
         evBias = 0
         camera.setExposureBias(0)
+        cameraScreen.useAutomaticFocus(camera: camera)
         cueEngine?.suppressExposureCue = false
         withAnimation(.easeOut(duration: 0.2)) {
             showEVControls = false

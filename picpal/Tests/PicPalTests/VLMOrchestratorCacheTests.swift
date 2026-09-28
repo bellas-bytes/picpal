@@ -85,50 +85,69 @@ struct VLMOrchestratorCacheTests {
 
     // MARK: - Test 2: reference-mode bypasses cache
 
-    /// When `referenceImage` is non-nil, every gate-passing frame must reach the
-    /// VLM client regardless of what is in the cache.
-    @Test("reference mode bypasses cache — VLM always called")
+    /// Reference profile/comparison requests never read a generic aesthetic cache entry,
+    /// including a fresh requested verification of the identical scene.
+    @Test("reference mode bypasses generic cache for profile, comparison and requested verification")
     func referenceMode_bypassesCache() async {
         enableCloudVLM()
         defer { resetVLMSettings() }
-
-        let client = CountingVLMClient()
-        let gate = VLMRequestGate(cadenceSeconds: 0)
-        let orch = VLMOrchestrator(client: client, gate: gate) { _ in }
+        let time = OSAllocatedUnfairLock(initialState: 100.0)
+        let completions = OSAllocatedUnfairLock(initialState: 0)
+        let events = OSAllocatedUnfairLock(initialState: 0)
+        let genericSignals = OSAllocatedUnfairLock(initialState: 0)
+        let client = CacheReferenceStructuredClient()
+        let liveEncodes = OSAllocatedUnfairLock(initialState: 0)
+        let referenceEncodes = OSAllocatedUnfairLock(initialState: 0)
+        let cache = VLMResponseCache()
+        let gate = VLMRequestGate(clock: { time.withLock { $0 } })
+        let orch = VLMOrchestrator(client: client,
+            encodeLive: { buffer in liveEncodes.withLock { $0 += 1 }; return FrameEncoder.encode(pixelBuffer: buffer) },
+            encodeReference: { image in referenceEncodes.withLock { $0 += 1 }; return FrameEncoder.encodeUIImage(image) },
+            gate: gate, responseCache: cache,
+            onRequestCompleted: { completions.withLock { $0 += 1 } },
+            clock: { time.withLock { $0 } },
+            onReferenceAnalysis: { event in
+                if case .comparison = event { events.withLock { $0 += 1 } }
+            },
+            onAestheticSignal: { _ in genericSignals.withLock { $0 += 1 } })
         let capture = CameraCapture()
-
-        // Enable reference mode before any frames fire.
-        // Use a small synthetic UIImage — system images aren't guaranteed in test env.
-        let refRenderer = UIGraphicsImageRenderer(size: CGSize(width: 64, height: 64))
-        let refImage = refRenderer.image { ctx in
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 64, height: 64))
+        let image = renderer.image { ctx in
             UIColor.red.setFill(); ctx.fill(CGRect(x: 0, y: 0, width: 64, height: 64))
         }
-        orch.referenceImage = refImage
-        orch.referenceModeConsented = true // consent required for client calls
-
-        // Frame A: gate passes → reference mode active → cache skipped → VLM called.
-        guard let bufA = makeFilledPixelBuffer(grayValue: 80) else {
-            Issue.record("Failed to create buffer A"); return
+        orch.setReferenceContext(sessionID: UUID(), generation: 1, image: image, consented: true, geometryRevision: 0)
+        orch.updateReferenceMotion(isSettled: true)
+        guard let buffer = makeFilledPixelBuffer(grayValue: 80),
+              let signature = SceneSignature.compute(from: buffer) else {
+            Issue.record("Failed to create reference scene"); return
         }
-        orch.cameraCapture(capture, didOutputPixelBuffer: bufA, timestamp: .zero)
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        #expect(client.callCount == 1, "first frame in reference mode must call VLM")
-
-        // Frame B (different): gate passes → reference mode → cache skipped → VLM called again.
-        guard let bufB = makeFilledPixelBuffer(grayValue: 170) else {
-            Issue.record("Failed to create buffer B"); return
+        // Seed after context setup (which intentionally invalidates earlier generic cache entries).
+        cache.store(AestheticSignal(remark: "Move left.", confidence: 1, hint: .remark), for: signature)
+        for requestIndex in 0..<3 {
+            time.withLock { $0 = 100 + Double(requestIndex) * 8 }
+            if requestIndex == 1 {
+                orch.updateReferenceMotion(isSettled: false)
+                orch.cameraCapture(capture, didOutputPixelBuffer: buffer,
+                    timestamp: CMClockGetTime(CMClockGetHostTimeClock()))
+                try? await Task.sleep(nanoseconds: 40_000_000)
+                #expect(client.operations == [.referenceProfile], "Moving phone must not dispatch a comparison")
+                orch.updateReferenceMotion(isSettled: true)
+            }
+            if requestIndex == 2 { orch.requestReferenceVerification() }
+            orch.cameraCapture(capture, didOutputPixelBuffer: buffer,
+                timestamp: CMClockGetTime(CMClockGetHostTimeClock()))
+            for _ in 0..<100 where completions.withLock({ $0 }) < requestIndex + 1 {
+                try? await Task.sleep(nanoseconds: 10_000_000)
+            }
+            #expect(completions.withLock { $0 } == requestIndex + 1)
         }
-        orch.cameraCapture(capture, didOutputPixelBuffer: bufB, timestamp: .zero)
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        #expect(client.callCount == 2, "second frame in reference mode must call VLM")
-
-        // Frame A again: in reference mode the cache cannot serve this — VLM called a third time.
-        orch.cameraCapture(capture, didOutputPixelBuffer: bufA, timestamp: .zero)
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        #expect(client.callCount == 3, "returning scene in reference mode must still call VLM")
-
-        // Verify no cache hits were recorded.
-        #expect(orch.sessionStats.cacheHits == 0, "reference mode must never record cache hits")
+        #expect(client.operations == [.referenceProfile, .referenceComparison, .referenceComparison])
+        #expect(liveEncodes.withLock { $0 } == 2, "Profile must never encode a live frame")
+        #expect(referenceEncodes.withLock { $0 } == 1, "Comparisons must reuse the consented reference JPEG")
+        #expect(events.withLock { $0 } == 2)
+        #expect(genericSignals.withLock { $0 } == 0)
+        #expect(orch.sessionStats.cacheHits == 0)
+        #expect(orch.sessionStats.cacheMisses == 0)
     }
 
     // MARK: - Test 3: invalidateCache drops all entries
@@ -207,5 +226,100 @@ struct VLMOrchestratorCacheTests {
         try? await Task.sleep(nanoseconds: 50_000_000) // 50 ms
         #expect(orch.sessionStats.cacheHits == 1, "returning to scene A should record a cache hit")
         #expect(orch.sessionStats.cacheMisses == 2, "miss count should not change on a cache hit")
+    }
+}
+
+private final class CacheReferenceStructuredClient: VLMClient, @unchecked Sendable {
+    private let recorded = OSAllocatedUnfairLock<[VLMOperation]>(initialState: [])
+    var operations: [VLMOperation] { recorded.withLock { $0 } }
+    func analyze(_ request: VLMRequest) async throws(VLMError) -> VLMResponse {
+        recorded.withLock { $0.append(request.operation) }
+        let data: Data
+        if request.operation == .referenceProfile {
+            let profile = ReferenceProfile(schemaVersion: 1, summary: "Portrait", features: ReferenceDimension.allCases.map {
+                ReferenceFeature(dimension: $0, evidence: "Visible", confidence: 0.9, applicable: true)
+            })
+            data = try! JSONEncoder().encode(profile)
+        } else {
+            let comparison = ReferenceComparison(schemaVersion: 1, dimensions: ReferenceDimension.allCases.map {
+                ReferenceDimensionComparison(dimension: $0, status: .matched,
+                    referenceEvidence: "Visible", liveEvidence: "Visible", confidence: 0.9)
+            }, action: nil)
+            data = try! JSONEncoder().encode(comparison)
+        }
+        return VLMResponse(text: String(decoding: data, as: UTF8.self))
+    }
+}
+
+
+extension VLMOrchestratorCacheTests {
+    @Test(arguments: [0, 2])
+    func cacheDeliveryNeverConsumesNetworkBudget(capacity: Int) async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+        let budget = VLMSessionBudget(maxCalls: capacity)
+        let client = CountingVLMClient()
+        let cache = VLMResponseCache()
+        let signals = OSAllocatedUnfairLock(initialState: 0)
+        let orch = VLMOrchestrator(client: client,
+            gate: VLMRequestGate(cadenceSeconds: 0, budget: budget), responseCache: cache) { _ in
+            signals.withLock { $0 += 1 }
+        }
+        let buffer = makeFilledPixelBuffer(grayValue: 80)!
+        cache.store(AestheticSignal(remark: "Move left.", confidence: 1, hint: .remark),
+                    for: SceneSignature.compute(from: buffer)!)
+        orch.cameraCapture(CameraCapture(), didOutputPixelBuffer: buffer, timestamp: .zero)
+        orch.cameraCapture(CameraCapture(), didOutputPixelBuffer: buffer, timestamp: .zero)
+        #expect(signals.withLock { $0 } == 1)
+        #expect(client.callCount == 0)
+        #expect(budget.callsRemaining == capacity)
+        #expect(orch.sessionStats.cacheHits == 1)
+    }
+}
+
+struct VLMCompletionTelemetryTests {
+    @Test func completionSamplesAreBoundedAndResetClearsCounters() {
+        var stats = VLMSessionStats()
+        for index in 0..<140 {
+            let id = UUID()
+            stats.begin(id: id, operation: .aesthetic, capturedAt: 100, encodingSeconds: 0.25, cacheHit: false)
+            stats.dispatched(id: id, at: 101)
+            stats.completed(id: id, at: 104 + Double(index), outcome: .accepted)
+        }
+        #expect(stats.networkAttempts == 140)
+        #expect(stats.acceptedResults == 140)
+        #expect(stats.requests.count == 128)
+        #expect(stats.requests.first?.completionLatency == 16)
+        stats = VLMSessionStats()
+        #expect(stats.networkAttempts == 0)
+        #expect(stats.requests.isEmpty)
+    }
+}
+
+extension VLMOrchestratorCacheTests {
+    @Test(arguments: [false, true])
+    func failedEncodingOrContextChangeBeforeDispatchSpendsNothing(changeContext: Bool) async {
+        enableCloudVLM()
+        defer { resetVLMSettings() }
+        let budget = VLMSessionBudget(maxCalls: 2)
+        let client = CountingVLMClient()
+        let encoded = OSAllocatedUnfairLock(initialState: false)
+        let release = DispatchSemaphore(value: 0)
+        let orch = VLMOrchestrator(client: client, encodeLive: { _ in
+            encoded.withLock { $0 = true }
+            release.wait()
+            return changeContext ? Data([1]) : nil
+        }, gate: VLMRequestGate(budget: budget)) { _ in }
+        orch.cameraCapture(CameraCapture(), didOutputPixelBuffer: makeFilledPixelBuffer(grayValue: 80)!, timestamp: .zero)
+        for _ in 0..<100 where !encoded.withLock({ $0 }) { try? await Task.sleep(nanoseconds: 10_000_000) }
+        #expect(encoded.withLock { $0 })
+        if changeContext {
+            orch.setReferenceContext(sessionID: UUID(), generation: 1, image: nil, consented: false, geometryRevision: 0)
+        }
+        release.signal()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        #expect(client.callCount == 0)
+        #expect(budget.callsRemaining == 2)
+        #expect(orch.sessionStats.networkAttempts == 0)
     }
 }

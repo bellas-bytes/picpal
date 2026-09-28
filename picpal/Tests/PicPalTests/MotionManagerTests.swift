@@ -1,4 +1,5 @@
 import Foundation
+import CoreMotion
 import Testing
 @testable import PicPal
 
@@ -10,6 +11,75 @@ import Testing
 /// focus on the observable API contract: initialisation, delegate lifecycle,
 /// data-source forwarding, and start/stop routing.
 struct MotionManagerTests {
+
+    @Test("Portrait horizon follows gravity instead of Euler roll", arguments: [-15.0, 0.0, 15.0])
+    func portraitHorizonFollowsGravity(degrees: Double) {
+        let angle = degrees * .pi / 180
+        let motion = PortraitMotionFixture(gravity: CMAcceleration(x: sin(angle), y: -cos(angle), z: 0))
+        let sample = CoreMotionDataSource.makeSample(from: motion)
+        let signal = TiltProcessor().process(
+            reading: MotionReading(roll: sample.roll, pitch: sample.pitch, timestamp: sample.timestamp),
+            wasLevel: true
+        )
+        #expect(abs(signal.angleDegrees - degrees) < 0.001)
+        let cue = CueEvaluator().evaluate(frame: SignalFrame(timestamp: 0, tilt: signal))
+        if degrees == 0 {
+            #expect(cue == nil)
+        } else {
+            #expect(cue?.text == (degrees > 0 ? CueText.tiltLeft : CueText.tiltRight))
+        }
+    }
+
+    @Test("A nearly flat phone does not get an arbitrary horizon correction")
+    func flatPhoneDoesNotInventTilt() {
+        let motion = PortraitMotionFixture(gravity: CMAcceleration(x: 0.001, y: -0.001, z: -0.999999))
+        let sample = CoreMotionDataSource.makeSample(from: motion)
+        let signal = TiltProcessor().process(
+            reading: MotionReading(roll: sample.roll, pitch: sample.pitch, timestamp: sample.timestamp),
+            wasLevel: false
+        )
+        #expect(signal.isLevel)
+    }
+
+    @Test("Flat gravity remains neutral in either landscape orientation", arguments: [CaptureOrientation.landscapeLeft, .landscapeRight])
+    func flatLandscapeRemainsNeutral(orientation: CaptureOrientation) async {
+        let source = MockMotionDataSource()
+        let manager = MotionManager(dataSource: source, smoothingFactor: 1)
+        let spy = MotionDelegateSpy()
+        let (stream, continuation) = AsyncStream<MotionReading>.makeStream()
+        spy.onReading = { continuation.yield($0) }
+        manager.delegate = spy
+        manager.setOrientation(orientation)
+        manager.start()
+        defer { manager.stop(); continuation.finish() }
+        let motion = PortraitMotionFixture(gravity: CMAcceleration(x: 0.001, y: -0.001, z: -0.999999))
+        source.feed(CoreMotionDataSource.makeSample(from: motion))
+        var iterator = stream.makeAsyncIterator()
+        let reading = await iterator.next()
+        #expect(reading?.roll == 0)
+    }
+
+    @Test("Physical rotation is delivered independently of the current capture orientation")
+    func physicalRotationUsesRawGravityAndReachesCameraSubscriber() async {
+        let source = MockMotionDataSource()
+        let manager = MotionManager(dataSource: source)
+        manager.setOrientation(.landscapeRight)
+        let (stream, continuation) = AsyncStream<CaptureOrientation>.makeStream()
+        let token = NotificationCenter.default.addObserver(forName: MotionManager.physicalOrientationDidChange,
+                                                           object: manager, queue: .main) { notification in
+            if let orientation = notification.userInfo?["orientation"] as? CaptureOrientation {
+                continuation.yield(orientation)
+            }
+        }
+        defer { manager.stop(); NotificationCenter.default.removeObserver(token); continuation.finish() }
+        manager.start()
+        for timestamp in [0.0, 0.3] {
+            source.feed(MotionSample(roll: -.pi / 2, pitch: 0, rotationRateX: 0, rotationRateY: 0,
+                                     rotationRateZ: 0, timestamp: timestamp))
+        }
+        var iterator = stream.makeAsyncIterator()
+        #expect(await iterator.next() == .landscapeLeft)
+    }
 
     // MARK: - Initialisation
 
@@ -185,5 +255,58 @@ final class MotionDelegateSpy: MotionDelegate, @unchecked Sendable {
     nonisolated func motionManager(_ manager: MotionManager, didChangeSettled isSettled: Bool) {
         settleEvents.append(isSettled)
         onSettle?(isSettled)
+    }
+}
+
+/// Controls the sensor boundary, leaving sample conversion and cue evaluation real.
+private final class PortraitMotionFixture: CMDeviceMotion {
+    private let gravityValue: CMAcceleration
+    private let attitudeValue = PortraitAttitudeFixture()
+
+    init(gravity: CMAcceleration) {
+        gravityValue = gravity
+        super.init()
+    }
+
+    required init?(coder: NSCoder) { fatalError("Not used by sensor fixtures") }
+
+    override var gravity: CMAcceleration { gravityValue }
+    override var attitude: CMAttitude { attitudeValue }
+    override var rotationRate: CMRotationRate { CMRotationRate(x: 0, y: 0, z: 0) }
+    override var timestamp: TimeInterval { 1 }
+}
+
+private final class PortraitAttitudeFixture: CMAttitude {
+    override var roll: Double { .pi / 2 }
+    override var pitch: Double { .pi / 2 }
+}
+
+struct PhysicalCameraOrientationTests {
+    private func sample(_ roll: Double, _ timestamp: TimeInterval, valid: Bool = true) -> MotionSample {
+        MotionSample(roll: roll, pitch: 0, rotationRateX: 0, rotationRateY: 0,
+                     rotationRateZ: 0, timestamp: timestamp, isHorizonValid: valid)
+    }
+
+    @Test func bothLandscapeDirectionsAndPortraitRequireStableGravity() {
+        var tracker = PhysicalCameraOrientationTracker()
+        #expect(tracker.update(sample(-.pi / 2, 0)) == nil)
+        #expect(tracker.update(sample(-.pi / 2, 0.3)) == .landscapeLeft)
+        #expect(tracker.update(sample(-.pi / 2, 0.6)) == nil)
+        #expect(tracker.update(sample(.pi / 2, 1)) == nil)
+        #expect(tracker.update(sample(.pi / 2, 1.3)) == .landscapeRight)
+        #expect(tracker.update(sample(0, 2)) == nil)
+        #expect(tracker.update(sample(0, 2.3)) == .portrait)
+    }
+
+    @Test func flatDiagonalUpsideDownAndNonfiniteReadingsCannotRotateCamera() {
+        var tracker = PhysicalCameraOrientationTracker()
+        for angle in [Double.nan, .infinity, .pi / 4, .pi] {
+            #expect(tracker.update(sample(angle, 0)) == nil)
+            #expect(tracker.update(sample(angle, 1)) == nil)
+        }
+        #expect(tracker.update(sample(-.pi / 2, 2)) == nil)
+        #expect(tracker.update(sample(-.pi / 2, 2.3, valid: false)) == nil)
+        #expect(tracker.update(sample(-.pi / 2, 3)) == nil)
+        #expect(tracker.update(sample(-.pi / 2, 3.3)) == .landscapeLeft)
     }
 }

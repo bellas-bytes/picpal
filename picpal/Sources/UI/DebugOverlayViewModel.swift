@@ -53,16 +53,34 @@ final class DebugOverlayViewModel: ObservableObject {
     /// Empty string means no active body cue (good body state or no person detected).
     @Published var bodyHint: String = ""
 
+    /// Counts and association state from the independent live subject detectors.
+    @Published var subjectDetectionSummary: String = "—"
+
     /// The active coaching cue selected by the cue engine (placeholder: "—").
     ///
-    /// Updated after every signal tick. "—" means silence (no active cue).
+    /// Retained briefly across cooldown ticks so it can be read.
     @Published var activeCue: String = "—"
+
+    private var lastCoachingCueAt: Date?
+    private static let cueDisplaySeconds: TimeInterval = 4
+
+    func receiveCoachingCue(_ cue: Cue?, at date: Date = Date()) {
+        if let cue {
+            activeCue = cue.text
+            lastCoachingCueAt = date
+        } else if let lastCoachingCueAt,
+                  date.timeIntervalSince(lastCoachingCueAt) >= Self.cueDisplaySeconds {
+            activeCue = "—"
+            self.lastCoachingCueAt = nil
+        }
+    }
 
     /// Whether voice output is muted (placeholder: false).
     ///
     /// Toggled by the mute button in `DebugOverlayView`. Changes propagate to
     /// `VoiceCoach.isMuted` via `ContentView`'s `onChange` observer.
     @Published var isMuted: Bool = false
+    @Published var isShowingDiagnostics: Bool = false
 
     // MARK: - Guides overlay fields
 

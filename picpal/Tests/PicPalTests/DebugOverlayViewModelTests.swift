@@ -1,8 +1,31 @@
 import Testing
+import Foundation
 @testable import PicPal
 
 @MainActor
 struct DebugOverlayViewModelTests {
+
+    @Test("A cooldown tick does not erase a readable coaching cue")
+    func coachingCueSurvivesCooldown() {
+        let model = DebugOverlayViewModel()
+        let start = Date(timeIntervalSince1970: 100)
+        let cue = Cue(text: "Tilt left a little", priority: .stability, sourceTier: .tier0)
+        model.receiveCoachingCue(cue, at: start)
+        model.receiveCoachingCue(nil, at: start.addingTimeInterval(0.02))
+        #expect(model.activeCue == cue.text)
+        model.receiveCoachingCue(nil, at: start.addingTimeInterval(4))
+        #expect(model.activeCue == "—")
+    }
+
+    @Test("A new cue replaces the old instruction and gets its own reading time")
+    func newCoachingCueReplacesOld() {
+        let model = DebugOverlayViewModel()
+        let start = Date(timeIntervalSince1970: 100)
+        model.receiveCoachingCue(Cue(text: "Move left", priority: .composition, sourceTier: .tier0), at: start)
+        model.receiveCoachingCue(Cue(text: "Hold still", priority: .stability, sourceTier: .tier0), at: start.addingTimeInterval(3))
+        model.receiveCoachingCue(nil, at: start.addingTimeInterval(4))
+        #expect(model.activeCue == "Hold still")
+    }
 
     // MARK: - Initial placeholder values
 

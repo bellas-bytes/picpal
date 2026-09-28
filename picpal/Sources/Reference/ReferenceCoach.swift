@@ -15,7 +15,7 @@ public struct ReferenceCoach {
         public static let stepCloser       = "step in a bit closer — the reference is tighter"
         public static let stepBack         = "back up slightly — the reference has more space"
         public static let faceCamera       = "have them turn back toward the camera"
-        public static let matched          = "nice — that looks like the reference shot"
+        public static let matched          = "Framing aligned"
     }
 
     /// Cue priority constant for reference coaching.
@@ -46,7 +46,7 @@ public struct ReferenceCoach {
     /// - Returns: A Cue if coaching is needed, or nil if matched or no improvement guidance available.
     public func cue(from delta: PoseDelta, isNewMatch: Bool) -> Cue? {
         // Match confirmation cue takes highest priority: shown when newly matched.
-        if isNewMatch {
+        if isNewMatch && delta.isWithinThreshold {
             return Cue(text: CueText.matched, priority: Self.referencePriority, sourceTier: Self.referenceSourceTier)
         }
 

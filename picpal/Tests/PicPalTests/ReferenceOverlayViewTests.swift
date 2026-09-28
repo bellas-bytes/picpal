@@ -11,12 +11,6 @@ import UIKit
 ///   - `currentOpacity` for every state combination
 ///   - `onDismiss` callback is captured and callable
 ///
-/// Acceptance criteria covered:
-///   1. Default opacity is `0.30` when idle.
-///   2. Matched opacity is `0.15` when `isMatched == true`.
-///   3. Extracting opacity is `0.15` when `isExtracting == true`.
-///   4. `isExtracting` takes priority over `isMatched`.
-///   5. `onDismiss` closure is captured and fires when called directly.
 @Suite("ReferenceOverlayView") @MainActor
 struct ReferenceOverlayViewTests {
 
@@ -45,7 +39,7 @@ struct ReferenceOverlayViewTests {
         #expect(view.currentOpacity == 0.30)
     }
 
-    @Test("currentOpacity returns 0.15 when matched")
+    @Test("currentOpacity returns 0.30 when matched")
     func currentOpacityMatched() {
         let view = ReferenceOverlayView(
             image: makeBlankImage(),
@@ -53,10 +47,10 @@ struct ReferenceOverlayViewTests {
             isExtracting: false,
             onDismiss: {}
         )
-        #expect(view.currentOpacity == 0.15)
+        #expect(view.currentOpacity == 0.30)
     }
 
-    @Test("currentOpacity returns 0.15 when extracting")
+    @Test("currentOpacity returns 0.30 when extracting")
     func currentOpacityExtracting() {
         let view = ReferenceOverlayView(
             image: makeBlankImage(),
@@ -64,10 +58,10 @@ struct ReferenceOverlayViewTests {
             isExtracting: true,
             onDismiss: {}
         )
-        #expect(view.currentOpacity == 0.15)
+        #expect(view.currentOpacity == 0.30)
     }
 
-    @Test("currentOpacity returns 0.15 when extracting overrides matched")
+    @Test("currentOpacity returns 0.30 when extracting preserves selected opacity")
     func currentOpacityExtractingTakesPriority() {
         let view = ReferenceOverlayView(
             image: makeBlankImage(),
@@ -75,8 +69,28 @@ struct ReferenceOverlayViewTests {
             isExtracting: true,
             onDismiss: {}
         )
-        // isExtracting wins — both share 0.15 but extracting is evaluated first.
-        #expect(view.currentOpacity == 0.15)
+        // Matching and extraction preserve the selected opacity.
+        #expect(view.currentOpacity == 0.30)
+    }
+
+    @Test func selectedOpacityPersistsAcrossAnalysisStates() {
+        for matched in [false, true] {
+            for extracting in [false, true] {
+                let view = ReferenceOverlayView(image: makeBlankImage(), isMatched: matched,
+                    isExtracting: extracting, opacity: 0.72, onDismiss: {})
+                #expect(view.currentOpacity == 0.72)
+            }
+        }
+    }
+
+    @Test func zeroOpacityHidesGhostAndMatchTintButKeepsDismissal() {
+        var dismissed = false
+        let view = ReferenceOverlayView(image: makeBlankImage(), isMatched: true, isExtracting: false,
+            opacity: 0, onDismiss: { dismissed = true })
+        #expect(view.currentOpacity == 0)
+        #expect(view.matchTintOpacity == 0)
+        view.onDismiss()
+        #expect(dismissed)
     }
 
     // MARK: - onDismiss tests

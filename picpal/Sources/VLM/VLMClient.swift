@@ -10,7 +10,11 @@ import Foundation
 /// When `referenceImageJPEG` is non-nil the proxy receives two images:
 /// the reference shot first, then the live frame.  The reference image is
 /// never persisted to disk or logged by the proxy — it exists only in-flight.
+public enum VLMOperation: String, Codable, Sendable { case aesthetic, referenceProfile, referenceComparison }
+
 public struct VLMRequest: Sendable {
+    public let operation: VLMOperation
+    public let profileJSON: String?
 
     /// Compressed live-frame JPEG at the target analysis resolution.
     public let imageJPEG: Data
@@ -24,6 +28,8 @@ public struct VLMRequest: Sendable {
 
     /// Standard single-image initialiser (existing callers unchanged).
     public init(imageJPEG: Data, prompt: String) {
+        self.operation = .aesthetic
+        self.profileJSON = nil
         self.imageJPEG = imageJPEG
         self.referenceImageJPEG = nil
         self.prompt = prompt
@@ -31,10 +37,20 @@ public struct VLMRequest: Sendable {
 
     /// Two-image initialiser for reference-mode VLM calls.
     public init(imageJPEG: Data, referenceImageJPEG: Data?, prompt: String) {
+        self.operation = .aesthetic
+        self.profileJSON = nil
         self.imageJPEG = imageJPEG
         self.referenceImageJPEG = referenceImageJPEG
         self.prompt = prompt
     }
+    public init(operation: VLMOperation, imageJPEG: Data, referenceImageJPEG: Data?, profileJSON: String? = nil, prompt: String) {
+        self.operation = operation
+        self.imageJPEG = imageJPEG
+        self.referenceImageJPEG = referenceImageJPEG
+        self.profileJSON = profileJSON
+        self.prompt = prompt
+    }
+
 }
 
 // MARK: - VLMResponse
@@ -137,7 +153,9 @@ public struct AnthropicVLMClient: VLMClient {
             imageJPEG: request.imageJPEG,
             referenceImageJPEG: request.referenceImageJPEG,
             prompt: request.prompt,
-            boundary: boundary
+            boundary: boundary,
+            operation: request.operation,
+            profileJSON: request.profileJSON
         )
 
         var urlRequest = URLRequest(
@@ -200,7 +218,9 @@ public struct AnthropicVLMClient: VLMClient {
         imageJPEG: Data,
         referenceImageJPEG: Data? = nil,
         prompt: String,
-        boundary: String
+        boundary: String,
+        operation: VLMOperation = .aesthetic,
+        profileJSON: String? = nil
     ) -> Data {
         var body = Data()
         let crlf = "\r\n"
@@ -218,12 +238,21 @@ public struct AnthropicVLMClient: VLMClient {
             append(crlf)
         }
 
+        if operation != .referenceProfile {
         // Live frame image part.
         append("--\(boundary)\(crlf)")
         append("Content-Disposition: form-data; name=\"image\"; filename=\"frame.jpg\"\(crlf)")
         append("Content-Type: image/jpeg\(crlf)\(crlf)")
         body.append(imageJPEG)
         append(crlf)
+
+        }
+        for (name, value) in [("operation", operation.rawValue), ("profile", profileJSON)] {
+            guard let value else { continue }
+            append("--\(boundary)\(crlf)")
+            append("Content-Disposition: form-data; name=\"\(name)\"\(crlf)\(crlf)")
+            append(value + crlf)
+        }
 
         // Prompt part.
         append("--\(boundary)\(crlf)")

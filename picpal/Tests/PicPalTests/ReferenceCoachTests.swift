@@ -10,8 +10,8 @@ struct ReferenceCoachTests {
 
     // MARK: - Match confirmation
 
-    @Test("isNewMatch = true overrides all deltas and returns matched cue")
-    func newMatchReturnsMatchedCue() {
+    @Test("isNewMatch cannot override an observed mismatch")
+    func newMatchCannotOverrideMismatch() {
         let delta = PoseDelta(
             horizontalOffset: 0.5,    // Way out of threshold
             verticalOffset: 0.5,      // Way out of threshold
@@ -21,7 +21,7 @@ struct ReferenceCoachTests {
         )
         let cue = coach.cue(from: delta, isNewMatch: true)
         #expect(cue != nil)
-        #expect(cue?.text == ReferenceCoach.CueText.matched)
+        #expect(cue?.text != ReferenceCoach.CueText.matched)
         #expect(cue?.priority == .body)
         #expect(cue?.sourceTier == .tier05)
     }

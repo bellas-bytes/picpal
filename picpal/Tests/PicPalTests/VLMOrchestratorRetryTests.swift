@@ -72,11 +72,13 @@ struct VLMOrchestratorRetryTests {
         enableCloudVLM()
         defer { resetVLMSettings() }
 
+        let budget = VLMSessionBudget(maxCalls: 3)
         let client = FailThenSucceedVLMClient(failCount: 2, error: .networkFailure("down"))
         let receivedLock = OSAllocatedUnfairLock<AestheticSignal?>(initialState: nil)
         let completedLock = OSAllocatedUnfairLock<Int>(initialState: 0)
         let orch = VLMOrchestrator(
             client: client,
+            gate: VLMRequestGate(budget: budget),
             retrySleep: { _ in },
             onRequestCompleted: { completedLock.withLock { $0 += 1 } }
         ) { signal in
@@ -93,6 +95,8 @@ struct VLMOrchestratorRetryTests {
 
         // Three analyze calls: 2 failures + 1 success.
         #expect(client.callCount == 3)
+        #expect(budget.callsRemaining == 0)
+        #expect(orch.sessionStats.networkAttempts == 3)
         // A signal is delivered on success.
         #expect(receivedLock.withLock({ $0 }) != nil)
     }

@@ -1,0 +1,9 @@
+# Specific pose feedback: design
+
+Extend the existing selfie coach rather than replacing its detectors. The initial release targets one visible person and one unambiguously associated hand: hand placement relative to the face, head tilt/turn, and visible peace-sign details. Shoulder angle follows only when both shoulders are observable. Palm-facing direction and depth remain unknown unless an independently evaluated estimator supports them; 2D joints alone must not imply reliable 3D orientation.
+
+A reference becomes a set of individually measurable targets. Each target has visibility/confidence, normalized geometry, an acceptable range, and a stable detail key. Compare live observations to each selected target independently of overall framing. A framing difference remains visible and blocks whole-reference matching, but need not block useful pose coaching. Present one actionable correction and acknowledge progress only for that same measured detail. The user can optionally select hand, head, shoulders, or all visible details.
+
+Retain on-device operation, existing cloud consent, bounded inference work, camera switching/rotation/zoom invalidation, reference opacity and native-style zoom controls. Do not upload user photos for training or include them in the repository. Missing evidence is unknown, never a match. Partial pose success must not enable automatic capture. Use preview-relative direction unless anatomical handedness is verified.
+
+Build a rights-cleared, labeled reference/live-pair and video evaluation set before considering training. Public landmark/gesture datasets supplement component evaluation; they cannot establish that PicPal gives useful corrective instructions. Separate train, calibration and held-out evaluation participants/sessions/references. Train a small additional component only after error analysis demonstrates a persistent recognition gap.

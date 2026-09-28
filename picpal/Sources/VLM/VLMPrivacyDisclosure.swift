@@ -26,6 +26,11 @@ public enum VLMPrivacyDisclosure {
     composition feedback. No audio, location, identity, or account \
     information is included. Images are not stored by the app or the proxy.
 
+    Reference coaching asks separately before sending your selected reference \
+    photo with live frames. Its description stays in memory for this session. \
+    Without cloud permission, PicPal gives local framing and pose guidance; \
+    it cannot confirm an overall reference match or automatically capture one.
+
     You can disable cloud coaching at any time using the toggle below. \
     When disabled, no image data is ever encoded or transmitted.
     """

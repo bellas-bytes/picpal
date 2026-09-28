@@ -29,11 +29,15 @@
 	<string>PicPal uses the camera to analyze your photo framing in real time.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>PicPal uses device motion to detect tilt and orientation for framing guidance.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>PicPal saves the photos you take to your photo library.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 </dict>
 </plist>

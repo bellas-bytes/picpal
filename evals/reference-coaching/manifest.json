@@ -1,0 +1,1130 @@
+{
+  "schemaVersion": 1,
+  "status": "image-acquisition-and-human-evaluation-pending",
+  "scenarios": [
+    {
+      "id": "subject-too-small",
+      "category": "framing",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference fills torso crop; live person is smaller",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "move-closer"
+        ],
+        "actionDimension": "framing",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "subject-too-large",
+      "category": "framing",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Live crop cuts hands shown in the reference",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "move-back"
+        ],
+        "actionDimension": "framing",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "headroom-too-large",
+      "category": "framing",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference has modest headroom; live has excess sky",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "aim-down"
+        ],
+        "actionDimension": "framing",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "subject-left-of-target",
+      "category": "framing",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Live person appears left of reference placement",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "aim-left"
+        ],
+        "actionDimension": "framing",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "intentional-asymmetry",
+      "category": "framing",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference deliberately places person off-center; preserve its asymmetry",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "aim-right"
+        ],
+        "actionDimension": "framing",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "cropped-portrait",
+      "category": "framing",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Head-and-shoulders reference; live includes legs",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "move-closer"
+        ],
+        "actionDimension": "framing",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "same-box-left-arm-low",
+      "category": "pose",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Identical rectangles; reference left arm raised, live lowered",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "subject"
+        ],
+        "actionDirections": [
+          "raise-left-arm"
+        ],
+        "actionDimension": "pose",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "same-box-right-arm-high",
+      "category": "pose",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Identical rectangles; reference right arm down, live raised",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "subject"
+        ],
+        "actionDirections": [
+          "lower-right-arm"
+        ],
+        "actionDimension": "pose",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "torso-lean",
+      "category": "pose",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference torso leans left; live torso is vertical",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "subject"
+        ],
+        "actionDirections": [
+          "lean-left"
+        ],
+        "actionDimension": "pose",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "seated-versus-standing",
+      "category": "pose",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference seated with visible bent knees; live standing",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "subject"
+        ],
+        "actionDirections": [
+          "sit"
+        ],
+        "actionDimension": "pose",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": [
+        {
+          "kind": "improved",
+          "image": null,
+          "expectedChange": "improved"
+        },
+        {
+          "kind": "worsened",
+          "image": null,
+          "expectedChange": "worsened"
+        }
+      ]
+    },
+    {
+      "id": "front-camera-left-arm",
+      "category": "pose",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Mirrored preview but subject anatomical left arm needs raising",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "subject"
+        ],
+        "actionDirections": [
+          "raise-left-arm"
+        ],
+        "actionDimension": "pose",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "arm-crossing",
+      "category": "pose",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference arms crossed visibly; live arms at sides",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "subject"
+        ],
+        "actionDirections": [
+          "cross-arms"
+        ],
+        "actionDimension": "pose",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "higher-reference-view",
+      "category": "viewpoint",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Visible viewpoint cues support a higher phone position",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "raise-phone"
+        ],
+        "actionDimension": "viewpoint",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "lower-reference-view",
+      "category": "viewpoint",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Visible viewpoint cues support a lower phone position",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "lower-phone"
+        ],
+        "actionDimension": "viewpoint",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "reference-side-view",
+      "category": "viewpoint",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference shows side view; live is frontal",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "move-around-left"
+        ],
+        "actionDimension": "viewpoint",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "reference-frontal-view",
+      "category": "viewpoint",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference frontal view; live side view",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "move-around-right"
+        ],
+        "actionDimension": "viewpoint",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "face-shadow",
+      "category": "lighting",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference softly lit face; live face in strong shadow",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "subject"
+        ],
+        "actionDirections": [
+          "turn-toward-light",
+          "move-to-light"
+        ],
+        "actionDimension": "lighting",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "wrong-side-key",
+      "category": "lighting",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference camera-left light; live camera-right light",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "relocate"
+        ],
+        "actionDimension": "lighting",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "hard-versus-soft",
+      "category": "lighting",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference soft shade; live direct overhead sun",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "subject"
+        ],
+        "actionDirections": [
+          "move-to-shade"
+        ],
+        "actionDimension": "lighting",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "relocation-required",
+      "category": "lighting",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference window light; live interior has no comparable source",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "relocate"
+        ],
+        "actionDimension": "lighting",
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "supported-standing",
+      "category": "matching",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "All five applicable dimensions visibly match with standing person",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": true,
+        "actionActors": [],
+        "actionDirections": [],
+        "actionDimension": null,
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "supported-seated",
+      "category": "matching",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "All five applicable dimensions visibly match with seated person",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": true,
+        "actionActors": [],
+        "actionDirections": [],
+        "actionDimension": null,
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "supported-asymmetry",
+      "category": "matching",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Intentional off-center framing and pose both match",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": true,
+        "actionActors": [],
+        "actionDirections": [],
+        "actionDimension": null,
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "supported-cropped",
+      "category": "matching",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Cropped portrait matches all applicable dimensions without claiming hidden limbs",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": true,
+        "actionActors": [],
+        "actionDirections": [],
+        "actionDimension": null,
+        "unknownRequired": false,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "no-person",
+      "category": "ambiguous",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Live frame contains no person",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [],
+        "actionDirections": [],
+        "actionDimension": null,
+        "unknownRequired": true,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "multiple-people",
+      "category": "ambiguous",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Live frame has two people without unique association",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [],
+        "actionDirections": [],
+        "actionDimension": null,
+        "unknownRequired": true,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "occluded-wrist",
+      "category": "ambiguous",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Required arm pose hidden behind body",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [],
+        "actionDirections": [],
+        "actionDimension": null,
+        "unknownRequired": true,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "unknown-viewpoint",
+      "category": "ambiguous",
+      "split": "heldOut",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Insufficient perspective evidence to infer camera height",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [],
+        "actionDirections": [],
+        "actionDimension": null,
+        "unknownRequired": true,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "dark-frame",
+      "category": "ambiguous",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Person articulation obscured by darkness",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [],
+        "actionDirections": [],
+        "actionDimension": null,
+        "unknownRequired": true,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    },
+    {
+      "id": "incompatible-scenes",
+      "category": "ambiguous",
+      "split": "development",
+      "referenceImage": null,
+      "liveImage": null,
+      "license": null,
+      "testImageUploadConsent": false,
+      "visibleEvidence": "Reference beach sunset; indoor live background cannot be recreated instantly",
+      "applicableDimensions": [
+        "framing",
+        "pose",
+        "viewpoint",
+        "lighting",
+        "background"
+      ],
+      "expected": {
+        "overallMatch": false,
+        "actionActors": [
+          "photographer"
+        ],
+        "actionDirections": [
+          "relocate"
+        ],
+        "actionDimension": "background",
+        "unknownRequired": true,
+        "forbiddenClaims": [
+          "exact metric distance without calibration",
+          "unknown dimensions are matched",
+          "rectangle overlap proves full match"
+        ]
+      },
+      "followUps": []
+    }
+  ],
+  "swappedReferenceControls": [
+    {
+      "id": "arm-control",
+      "scenarioIDs": [
+        "same-box-left-arm-low",
+        "same-box-right-arm-high"
+      ],
+      "sameLiveImage": null,
+      "requireDifferentAdvice": true
+    },
+    {
+      "id": "crop-control",
+      "scenarioIDs": [
+        "subject-too-small",
+        "subject-too-large"
+      ],
+      "sameLiveImage": null,
+      "requireDifferentAdvice": true
+    },
+    {
+      "id": "lighting-control",
+      "scenarioIDs": [
+        "face-shadow",
+        "wrong-side-key"
+      ],
+      "sameLiveImage": null,
+      "requireDifferentAdvice": true
+    }
+  ]
+}

@@ -17,11 +17,12 @@ public struct TiltProcessor: Sendable {
 
     // MARK: - Named constants
 
-    /// Default half-width of the level dead-zone, in degrees.
-    public static let defaultDeadZoneDegrees: Double = 2.0
+    /// Forgiving coaching tolerance: small angles can be straightened afterward.
+    /// With hysteresis, correction starts above 6° and stops below 4°.
+    public static let defaultDeadZoneDegrees: Double = 5.0
 
     /// Default hysteresis margin added to / subtracted from the dead-zone, in degrees.
-    public static let defaultHysteresisDegrees: Double = 0.5
+    public static let defaultHysteresisDegrees: Double = 1.0
 
     /// Conversion factor from radians to degrees.
     private static let degreesPerRadian: Double = 180.0 / .pi

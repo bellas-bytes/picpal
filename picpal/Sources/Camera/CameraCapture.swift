@@ -37,7 +37,7 @@ public final class CameraCapture: @unchecked Sendable {
     // MARK: - Queues (immutable — safe to access across isolation contexts)
 
     /// All AVFoundation session mutations are serialised here.
-    private let sessionQueue = DispatchQueue(label: QueueLabels.session, qos: .userInitiated)
+    let sessionQueue = DispatchQueue(label: QueueLabels.session, qos: .userInitiated)
     /// Frame sample-buffer delivery queue, separate from the session queue.
     private let frameQueue   = DispatchQueue(label: QueueLabels.frames,  qos: .userInitiated)
 
@@ -48,6 +48,8 @@ public final class CameraCapture: @unchecked Sendable {
 
     private let stateLock = OSAllocatedUnfairLock<CaptureState>(initialState: .idle)
     private let configLock: OSAllocatedUnfairLock<CameraConfiguration>
+    private let orientationTransition = OSAllocatedUnfairLock<Int>(initialState: 0)
+    private let orientationLock = OSAllocatedUnfairLock<CaptureOrientation>(initialState: .portrait)
     private let positionLock = OSAllocatedUnfairLock<AVCaptureDevice.Position>(initialState: .back)
     // Set synchronously before enqueueing stop work; checked by startSession before
     // calling captureSession.startRunning(), so stop() during .starting aborts cleanly.
@@ -61,6 +63,8 @@ public final class CameraCapture: @unchecked Sendable {
     // MARK: - AVFoundation objects  (mutated only on sessionQueue)
 
     nonisolated(unsafe) public private(set) var captureSession = AVCaptureSession()
+    nonisolated(unsafe) var photoOutput = AVCapturePhotoOutput()
+    var pendingPhoto: PhotoCaptureDelegate?
     nonisolated(unsafe) private var videoOutput    = AVCaptureVideoDataOutput()
     /// Retained to keep the delegate alive for the lifetime of the output.
     nonisolated(unsafe) private var sampleReceiver: SampleBufferReceiver?
@@ -75,7 +79,11 @@ public final class CameraCapture: @unchecked Sendable {
     ///
     /// `internal(set)` so `CameraCapture+ExposureControl.swift` can write it from the
     /// same module without `private(set)` restricting it to one file.
-    public internal(set) var exposureBiasIsManual: Bool = false
+    private let manualBiasLock = OSAllocatedUnfairLock<Bool>(initialState: false)
+    public internal(set) var exposureBiasIsManual: Bool {
+        get { manualBiasLock.withLock { $0 } }
+        set { manualBiasLock.withLock { $0 = newValue } }
+    }
 
     // MARK: - Public interface
 
@@ -92,6 +100,21 @@ public final class CameraCapture: @unchecked Sendable {
     /// The camera position currently in use (front or back). Thread-safe.
     public var cameraPosition: AVCaptureDevice.Position {
         positionLock.withLock { $0 }
+    }
+
+    public var orientation: CaptureOrientation { orientationLock.withLock { $0 } }
+
+    public func setOrientation(_ orientation: CaptureOrientation) {
+        orientationTransition.withLock { $0 += 1 }
+        orientationLock.withLock { $0 = orientation }
+        sessionQueue.async { [weak self] in
+            guard let self else { return }
+            configureVideoConnection()
+            // Drain already queued old-orientation buffers before accepting new evidence.
+            frameQueue.async { [weak self] in
+                self?.orientationTransition.withLock { $0 -= 1 }
+            }
+        }
     }
 
     /// Receiver of frame and state events. Safe to assign from any thread.
@@ -175,43 +198,46 @@ public final class CameraCapture: @unchecked Sendable {
 
     // MARK: - Camera position
 
-    /// Toggle between front and back camera.
-    ///
-    /// The position flips atomically and is immediately visible via `cameraPosition`.
-    /// If the session is running, the capture input is swapped on the session queue
-    /// without stopping the session (uses `beginConfiguration` / `commitConfiguration`).
-    public func switchCamera() {
-        // Flip position synchronously so callers can read it immediately.
-        positionLock.withLock { $0 = ($0 == .back) ? .front : .back }
-        let newPosition = positionLock.withLock { $0 }
-
-        sessionQueue.async { [weak self] in
-            guard let self else { return }
-            guard stateLock.withLock({ $0 }) == .running else { return }
-            let config = configLock.withLock { $0 }
-
-            captureSession.beginConfiguration()
-            defer { captureSession.commitConfiguration() }
-
-            // Remove the existing device input.
-            for input in captureSession.inputs where input is AVCaptureDeviceInput {
-                captureSession.removeInput(input)
-            }
-
-            guard let device = AVCaptureDevice.default(
-                .builtInWideAngleCamera, for: .video, position: newPosition
-            ) else {
-                logger.error("switchCamera: no device for position \(String(describing: newPosition), privacy: .public)")
-                return
-            }
-
-            do {
-                let input = try AVCaptureDeviceInput(device: device)
-                guard captureSession.canAddInput(input) else { return }
-                captureSession.addInput(input)
-                try applyFrameRate(config.targetFPS, to: device)
-            } catch {
-                logger.error("switchCamera input error: \(error.localizedDescription, privacy: .public)")
+    /// Toggle cameras and return the actual position after configuration commits.
+    /// Failed or unavailable switches preserve the current position.
+    public func switchCamera() async -> AVCaptureDevice.Position {
+        await withCheckedContinuation { continuation in
+            sessionQueue.async { [self] in
+                guard stateLock.withLock({ $0 }) == .running, pendingPhoto == nil else {
+                    continuation.resume(returning: cameraPosition)
+                    return
+                }
+                let newPosition: AVCaptureDevice.Position = cameraPosition == .back ? .front : .back
+                guard let device = Self.preferredDevice(position: newPosition),
+                      let input = try? AVCaptureDeviceInput(device: device) else {
+                    continuation.resume(returning: cameraPosition)
+                    return
+                }
+                // Keep old-camera frames out of the analysis pipeline until queued
+                // buffers have drained after the input and geometry change.
+                orientationTransition.withLock { $0 += 1 }
+                captureSession.beginConfiguration()
+                let oldInputs = captureSession.inputs.compactMap { $0 as? AVCaptureDeviceInput }
+                for old in oldInputs { captureSession.removeInput(old) }
+                if captureSession.canAddInput(input) {
+                    captureSession.addInput(input)
+                    videoDevice = device
+                    configurePhotoDimensions()
+                    do { try applyFrameRate(configLock.withLock { $0 }.targetFPS, to: device) }
+                    catch { logger.error("switchCamera frame rate: \(error.localizedDescription)") }
+                    enableAutomaticAdjustments()
+                } else {
+                    for old in oldInputs where captureSession.canAddInput(old) { captureSession.addInput(old) }
+                }
+                configureVideoConnection(notify: false)
+                captureSession.commitConfiguration()
+                positionLock.withLock { $0 = videoDevice?.position ?? .back }
+                configureVideoConnection()
+                let committedPosition = cameraPosition
+                frameQueue.async { [self] in
+                    orientationTransition.withLock { $0 -= 1 }
+                    continuation.resume(returning: committedPosition)
+                }
             }
         }
     }
@@ -238,6 +264,7 @@ public final class CameraCapture: @unchecked Sendable {
                 return
             }
 
+            configurePhotoDimensions()
             captureSession.startRunning()
             setStateAndNotify(.running)
         }
@@ -249,18 +276,19 @@ public final class CameraCapture: @unchecked Sendable {
     /// `AVCaptureVideoPreviewLayer` already connected to `captureSession` stays wired.
     private func buildSession(configuration: CameraConfiguration) throws {
         captureSession.beginConfiguration()
-        defer { captureSession.commitConfiguration() }
+        defer {
+            captureSession.commitConfiguration()
+            configureVideoConnection()
+        }
 
         // Clear any existing inputs and outputs before rebuilding.
         for input in captureSession.inputs { captureSession.removeInput(input) }
         for output in captureSession.outputs { captureSession.removeOutput(output) }
 
-        captureSession.sessionPreset = configuration.preset
+        captureSession.sessionPreset = captureSession.canSetSessionPreset(.photo) ? .photo : configuration.preset
 
         let position = positionLock.withLock { $0 }
-        guard let device = AVCaptureDevice.default(
-            .builtInWideAngleCamera, for: .video, position: position
-        ) else {
+        guard let device = Self.preferredDevice(position: position) else {
             throw CameraError.deviceUnavailable
         }
 
@@ -289,14 +317,25 @@ public final class CameraCapture: @unchecked Sendable {
             throw CameraError.cannotAddOutput
         }
         captureSession.addOutput(videoOutput)
+        photoOutput = AVCapturePhotoOutput()
+        guard captureSession.canAddOutput(photoOutput) else { throw CameraError.cannotAddOutput }
+        captureSession.addOutput(photoOutput)
+        photoOutput.maxPhotoQualityPrioritization = .quality
+        configurePhotoDimensions()
+        enableAutomaticAdjustments()
     }
 
     /// Reconfigure a running session without rebuilding it. Must be called on `sessionQueue`.
     private func applyConfigurationLocked(_ configuration: CameraConfiguration) {
+        guard pendingPhoto == nil else { return }
         captureSession.beginConfiguration()
-        defer { captureSession.commitConfiguration() }
+        defer {
+            captureSession.commitConfiguration()
+            configureVideoConnection()
+            configurePhotoDimensions()
+        }
 
-        captureSession.sessionPreset = configuration.preset
+        captureSession.sessionPreset = captureSession.canSetSessionPreset(.photo) ? .photo : configuration.preset
 
         guard let device = (captureSession.inputs.first as? AVCaptureDeviceInput)?.device else {
             return
@@ -305,6 +344,35 @@ public final class CameraCapture: @unchecked Sendable {
             try applyFrameRate(configuration.targetFPS, to: device)
         } catch {
             logger.error("applyFrameRate failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    static let connectionsChangedNotification = Notification.Name("com.picpal.cameraConnectionsChanged")
+
+    private static func preferredDevice(position: AVCaptureDevice.Position) -> AVCaptureDevice? {
+        // Center Stage front cameras expose their full field of view through ultra-wide.
+        if position == .front,
+           let wide = AVCaptureDevice.default(.builtInUltraWideCamera, for: .video, position: .front) {
+            return wide
+        }
+        return AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position)
+    }
+
+    /// Physically rotates analysis buffers upright so Vision's `.up` orientation is valid.
+    /// Front-camera buffers match the mirrored preview and saved photo coordinates.
+    /// Must run on the session queue after connections have been established.
+    private func configureVideoConnection(notify: Bool = true) {
+        guard let connection = videoOutput.connection(with: .video) else { return }
+        if connection.isVideoOrientationSupported { connection.videoOrientation = orientation.videoOrientation }
+        #if DEBUG
+        print("[PicPal orientation] camera=\(videoDevice?.position.rawValue ?? 0) portraitRotation=\(connection.videoRotationAngle)")
+        #endif
+        if connection.isVideoMirroringSupported {
+            connection.automaticallyAdjustsVideoMirroring = false
+            connection.isVideoMirrored = videoDevice?.position == .front
+        }
+        if notify {
+            NotificationCenter.default.post(name: Self.connectionsChangedNotification, object: captureSession)
         }
     }
 
@@ -326,6 +394,7 @@ public final class CameraCapture: @unchecked Sendable {
 
     /// Called from `frameQueue` by the `SampleBufferReceiver`.
     private func deliverFrame(pixelBuffer: CVPixelBuffer, timestamp: CMTime) {
+        guard orientationTransition.withLock({ $0 == 0 }) else { return }
         delegateBox.get()?.cameraCapture(self, didOutputPixelBuffer: pixelBuffer, timestamp: timestamp)
     }
 

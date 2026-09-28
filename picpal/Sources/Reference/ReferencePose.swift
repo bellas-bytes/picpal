@@ -1,5 +1,9 @@
 import Foundation
 
+public enum ReferenceFramingDomain: Sendable { case person, face }
+
+public enum PoseTrackingBackend: Sendable { case vision, mediaPipe }
+
 /// Keypoints and composition extracted from a reference still image.
 /// All coordinates are in Vision's normalized coordinate space (origin bottom-left, y up).
 /// Convert to UIKit (origin top-left, y down) before display comparisons.
@@ -7,8 +11,16 @@ public struct ReferencePose: Sendable {
     /// Body joint positions. Nil joints were not detected at sufficient confidence.
     /// Keys are raw values of `VNHumanBodyPoseObservation.JointName`.
     public let bodyKeypoints: [String: CGPoint]
+    public let jointConfidences: [String: Float]
+    public let geometry: ReferenceGeometry
+    public let subjectCount: Int
+    public let trackingBackend: PoseTrackingBackend
 
     /// Face centroid in normalized coordinates. Nil if no face detected.
+    public let selfie: SelfiePoseObservation?
+    public let faceBox: CGRect?
+    public let framingDomain: ReferenceFramingDomain
+
     public let faceCenter: CGPoint?
 
     /// Estimated face yaw in radians. Positive = turned right. Nil if no face detected.
@@ -48,9 +60,22 @@ public struct ReferencePose: Sendable {
         subjectCenterX: Float,
         subjectCenterY: Float,
         subjectHeightFraction: Float,
-        headroomFraction: Float
+        headroomFraction: Float,
+        jointConfidences: [String: Float]? = nil,
+        geometry: ReferenceGeometry = ReferenceGeometry(),
+        subjectCount: Int = 1,
+        trackingBackend: PoseTrackingBackend = .vision,
+        faceBox: CGRect? = nil, framingDomain: ReferenceFramingDomain = .person,
+        selfie: SelfiePoseObservation? = nil
     ) {
         self.bodyKeypoints = bodyKeypoints
+        self.jointConfidences = jointConfidences ?? bodyKeypoints.mapValues { _ in 1 }
+        self.geometry = geometry
+        self.subjectCount = subjectCount
+        self.trackingBackend = trackingBackend
+        self.selfie = selfie
+        self.faceBox = faceBox
+        self.framingDomain = framingDomain
         self.faceCenter = faceCenter
         self.faceYaw = faceYaw
         self.subjectBoundingBox = subjectBoundingBox

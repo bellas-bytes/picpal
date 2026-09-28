@@ -1,8 +1,19 @@
 import Testing
+import Foundation
 import CoreMedia
 import CoreVideo
 import os
 @testable import PicPal
+
+struct LandmarkModelBundleTests {
+    @Test("The app bundles the models required for on-device coaching",
+          arguments: ["hand_landmarker", "face_landmarker"])
+    func requiredModelIsBundled(name: String) throws {
+        let url = try #require(Bundle.main.url(forResource: name, withExtension: "task"))
+        let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize
+        #expect((size ?? 0) > 0)
+    }
+}
 
 // MARK: - Thread-safe container for test assertions
 

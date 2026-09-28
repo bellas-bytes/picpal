@@ -1,4 +1,5 @@
 import AVFoundation
+import Foundation
 import os
 
 /// Speaks coaching cues on-device using `AVSpeechSynthesizer`.
@@ -50,6 +51,12 @@ public final class VoiceCoach: NSObject, @unchecked Sendable {
     /// Attempt to speak `cue`. Interrupts a lower-priority in-progress utterance.
     /// Does nothing if `isMuted` is true.
     public func speak(_ cue: Cue) {
+        // Camera callbacks arrive on background queues. Serialize all speech
+        // commands on the main queue, where synthesizer callbacks are delivered.
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [self] in speak(cue) }
+            return
+        }
         let shouldSpeak = lock.withLock { state -> Bool in
             guard !state.isMuted else { return false }
 
@@ -65,6 +72,15 @@ public final class VoiceCoach: NSObject, @unchecked Sendable {
 
         guard shouldSpeak else { return }
 
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .spokenAudio, options: [.mixWithOthers])
+            try session.setActive(true)
+        } catch {
+            Logger(subsystem: "com.picpal", category: "VoiceCoach")
+                .error("Could not activate coaching audio: \(error.localizedDescription, privacy: .public)")
+        }
+
         let utterance = makeUtterance(for: cue.text)
 
         // Stop any in-progress utterance (safe to call even if nothing is playing).
@@ -79,6 +95,10 @@ public final class VoiceCoach: NSObject, @unchecked Sendable {
 
     /// Immediately stop any in-progress utterance.
     public func stop() {
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [self] in stop() }
+            return
+        }
         lock.withLock { state in
             state.currentPriority = nil
         }

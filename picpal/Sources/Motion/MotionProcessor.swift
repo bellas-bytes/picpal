@@ -86,7 +86,8 @@ struct MotionProcessor {
             settleChanged = newIsSettled
         }
 
-        let reading = MotionReading(roll: newRoll, pitch: newPitch, timestamp: sample.timestamp)
+        let reading = MotionReading(roll: newRoll, pitch: newPitch, timestamp: sample.timestamp,
+                                    angularSpeed: magnitude)
         return (reading, settleChanged)
     }
 }

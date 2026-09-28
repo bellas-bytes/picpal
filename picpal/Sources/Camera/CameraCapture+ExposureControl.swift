@@ -1,47 +1,79 @@
 import AVFoundation
 
-// MARK: - Exposure and focus control
-
 extension CameraCapture {
-
-    // MARK: - Tap-to-focus / tap-to-expose
-
-    /// Sets the focus and exposure point of interest on the active capture device.
-    ///
-    /// - Parameter point: Normalized device coordinates (0–1 in each axis) where
-    ///   (0,0) is the top-left corner of the sensor image.
-    ///   Use `AVCaptureVideoPreviewLayer.captureDevicePointConverted(fromLayerPoint:)`
-    ///   to convert from view coordinates before calling this method.
     public func setFocusAndExposure(at point: CGPoint) {
-        guard let device = videoDevice else { return }
-        try? device.lockForConfiguration()
-        if device.isFocusPointOfInterestSupported {
-            device.focusPointOfInterest = point
-            device.focusMode = .autoFocus
+        guard point.x.isFinite, point.y.isFinite else { return }
+        mutateDevice { device in
+            let point = CGPoint(x: min(1, max(0, point.x)), y: min(1, max(0, point.y)))
+            if device.isFocusPointOfInterestSupported, device.isFocusModeSupported(.autoFocus) {
+                device.focusPointOfInterest = point
+                device.focusMode = .autoFocus
+            }
+            if device.isExposurePointOfInterestSupported, device.isExposureModeSupported(.autoExpose) {
+                device.exposurePointOfInterest = point
+                device.exposureMode = .autoExpose
+            }
         }
-        if device.isExposurePointOfInterestSupported {
-            device.exposurePointOfInterest = point
-            device.exposureMode = .autoExpose
-        }
-        device.unlockForConfiguration()
     }
 
-    // MARK: - EV bias
+    /// Meters and continuously focuses on a stable subject in sensor coordinates.
+    /// Caller controls update cadence and suspends tracking after a manual focus tap.
+    /// Existing exposure compensation is preserved.
+    public func trackSubject(at sensorPoint: CGPoint) {
+        guard sensorPoint.x.isFinite, sensorPoint.y.isFinite else { return }
+        mutateDevice { device in
+            let point = CGPoint(
+                x: min(1, max(0, sensorPoint.x)),
+                y: min(1, max(0, sensorPoint.y))
+            )
+            if device.isFocusPointOfInterestSupported,
+               device.isFocusModeSupported(.continuousAutoFocus) {
+                device.focusPointOfInterest = point
+                device.focusMode = .continuousAutoFocus
+            }
+            if device.isExposurePointOfInterestSupported,
+               device.isExposureModeSupported(.continuousAutoExposure) {
+                device.exposurePointOfInterest = point
+                device.exposureMode = .continuousAutoExposure
+            }
+        }
+    }
 
-    /// Sets the exposure target bias.
-    ///
-    /// - Parameter bias: The desired exposure compensation in EV stops.
-    ///   Values outside `[device.minExposureTargetBias, device.maxExposureTargetBias]`
-    ///   are clamped. Passing `0` resets the bias and clears `exposureBiasIsManual`.
     public func setExposureBias(_ bias: Float) {
-        // Update the manual-EV flag before touching the device so the property
-        // is always consistent even in tests where videoDevice is nil.
-        exposureBiasIsManual = (bias != 0)
+        guard bias.isFinite else { return }
+        exposureBiasIsManual = bias != 0
+        mutateDevice { device in
+            device.setExposureTargetBias(max(device.minExposureTargetBias, min(bias, device.maxExposureTargetBias)))
+        }
+    }
 
-        guard let device = videoDevice else { return }
-        let clamped = max(device.minExposureTargetBias, min(bias, device.maxExposureTargetBias))
-        try? device.lockForConfiguration()
-        device.setExposureTargetBias(clamped)
-        device.unlockForConfiguration()
+    public func setZoom(_ factor: CGFloat) {
+        guard factor.isFinite else { return }
+        mutateDevice { device in
+            let target = max(device.minAvailableVideoZoomFactor, min(factor, min(device.maxAvailableVideoZoomFactor, 5)))
+            device.ramp(toVideoZoomFactor: target, withRate: 2)
+        }
+    }
+
+    public func enableAutomaticAdjustments() {
+        mutateDevice { device in
+            if device.isFocusModeSupported(.continuousAutoFocus) { device.focusMode = .continuousAutoFocus }
+            if device.isExposureModeSupported(.continuousAutoExposure) { device.exposureMode = .continuousAutoExposure }
+            if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) { device.whiteBalanceMode = .continuousAutoWhiteBalance }
+        }
+    }
+
+    /// Configuration locking and every hardware mutation stay on the session queue.
+    private func mutateDevice(_ mutation: @escaping @Sendable (AVCaptureDevice) -> Void) {
+        sessionQueue.async { [self] in
+            guard pendingPhoto == nil, let device = videoDevice else { return }
+            do {
+                try device.lockForConfiguration()
+                defer { device.unlockForConfiguration() }
+                mutation(device)
+            } catch {
+                // A failed device lock must never be followed by mutations or unlock.
+            }
+        }
     }
 }
