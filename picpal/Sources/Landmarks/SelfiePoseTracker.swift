@@ -15,7 +15,7 @@ enum SelfiePoseTracker {
             return adapt(joints, imageAspectRatio: imageAspectRatio)
         }
         return SelfiePoseObservation(yaw: face?.yaw?.doubleValue, roll: face?.roll?.doubleValue,
-                                    hands: hands, handsAvailable: available, detectedHandCount: request.results?.count ?? 0)
+                                    hands: hands, handsAvailable: available, detectedHandCount: request.results?.count ?? 0, faceConfidence: face?.confidence ?? 0)
     }
 
     static func adapt(_ joints: [String: LivePoseJoint], imageAspectRatio: Double) -> SelfieHandObservation? {
@@ -23,7 +23,32 @@ enum SelfiePoseTracker {
         guard let index = joints[J.indexMCP.rawValue.rawValue], let middle = joints[J.middleMCP.rawValue.rawValue],
               valid(index.point, confidence: index.confidence), valid(middle.point, confidence: middle.confidence) else { return nil }
         let anchor = CGPoint(x: (index.point.x + middle.point.x) / 2, y: (index.point.y + middle.point.y) / 2)
-        return SelfieHandObservation(anchor: anchor, victory: victory(joints, imageAspectRatio: imageAspectRatio))
+        func joint(_ name: J) -> LivePoseJoint? {
+            guard let value = joints[name.rawValue.rawValue], valid(value.point, confidence: value.confidence) else { return nil }
+            return value
+        }
+        func distance(_ a: CGPoint, _ b: CGPoint) -> Double {
+            hypot((a.x - b.x) * imageAspectRatio, a.y - b.y)
+        }
+        var spread: Double?
+        var spreadConfidence: Float = 0
+        if imageAspectRatio.isFinite, imageAspectRatio > 0,
+           let little = joint(.littleMCP), let indexTip = joint(.indexTip), let middleTip = joint(.middleTip) {
+            let width = distance(index.point, little.point)
+            if width > 0.005 {
+                spread = distance(indexTip.point, middleTip.point) / width
+                spreadConfidence = min(index.confidence, little.confidence, indexTip.confidence, middleTip.confidence)
+            }
+        }
+        var roll: Double?
+        var rollConfidence: Float = 0
+        if imageAspectRatio.isFinite, imageAspectRatio > 0, let wrist = joint(.wrist), distance(wrist.point, anchor) > 0.005 {
+            roll = atan2(-(anchor.x - wrist.point.x) * imageAspectRatio, anchor.y - wrist.point.y)
+            rollConfidence = min(wrist.confidence, index.confidence, middle.confidence)
+        }
+        return SelfieHandObservation(anchor: anchor, victory: victory(joints, imageAspectRatio: imageAspectRatio),
+            confidence: min(index.confidence, middle.confidence), fingerSpread: spread, roll: roll,
+            spreadConfidence: spreadConfidence, rollConfidence: rollConfidence, joints: joints)
     }
 
     static func valid(_ p: CGPoint, confidence: Float) -> Bool {

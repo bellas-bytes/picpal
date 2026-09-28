@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PicPal private raw-image pose feedback evaluation",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "datasetKind",
+    "rightsRecords",
+    "records"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "datasetKind": {
+      "enum": [
+        "real",
+        "synthetic"
+      ]
+    },
+    "rightsRecords": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "localEvaluation",
+          "recordAsset"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "localEvaluation": {
+            "const": true
+          },
+          "recordAsset": {
+            "$ref": "#/$defs/path"
+          }
+        }
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    }
+  },
+  "$defs": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Relative private-root path; validator rejects traversal, absolute paths and symlink escapes."
+    },
+    "strings": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "frame": {
+      "type": "object",
+      "required": [
+        "timestamp",
+        "acceptableActions",
+        "forbiddenActions",
+        "unknownDetails",
+        "completedDetails"
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "number",
+          "minimum": 0
+        },
+        "acceptableActions": {
+          "$ref": "#/$defs/strings"
+        },
+        "forbiddenActions": {
+          "$ref": "#/$defs/strings"
+        },
+        "unknownDetails": {
+          "$ref": "#/$defs/strings"
+        },
+        "completedDetails": {
+          "$ref": "#/$defs/strings"
+        }
+      }
+    },
+    "record": {
+      "type": "object",
+      "required": [
+        "id",
+        "split",
+        "participantGroup",
+        "sessionGroup",
+        "referenceFamily",
+        "referenceAsset",
+        "liveAsset",
+        "camera",
+        "orientation",
+        "mirrored",
+        "zoom",
+        "selectedDetails",
+        "rightsRecord",
+        "frames"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "split": {
+          "enum": [
+            "development",
+            "training",
+            "calibration",
+            "test"
+          ]
+        },
+        "participantGroup": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sessionGroup": {
+          "type": "string",
+          "minLength": 1
+        },
+        "referenceFamily": {
+          "type": "string",
+          "minLength": 1
+        },
+        "referenceAsset": {
+          "$ref": "#/$defs/path"
+        },
+        "liveAsset": {
+          "$ref": "#/$defs/path"
+        },
+        "rightsRecord": {
+          "type": "string",
+          "minLength": 1
+        },
+        "camera": {
+          "enum": [
+            "front",
+            "back"
+          ]
+        },
+        "orientation": {
+          "enum": [
+            "portrait",
+            "portraitUpsideDown",
+            "landscapeLeft",
+            "landscapeRight"
+          ]
+        },
+        "mirrored": {
+          "type": "boolean"
+        },
+        "zoom": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "selectedDetails": {
+          "$ref": "#/$defs/strings"
+        },
+        "frames": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/frame"
+          }
+        },
+        "selfieAtMinimumZoom": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

@@ -15,7 +15,9 @@ See the [device readiness assessment](../docs/device-readiness.md) for a first-r
 - White shutter: take a photo; it does not require a coaching “ready” result.
 - Auto capture: starts a photo session with repeated shots while framing, tilt, exposure, and gentle movement remain usable. A yellow ring marks the active session; Stop stays available even during saving. Photos are spaced by at least 0.8 seconds and never overlap. Sheets, backgrounding, camera/style changes, or manual focus/zoom stop the session.
 - Bottom-right Photos: choose or replace a reference image using the system picker.
-- Auto Zoom: bounded adjustments up to 2× after physical-distance guidance is satisfied. Moving the zoom slider switches to manual zoom.
+- Zoom: tap supported magnification buttons or pinch the preview; tap or hold the current zoom readout for fine adjustment. Zoom starts manual and stays within the active camera’s range.
+- Reference opacity: adjust the ghost image from 0–100%; the choice is remembered.
+- Focus: with a reference loaded, choose all visible details, Hand, Head or Shoulders when those measurements are available. Changing focus clears previous coaching progress.
 - Tap the preview: manual focus/exposure; use the sun slider for brightness. Double-tap restores automatic focus/exposure and zero brightness bias.
 - Top bar: automatic flash on/off where supported, 3-second timer, voice mute, and settings.
 
@@ -26,3 +28,9 @@ Cloud comparisons use an 8-second stale limit and an event-driven schedule const
 Stationary scenes and transient errors receive a sparse refresh after 20 seconds, still subject to consent, freshness and the shared budget. This avoids indefinite waiting without polling at the maximum request rate.
 
 Reference coaching uses an on-device MediaPipe body tracker for both the selected photo and live preview. It can suggest concrete elbow/knee, arm-placement and stance adjustments when joints are visible, with conservative unknown states for ambiguous evidence. See [reference pose tracking](../docs/reference-pose-tracking.md) for model provenance, fallback behavior and device-validation limits.
+
+## Specific pose feedback
+
+Selfie guidance compares hand placement relative to the face, visible finger spread and hand angle, head tilt/turn, and supported shoulder angle. The coach ranks supported corrections, keeps one cue stable, and verifies progress for that detail. Cropping differences need not block face-relative guidance; partial detail alignment does not establish a whole-reference match or enable automatic capture. Missing or ambiguous landmarks remain unknown. Palm direction and depth are not inferred.
+
+The [pose-feedback evaluation tools](../evals/pose-feedback/README.md) validate private labeled reference/live pairs, replay real pixels through the native pipeline, and score exported decisions. The real manifest is deliberately empty; software tests and rendered fixtures are not real-photo accuracy evidence. Model training is deferred until a rights-cleared benchmark identifies a recognition gap. See the [release evidence](../evals/pose-feedback/release-report.md).

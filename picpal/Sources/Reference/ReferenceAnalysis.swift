@@ -83,4 +83,6 @@ struct LocalReferenceEvidence: Sendable {
     var availablePoseDetails: Set<String> = []
     var alignedPoseDetails: Set<String> = []
     var framingDomain: ReferenceFramingDomain = .person
+    var poseCandidates: [PoseDetailCandidate] = []
+    var selectedPoseDetails: Set<PoseDetailKey> = Set(PoseDetailKey.allCases)
 }

@@ -192,7 +192,7 @@ final class CameraScreenModel: ObservableObject {
                 || selfieAtMinimumZoom != lastComparedSelfieAtMinimumZoom {
                 if let pose = reference.pose {
                     localReferenceEvidence = referenceComparator.compare(reference: pose, live: livePose,
-                        selfieAtMinimumZoom: selfieAtMinimumZoom)
+                        selfieAtMinimumZoom: selfieAtMinimumZoom, selected: reference.selectedPoseDetails)
                 } else {
                     // Cloud comparison can still guide an image whose joints Vision
                     // cannot extract. Unknown local pose prevents automatic matching.
@@ -269,6 +269,17 @@ final class CameraScreenModel: ObservableObject {
     func invalidateReferenceGeometry() {
         referenceGeneration &+= 1
         referenceGeometryRevision &+= 1
+        resetReferenceEvidence()
+    }
+
+    /// Changing focus invalidates coaching requests, not the camera's coordinate space.
+    func referenceFocusDidChange() {
+        disarm()
+        referenceGeneration &+= 1
+        resetReferenceEvidence()
+    }
+
+    private func resetReferenceEvidence() {
         referenceProfile = nil
         referenceComparison = nil
         referenceFailure = nil

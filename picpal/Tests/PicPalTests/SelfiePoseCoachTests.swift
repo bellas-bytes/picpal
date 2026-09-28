@@ -30,7 +30,7 @@ struct SelfiePoseCoachTests {
             selfie: SelfiePoseObservation(roll: 0))
         var comparator = ReferenceLocalComparator()
         let normal = comparator.compare(reference: ref, live: frame)
-        #expect(normal.action?.direction == "move_back")
+        #expect(normal.action?.direction == "selfie_head_tilt")
         let limited = comparator.compare(reference: ref, live: frame, selfieAtMinimumZoom: true)
         #expect(limited.action?.direction == "selfie_head_tilt")
         #expect(!limited.framingAligned)
@@ -84,19 +84,20 @@ struct SelfiePoseCoachTests {
             joints: [:], subjectCount: 1, faceBox: CGRect(x: 0.3, y: 0.4, width: 0.4, height: 0.4))
         let result = comparator.compare(reference: reference(hand: CGPoint(x: 0.35, y: 0.55)),
             live: frame, selfieAtMinimumZoom: true)
-        #expect(result.action?.direction == "move_back")
+        #expect(result.action == nil)
         #expect(!result.framingAligned)
         #expect(result.poseAligned == nil)
         #expect(result.guidanceTarget == nil)
     }
-    @Test func widestSelfieDoesNotOverrideLateralFraming() {
+    @Test func supportedHeadCorrectionSurvivesLateralFramingMismatch() {
         var comparator = ReferenceLocalComparator()
         let frame = LivePoseObservation(capturedAt: 1, geometryRevision: 1, personBox: nil,
             joints: [:], subjectCount: 1, faceBox: CGRect(x: 0.65, y: 0.5, width: 0.2, height: 0.2),
             selfie: SelfiePoseObservation(roll: 0))
         let result = comparator.compare(reference: reference(hand: CGPoint(x: 0.35, y: 0.55), roll: 0.4),
             live: frame, selfieAtMinimumZoom: true)
-        #expect(result.action?.direction == "aim_right")
+        #expect(result.action?.direction == "selfie_head_tilt")
+        #expect(!result.framingAligned)
     }
     @Test func missingHandDoesNotPreserveMovementCue() {
         var comparator = ReferenceLocalComparator()

@@ -31,6 +31,38 @@ struct ReferenceLocalComparatorTests {
         #expect(result.action?.actor == .subject)
         #expect(result.action?.direction == "raise_left_arm")
     }
+    @Test func headFocusDoesNotFallBackToUnselectedArmCorrection() {
+        let target = ReferencePose(bodyKeypoints: joints(raised: true), faceCenter: nil, faceYaw: nil,
+            subjectBoundingBox: box, subjectCenterX: 0.5, subjectCenterY: 0.5,
+            subjectHeightFraction: 0.9, headroomFraction: 0.05, selfie: .init(roll: 0))
+        let frame = LivePoseObservation(capturedAt: 10, geometryRevision: 1, personBox: box,
+            joints: joints().mapValues { .init(point: $0, confidence: 1) }, subjectCount: 1, selfie: .init(roll: 0))
+        var comparator = ReferenceLocalComparator()
+        let result = comparator.compare(reference: target, live: frame, selected: [.headTilt])
+        #expect(result.framingAligned)
+        #expect(result.poseAligned == false)
+        #expect(result.alignedPoseDetails.contains("selfie_head_tilt"))
+        #expect(result.action == nil)
+    }
+    @Test func explicitHeadFocusSurvivesPersonDomainCropMismatch() {
+        let face = CGRect(x: 0.4, y: 0.6, width: 0.2, height: 0.2)
+        let target = ReferencePose(bodyKeypoints: joints(), faceCenter: nil, faceYaw: nil,
+            subjectBoundingBox: box, subjectCenterX: 0.5, subjectCenterY: 0.5,
+            subjectHeightFraction: 0.9, headroomFraction: 0.05, faceBox: face, selfie: .init(roll: 0.4))
+        let frame = LivePoseObservation(capturedAt: 10, geometryRevision: 1, personBox: box.offsetBy(dx: 0.12, dy: 0),
+            joints: joints().mapValues { .init(point: $0, confidence: 1) }, subjectCount: 1,
+            faceBox: face, selfie: .init(roll: 0))
+        var comparator = ReferenceLocalComparator()
+        let result = comparator.compare(reference: target, live: frame, selected: [.headTilt])
+        #expect(!result.framingAligned)
+        #expect(result.action?.direction == "selfie_head_tilt")
+        var coordinator = ReferenceCoachingCoordinator()
+        let decision = coordinator.update(.init(sessionID: UUID(), generation: 1, geometryRevision: 1, now: 10,
+            local: result, cloudAvailability: .localOnly, captureSafe: true))
+        #expect(decision.action?.direction == "selfie_head_tilt")
+        #expect(!decision.allowsAutoCapture)
+        #expect(!decision.referenceMatched)
+    }
     @Test func minimumSelfieZoomDoesNotBypassBodyFraming() {
         var comparator = ReferenceLocalComparator()
         let small = CGRect(x: 0.35, y: 0.275, width: 0.3, height: 0.45)

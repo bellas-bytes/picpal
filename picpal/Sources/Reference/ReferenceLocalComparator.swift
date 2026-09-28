@@ -1,8 +1,8 @@
 import Foundation
 import Vision
 
-/// Conservative 2D comparison. Local pose support covers the torso and major limb
-/// segments only; viewpoint, fingers, depth and lighting remain cloud responsibilities.
+/// Conservative 2D comparison of major limbs and independently visible selfie details.
+/// Palm direction and depth remain unmeasured.
 struct ReferenceLocalComparator {
     private var wasFramingAligned = false
     private var wasPoseAligned = false
@@ -26,7 +26,8 @@ struct ReferenceLocalComparator {
     }
 
     mutating func compare(reference: ReferencePose, live: LivePoseObservation,
-                          selfieAtMinimumZoom: Bool = false) -> LocalReferenceEvidence {
+                          selfieAtMinimumZoom: Bool = false,
+                          selected: Set<PoseDetailKey> = Set(PoseDetailKey.allCases)) -> LocalReferenceEvidence {
         if revision != live.geometryRevision || lastTime.map({ live.capturedAt - $0 > 1 || live.capturedAt < $0 }) == true {
             reset()
         }
@@ -64,13 +65,13 @@ struct ReferenceLocalComparator {
             }
             let result = reference.framingDomain == .face ? (nil as Bool?, nil as ReferenceAction?) : comparePose(reference, live)
             pose = result.0
-            // Face-relative hand/head measurements remain useful when an arm's-length
-            // selfie cannot get any wider. Keep the framing mismatch for capture safety.
+            // Face-relative details remain useful across different crops. Framing
+            // retains its independent mismatch and continues to block capture.
             let limitedSelfie = selfieAtMinimumZoom && reference.framingDomain == .face
                 && action?.direction == "move_back"
-            if framing || limitedSelfie {
-                selfie = SelfiePoseComparator.compare(reference: reference, live: live)
-                action = selfie.action ?? (limitedSelfie ? action : result.1)
+            if framing || reference.framingDomain == .face || selected != Set(PoseDetailKey.allCases) {
+                selfie = SelfiePoseComparator.compare(reference: reference, live: live, selected: selected)
+                action = selfie.action ?? (framing ? (selected == Set(PoseDetailKey.allCases) ? result.1 : nil) : (limitedSelfie ? nil : action))
             }
         }
         wasFramingAligned = framing
@@ -86,8 +87,8 @@ struct ReferenceLocalComparator {
         return LocalReferenceEvidence(capturedAt: live.capturedAt, geometryRevision: live.geometryRevision,
             framingAligned: framing, poseAligned: pose, dimensions: dimensions, action: action,
             subjectPresent: present, analysisAvailable: live.analysisAvailable, subjectCount: max(live.subjectCount, reference.subjectCount),
-            guidanceTarget: selfie.target, progressCaption: selfie.measuredDetails > 0 && selfie.alignedDetails.count == selfie.measuredDetails ? "Measured pose details aligned" : nil,
-            availablePoseDetails: selfie.availableDetails, alignedPoseDetails: selfie.alignedDetails, framingDomain: reference.framingDomain)
+            guidanceTarget: selfie.target, progressCaption: selfie.measuredDetails > 0 && selected.isSubset(of: Set(selfie.alignedDetails.compactMap { key in PoseDetailKey.allCases.first { $0.evidenceKey == key } })) ? "Measured pose details aligned" : nil,
+            availablePoseDetails: selfie.availableDetails, alignedPoseDetails: selfie.alignedDetails, framingDomain: reference.framingDomain, poseCandidates: selfie.candidates, selectedPoseDetails: selected)
     }
 
     private func makeAction(_ dimension: ReferenceDimension, _ actor: ActionActor, _ direction: String, _ instruction: String) -> ReferenceAction {

@@ -49,6 +49,21 @@ final class ReferenceSession: ObservableObject {
     /// True while Vision inference is running; false otherwise.
     @Published private(set) var isExtracting: Bool = false
 
+    @Published private(set) var poseFocus: PoseFocus = .all
+
+    var selectedPoseDetails: Set<PoseDetailKey> { poseFocus.details }
+
+    var availablePoseDetails: Set<PoseDetailKey> {
+        pose.map { SelfiePoseComparator.availableDetails(reference: $0) } ?? []
+    }
+
+    @discardableResult
+    func setPoseFocus(_ focus: PoseFocus) -> Bool {
+        guard poseFocus != focus else { return false }
+        poseFocus = focus
+        return true
+    }
+
     // MARK: - Injectable extractor
 
     /// Closure that performs the actual Vision inference.

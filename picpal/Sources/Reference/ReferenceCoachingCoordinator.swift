@@ -81,10 +81,23 @@ struct ReferenceCoachingCoordinator {
         }
 
         var candidates: [Candidate] = []
-        if let action = local.action, policy.supported(action, dimensions: local.dimensions) {
+        // Keep the active supported detail unless another is materially more useful.
+        // Existing pending-candidate hysteresis still verifies every change over newer frames.
+        var localAction = local.action
+        if let current = active, current.local,
+           let continuing = local.poseCandidates.first(where: { $0.action.id == current.action.id }),
+           let strongest = local.poseCandidates.first,
+           strongest.normalizedError * Double(strongest.confidence)
+                < continuing.normalizedError * Double(continuing.confidence) * policy.detailReplacementRatio {
+            localAction = continuing.action
+        }
+        if let action = localAction, policy.supported(action, dimensions: local.dimensions)
+            || (local.poseCandidates.contains { $0.action == action }
+                && policy.supportedLocalDetail(action, dimensions: local.dimensions)) {
             candidates.append(Candidate(action: action, timestamp: local.capturedAt, local: true))
         }
         if let comparison, let action = comparison.value.action,
+           !(action.dimension == .pose && local.selectedPoseDetails != Set(PoseDetailKey.allCases)),
            policy.supported(action, dimensions: comparison.value.dimensions),
            policy.supported(action, dimensions: effectiveDimensions) {
             candidates.append(Candidate(action: action, timestamp: comparison.envelope.capturedAt, local: false))
@@ -156,7 +169,7 @@ struct ReferenceCoachingCoordinator {
         if let active {
             return decision(cloudEnabled ? .guiding : cloudPhase(input.cloudAvailability), active.action.instruction,
                             explanation: detailProgress ?? active.action.expectedChange, action: normalized(active), framing: local.framingAligned,
-                            target: active.action.instruction == local.action?.instruction ? local.guidanceTarget : nil, progress: detailProgress)
+                            target: local.poseCandidates.first(where: { $0.action.id == active.action.id })?.target ?? (active.action.instruction == local.action?.instruction ? local.guidanceTarget : nil), progress: detailProgress)
         }
         if !cloudEnabled {
             let unavailable = cloudPhase(input.cloudAvailability)
@@ -196,7 +209,7 @@ struct ReferenceCoachingCoordinator {
 
     private func normalized(_ candidate: Candidate) -> ReferenceAction {
         let action = candidate.action
-        return ReferenceAction(id: candidate.key, dimension: action.dimension, actor: action.actor,
+        return ReferenceAction(id: action.direction.hasPrefix("selfie_") ? action.id : candidate.key, dimension: action.dimension, actor: action.actor,
                                direction: action.direction, instruction: action.instruction,
                                expectedChange: action.expectedChange, confidence: action.confidence)
     }

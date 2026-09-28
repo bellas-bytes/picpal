@@ -5,6 +5,7 @@ struct ReferenceCoachingPolicy: Sendable {
     var localMaxAge: TimeInterval = 1
     var maximumObservationGap: TimeInterval = 0.75
     var alignmentDwell: TimeInterval = 1.5
+    var detailReplacementRatio: Double = 1.35
     var minimumConfidence: Double = 0.65
 
     func fresh(_ timestamp: TimeInterval, now: TimeInterval, maximumAge: TimeInterval) -> Bool {
@@ -22,6 +23,15 @@ struct ReferenceCoachingPolicy: Sendable {
             && !action.direction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !action.instruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && dimensions.contains { $0.dimension == action.dimension && $0.status == .different && supported($0) }
+    }
+
+    /// Local landmark quality is a detector threshold, not a cloud probability.
+    /// Caller must verify that this action is backed by a current measured candidate.
+    func supportedLocalDetail(_ action: ReferenceAction, dimensions: [ReferenceDimensionComparison]) -> Bool {
+        action.dimension == .pose && action.direction.hasPrefix("selfie_")
+            && action.confidence.isFinite && action.confidence >= Double(ReferenceLocalComparator.confidenceFloor)
+            && action.confidence <= 1 && !action.instruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && dimensions.contains { $0.dimension == .pose && $0.status == .different && supported($0) }
     }
 
     func allMatched(profile: ReferenceProfile, comparison: ReferenceComparison) -> Bool {

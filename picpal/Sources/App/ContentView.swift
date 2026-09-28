@@ -292,7 +292,13 @@ struct ContentView: View {
                     }
                     if let notice = cameraScreen.notice { Text(notice).font(.subheadline).padding(8).background(.black.opacity(0.6), in: Capsule()) }
                     VStack(spacing: 6) {
-                        if referenceSession != nil {
+                        if let session = referenceSession {
+                            PoseFocusControlView(session: session) {
+                                cameraScreen.referenceFocusDidChange()
+                                referenceMatchState.reset()
+                                voiceCoach.stop()
+                                syncReferenceAnalysis()
+                            }
                             ReferenceOpacityControl(opacity: $referenceOpacity,
                                 referenceDescription: referenceSession.map { $0.image.size.width == $0.image.size.height ? "Square reference" :
                                     $0.image.size.width > $0.image.size.height ? "Landscape reference" : "Portrait reference" } ?? "Reference")

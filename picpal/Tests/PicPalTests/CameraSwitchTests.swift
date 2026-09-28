@@ -45,6 +45,13 @@ struct CameraStageRenderingTests {
             UIColor.green.setFill()
             context.fill(CGRect(x: 0, y: 0, width: 1024, height: 768))
         }
+        let referenceSession = ReferenceSession(image: reference, visionExtractor: { _ in
+            try ReferenceSession.makePose(body: nil, faces: [CGRect(x: 0.35, y: 0.4, width: 0.3, height: 0.3)],
+                personBoxes: [], geometry: .init(imageAspectRatio: 4.0 / 3.0),
+                selfie: .init(yaw: 0, roll: 0, hands: [.init(anchor: CGPoint(x: 0.3, y: 0.5), victory: true)], handsAvailable: true))
+        })
+        await referenceSession.extractPose()
+        #expect(referenceSession.availablePoseDetails.contains(.headTilt))
         func content(_ size: CGSize, expanded: Bool = false) -> some View {
             CameraStage(size: size, aspectRatio: size.width > size.height ? 4.0 / 3.0 : 3.0 / 4.0) {
                 ZStack {
@@ -55,6 +62,7 @@ struct CameraStageRenderingTests {
                         Text("Step back to include head and shoulders in the reference photo")
                             .font(.headline).padding()
                         Spacer()
+                        PoseFocusControlView(session: referenceSession, onChange: {})
                         ReferenceOpacityControl(opacity: .constant(0.3), referenceDescription: "Landscape reference")
                         CameraZoomControl(zoom: 1, minimum: 1, maximum: 5, multiplier: 0.5, setZoom: { _ in }, expanded: expanded)
                             .padding(.bottom, 12)
