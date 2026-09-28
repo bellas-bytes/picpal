@@ -1,5 +1,7 @@
 # PicPal
 
+See the [living architecture, decision log, and interview notes](../docs/architecture-and-decisions.md) for the system diagram, engineering tradeoffs, incident stories, validation evidence, and open questions. Update that document when making meaningful architectural changes.
+
 An iOS photo-framing coach with live camera analysis, spoken guidance, and reference-photo overlays. Requires iOS 17 or later. Take still photos with the shutter, or start Auto capture for repeated photos after a brief 0.25-second readiness check. Photos are saved to your library; the bottom-right Photos button selects reference pictures. Portrait is a framing style, without background-blur effects.
 
 Open `../PicPal.xcodeproj`, select the **PicPal** scheme and your iPhone, then Run. Choose **Stay on-device only** for the first session. Optional cloud coaching needs a separately configured proxy reachable from the phone.
@@ -23,7 +25,7 @@ See the [device readiness assessment](../docs/device-readiness.md) for a first-r
 
 Photos permission is add-only. If saving fails, PicPal holds the original photo in memory and offers Retry; keep the app open until it saves. Camera quality, mirroring, and live auto-capture still need physical-device checks.
 
-Cloud comparisons use an 8-second stale limit and an event-driven schedule constrained by the existing 8-second minimum request cadence. The target of at most three calls per minute on average includes reference-profile calls and retries; it is a measurement target, not a hard cap. Automated validation passes 742 Swift tests, 8 proxy tests and 3 evaluation-harness tests. The pre-change baseline was 696 Swift tests. The 30-scenario evaluation manifest currently has no test images or human reviews, so phone validation and the semantic benchmark remain incomplete.
+Cloud comparisons use an 8-second stale limit and an event-driven schedule constrained by the existing 8-second minimum request cadence. The target of at most three calls per minute on average includes reference-profile calls and retries; it is a measurement target, not a hard cap. For the latest recorded software verification and its implementation revision, see the [living architecture document](../docs/architecture-and-decisions.md#what-has-actually-been-verified). The 30-scenario evaluation manifest currently has no test images or human reviews, so phone validation and the semantic benchmark remain incomplete.
 
 Stationary scenes and transient errors receive a sparse refresh after 20 seconds, still subject to consent, freshness and the shared budget. This avoids indefinite waiting without polling at the maximum request rate.
 
